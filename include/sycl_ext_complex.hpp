@@ -13,7 +13,7 @@
 /*
     complex synopsis
 
-namespace std
+namespace sycl::ext::cplx
 {
 
 template<class T>
@@ -227,7 +227,7 @@ template<class T> complex<T> sqrt (const complex<T>&);
 template<class T> complex<T> tan (const complex<T>&);
 template<class T> complex<T> tanh (const complex<T>&);
 
-}  // std
+}  // sycl::ext::cplx
 
 */
 
