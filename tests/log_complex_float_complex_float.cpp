@@ -16,16 +16,14 @@ void test_log(){
    const char* usr_precision = getenv("SYCL_TOL_ULP");
    const int precision = usr_precision ? atoi(usr_precision) : 4;
    complex<float> in0_host { 0.42, 0.0 };
-   sycl::ext::cplx::complex<float> in0_device { 0.42, 0.0 };
    auto* out1_device = sycl::malloc_shared<sycl::ext::cplx::complex<float>>(1,Q);;
   Q.single_task([=]() {
-   out1_device[0] = sycl::ext::cplx::log(in0_device);
+   out1_device[0] = sycl::ext::cplx::log<float>(in0_host);
    }).wait();
-   std::complex<float> out1_device_std = { out1_device[0].real(), out1_device[0].imag() };
    {
-     if ( !almost_equal(exp(out1_device_std), in0_host, 2*precision) ) {
+     if ( !almost_equal(exp(out1_device[0]), in0_host, 2*precision) ) {
           std::cerr << std::setprecision (std::numeric_limits<float>::max_digits10 )
-                    << "Expected:" << in0_host << " Got: " << exp(out1_device_std) << std::endl;
+                    << "Expected:" << in0_host << " Got: " << exp(out1_device[0]) << std::endl;
           std::exit(112);
      }
    }

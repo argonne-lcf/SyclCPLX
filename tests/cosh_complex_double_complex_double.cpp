@@ -16,20 +16,18 @@ void test_cosh(){
    const char* usr_precision = getenv("SYCL_TOL_ULP");
    const int precision = usr_precision ? atoi(usr_precision) : 4;
    complex<double> in0_host { 0.42, 0.0 };
-   sycl::ext::cplx::complex<double> in0_device { 0.42, 0.0 };
    complex<double> out1_host {};
    auto* out1_device = sycl::malloc_shared<sycl::ext::cplx::complex<double>>(1,Q);;
    {
       out1_host = cosh(in0_host);
    }
   Q.single_task([=]() {
-   out1_device[0] = sycl::ext::cplx::cosh(in0_device);
+   out1_device[0] = sycl::ext::cplx::cosh<double>(in0_host);
    }).wait();
-   std::complex<double> out1_device_std = { out1_device[0].real(), out1_device[0].imag() };
    {
-      if ( !almost_equal(out1_host,out1_device_std, precision) ) {
+      if ( !almost_equal(out1_host,out1_device[0], precision) ) {
           std::cerr << std::setprecision (std::numeric_limits<double>::max_digits10 )
-                    << "Host: " << out1_host << " GPU: " << out1_device_std << std::endl;
+                    << "Host: " << out1_host << " GPU: " << out1_device[0] << std::endl;
           std::exit(112);
       }
    }

@@ -244,14 +244,15 @@ template<class T> complex<T> tanh (const complex<T>&);
 #define _SYCL_EXT_CPLX_BEGIN_NAMESPACE_STD namespace sycl::ext::cplx {
 #define _SYCL_EXT_CPLX_END_NAMESPACE_STD   }
 #define _SYCL_EXT_CPLX_INLINE_VISIBILITY __attribute__ ((__visibility__("hidden"), __always_inline__))
-//TODO IEEE This guy 
+//TODO IEEE This guy
 #define scalbn(x,n)  ( (x) * sycl::pow(_Tp(FLT_RADIX), _Tp(n) ) )
 
-_SYCL_EXT_CPLX_BEGIN_NAMESPACE_STD
-
+#include <complex>
 #include <type_traits>
 #include <sycl/sycl.hpp>
 #include <cfloat> // FLT_RADIX
+
+_SYCL_EXT_CPLX_BEGIN_NAMESPACE_STD
 
 using std::integral_constant;
 using std::is_integral;
@@ -362,6 +363,13 @@ public:
     complex(const complex<_Xp>& __c)
         : __re_(__c.real()), __im_(__c.imag()) {}
 
+    template<class _Xp> _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr
+    complex(const std::complex<_Xp>& __c)
+        : __re_(__c.real()), __im_(__c.imag()) {}
+    template<class _Xp> _SYCL_EXT_CPLX_INLINE_VISIBILITY
+    operator std::complex<_Xp>()
+        {return std::complex<_Xp>(__re_, __im_);}
+
     _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr value_type real() const {return __re_;}
     _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr value_type imag() const {return __im_;}
 
@@ -376,6 +384,12 @@ public:
     _SYCL_EXT_CPLX_INLINE_VISIBILITY complex& operator/=(const value_type& __re) {__re_ /= __re; __im_ /= __re; return *this;}
 
     template<class _Xp> _SYCL_EXT_CPLX_INLINE_VISIBILITY complex& operator= (const complex<_Xp>& __c)
+        {
+            __re_ = __c.real();
+            __im_ = __c.imag();
+            return *this;
+        }
+    template<class _Xp> _SYCL_EXT_CPLX_INLINE_VISIBILITY complex& operator= (const std::complex<_Xp>& __c)
         {
             __re_ = __c.real();
             __im_ = __c.imag();
@@ -422,6 +436,12 @@ public:
     explicit constexpr complex(const complex<double>& __c);
     _SYCL_EXT_CPLX_INLINE_VISIBILITY
     explicit constexpr complex(const complex<long double>& __c);
+    _SYCL_EXT_CPLX_INLINE_VISIBILITY
+    constexpr complex(const std::complex<float>& __c)
+        : __re_(__c.real()), __im_(__c.imag()) {}
+    _SYCL_EXT_CPLX_INLINE_VISIBILITY
+    constexpr operator std::complex<float>()
+        {return std::complex<float>(__re_, __im_);}
 
     _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr float real() const {return __re_;}
     _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr float imag() const {return __im_;}
@@ -437,6 +457,12 @@ public:
     _SYCL_EXT_CPLX_INLINE_VISIBILITY complex& operator/=(float __re) {__re_ /= __re; __im_ /= __re; return *this;}
 
     template<class _Xp> _SYCL_EXT_CPLX_INLINE_VISIBILITY complex& operator= (const complex<_Xp>& __c)
+        {
+            __re_ = __c.real();
+            __im_ = __c.imag();
+            return *this;
+        }
+    template<class _Xp> _SYCL_EXT_CPLX_INLINE_VISIBILITY complex& operator= (const std::complex<_Xp>& __c)
         {
             __re_ = __c.real();
             __im_ = __c.imag();
@@ -480,6 +506,12 @@ public:
     constexpr complex(const complex<float>& __c);
     _SYCL_EXT_CPLX_INLINE_VISIBILITY
     explicit constexpr complex(const complex<long double>& __c);
+    _SYCL_EXT_CPLX_INLINE_VISIBILITY
+    constexpr complex(const std::complex<double>& __c)
+        : __re_(__c.real()), __im_(__c.imag()) {}
+    _SYCL_EXT_CPLX_INLINE_VISIBILITY
+    constexpr operator std::complex<double>()
+        {return std::complex<double>(__re_, __im_);}
 
     _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr double real() const {return __re_;}
     _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr double imag() const {return __im_;}
@@ -495,6 +527,12 @@ public:
     _SYCL_EXT_CPLX_INLINE_VISIBILITY complex& operator/=(double __re) {__re_ /= __re; __im_ /= __re; return *this;}
 
     template<class _Xp> _SYCL_EXT_CPLX_INLINE_VISIBILITY complex& operator= (const complex<_Xp>& __c)
+        {
+            __re_ = __c.real();
+            __im_ = __c.imag();
+            return *this;
+        }
+    template<class _Xp> _SYCL_EXT_CPLX_INLINE_VISIBILITY complex& operator= (const std::complex<_Xp>& __c)
         {
             __re_ = __c.real();
             __im_ = __c.imag();
@@ -538,6 +576,12 @@ public:
     constexpr complex(const complex<float>& __c);
     _SYCL_EXT_CPLX_INLINE_VISIBILITY
     constexpr complex(const complex<double>& __c);
+    _SYCL_EXT_CPLX_INLINE_VISIBILITY
+    explicit constexpr complex(const std::complex<long double>& __c)
+        : __re_(__c.real()), __im_(__c.imag()) {}
+    _SYCL_EXT_CPLX_INLINE_VISIBILITY
+    constexpr operator std::complex<long double>()
+        {return std::complex<long double>(__re_, __im_);}
 
     _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr long double real() const {return __re_;}
     _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr long double imag() const {return __im_;}
@@ -553,6 +597,12 @@ public:
     _SYCL_EXT_CPLX_INLINE_VISIBILITY complex& operator/=(long double __re) {__re_ /= __re; __im_ /= __re; return *this;}
 
     template<class _Xp> _SYCL_EXT_CPLX_INLINE_VISIBILITY complex& operator= (const complex<_Xp>& __c)
+        {
+            __re_ = __c.real();
+            __im_ = __c.imag();
+            return *this;
+        }
+    template<class _Xp> _SYCL_EXT_CPLX_INLINE_VISIBILITY complex& operator= (const std::complex<_Xp>& __c)
         {
             __re_ = __c.real();
             __im_ = __c.imag();
