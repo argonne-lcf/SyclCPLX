@@ -574,7 +574,7 @@ public:
     _SYCL_EXT_CPLX_INLINE_VISIBILITY
     constexpr complex(const complex<double>& __c);
     _SYCL_EXT_CPLX_INLINE_VISIBILITY
-    explicit constexpr complex(const std::complex<long double>& __c)
+    constexpr complex(const std::complex<long double>& __c)
         : __re_(__c.real()), __im_(__c.imag()) {}
     _SYCL_EXT_CPLX_INLINE_VISIBILITY
     constexpr operator std::complex<long double>()
