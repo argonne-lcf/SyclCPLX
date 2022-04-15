@@ -231,9 +231,6 @@ template<class T> complex<T> tanh (const complex<T>&);
 
 */
 
-#include <type_traits>
-#include <sycl/sycl.hpp>
-#include <cfloat> // FLT_RADIX
 /*
 #if !defined(_SYCL_EXT_CPLX_HAS_NO_LOCALIZATION)
 #   include <sstream> // for std::basic_ostringstream
@@ -251,6 +248,10 @@ template<class T> complex<T> tanh (const complex<T>&);
 #define scalbn(x,n)  ( (x) * sycl::pow(_Tp(FLT_RADIX), _Tp(n) ) )
 
 _SYCL_EXT_CPLX_BEGIN_NAMESPACE_STD
+
+#include <type_traits>
+#include <sycl/sycl.hpp>
+#include <cfloat> // FLT_RADIX
 
 using std::integral_constant;
 using std::is_integral;

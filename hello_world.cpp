@@ -20,6 +20,9 @@ int main() {
   sycl::ext::cplx::complex<double> i11{0.2,0.3};
   std::complex<double> cpu_result = std::pow(i00,i01);
 
+  //i00 = static_cast<std::complex<double>>(i10);
+  i10 = static_cast<sycl::ext::cplx::complex<double>>(i00);
+
   auto* gpu_result = sycl::malloc_shared<sycl::ext::cplx::complex<double>>(1,Q);
 
   Q.single_task([=]() {
