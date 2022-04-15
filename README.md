@@ -6,9 +6,10 @@ Sycl complex library header-only.
 A sycl port of https://github.com/llvm/llvm-project/tree/main/libcxx/include/complex
 
 ```c++
+#include <sycl/sycl.hpp>
+#include "sycl_ext_complex.hpp"
 
 #include <complex>
-#include "sycl_ext_complex.hpp"
 
 bool almost_equal(std::complex<double> x, std::complex<double> y, int ulp) {
    return std::abs(x-y) <= std::numeric_limits<double>::epsilon() * std::abs(x+y) * ulp || std::abs(x-y) < std::numeric_limits<double>::min();
