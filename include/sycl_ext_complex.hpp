@@ -1588,47 +1588,6 @@ operator<<(basic_ostream<_CharT, _Traits>& __os, const complex<_Tp>& __x)
 }
 #endif // !_SYCL_EXT_CPLX_HAS_NO_LOCALIZATION
 
-#if _SYCL_EXT_CPLX_STD_VER > 11
-// Literal suffix for complex number literals [complex.literals]
-inline namespace literals
-{
-  inline namespace complex_literals
-  {
-    constexpr complex<long double> operator""il(long double __im)
-    {
-        return { 0.0l, __im };
-    }
-
-    constexpr complex<long double> operator""il(unsigned long long __im)
-    {
-        return { 0.0l, static_cast<long double>(__im) };
-    }
-
-
-    constexpr complex<double> operator""i(long double __im)
-    {
-        return { 0.0, static_cast<double>(__im) };
-    }
-
-    constexpr complex<double> operator""i(unsigned long long __im)
-    {
-        return { 0.0, static_cast<double>(__im) };
-    }
-
-
-    constexpr complex<float> operator""if(long double __im)
-    {
-        return { 0.0f, static_cast<float>(__im) };
-    }
-
-    constexpr complex<float> operator""if(unsigned long long __im)
-    {
-        return { 0.0f, static_cast<float>(__im) };
-    }
-  } // namespace complex_literals
-} // namespace literals
-#endif
-
 _SYCL_EXT_CPLX_END_NAMESPACE_STD
 
 #undef _SYCL_EXT_CPLX_BEGIN_NAMESPACE_STD 
