@@ -231,16 +231,6 @@ template<class T> complex<T> tanh (const complex<T>&);
 
 */
 
-/*
-#if !defined(_SYCL_EXT_CPLX_HAS_NO_LOCALIZATION)
-#   include <sstream> // for std::basic_ostringstream
-#endif
-
-#if !defined(_SYCL_EXT_CPLX_HAS_NO_PRAGMA_SYSTEM_HEADER)
-#  pragma GCC system_header
-#endif
-*/
-
 #define _SYCL_EXT_CPLX_BEGIN_NAMESPACE_STD namespace sycl::ext::cplx {
 #define _SYCL_EXT_CPLX_END_NAMESPACE_STD   }
 #define _SYCL_EXT_CPLX_INLINE_VISIBILITY __attribute__ ((__visibility__("hidden"), __always_inline__))
@@ -248,6 +238,9 @@ template<class T> complex<T> tanh (const complex<T>&);
 #include <complex>
 #include <type_traits>
 #include <sycl/sycl.hpp>
+#if !defined(_SYCL_EXT_CPLX_HAS_NO_LOCALIZATION)
+#   include <sstream> // for std::basic_ostringstream
+#endif
 
 _SYCL_EXT_CPLX_BEGIN_NAMESPACE_STD
 
