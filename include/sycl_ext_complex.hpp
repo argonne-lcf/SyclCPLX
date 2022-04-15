@@ -244,13 +244,10 @@ template<class T> complex<T> tanh (const complex<T>&);
 #define _SYCL_EXT_CPLX_BEGIN_NAMESPACE_STD namespace sycl::ext::cplx {
 #define _SYCL_EXT_CPLX_END_NAMESPACE_STD   }
 #define _SYCL_EXT_CPLX_INLINE_VISIBILITY __attribute__ ((__visibility__("hidden"), __always_inline__))
-//TODO IEEE This guy
-#define scalbn(x,n)  ( (x) * sycl::pow(_Tp(FLT_RADIX), _Tp(n) ) )
 
 #include <complex>
 #include <type_traits>
 #include <sycl/sycl.hpp>
-#include <cfloat> // FLT_RADIX
 
 _SYCL_EXT_CPLX_BEGIN_NAMESPACE_STD
 
@@ -816,12 +813,12 @@ operator/(const complex<_Tp>& __z, const complex<_Tp>& __w)
     if (sycl::isfinite(__logbw))
     {
         __ilogbw = static_cast<int>(__logbw);
-        __c = scalbn(__c, -__ilogbw);
-        __d = scalbn(__d, -__ilogbw);
+        __c = sycl::ldexp(__c, -__ilogbw);
+        __d = sycl::ldexp(__d, -__ilogbw);
     }
     _Tp __denom = __c * __c + __d * __d;
-    _Tp __x = scalbn((__a * __c + __b * __d) / __denom, -__ilogbw);
-    _Tp __y = scalbn((__b * __c - __a * __d) / __denom, -__ilogbw);
+    _Tp __x = sycl::ldexp((__a * __c + __b * __d) / __denom, -__ilogbw);
+    _Tp __y = sycl::ldexp((__b * __c - __a * __d) / __denom, -__ilogbw);
     if (sycl::isnan(__x) && sycl::isnan(__y))
     {
         if ((__denom == _Tp(0)) && (!sycl::isnan(__a) || !sycl::isnan(__b)))
@@ -1633,5 +1630,9 @@ inline namespace literals
 #endif
 
 _SYCL_EXT_CPLX_END_NAMESPACE_STD
+
+#undef _SYCL_EXT_CPLX_BEGIN_NAMESPACE_STD 
+#undef _SYCL_EXT_CPLX_END_NAMESPACE_STD 
+#undef _SYCL_EXT_CPLX_INLINE_VISIBILITY 
 
 #endif // _SYCL_EXT_CPLX_COMPLEX
