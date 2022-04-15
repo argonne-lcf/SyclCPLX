@@ -1,0 +1,40 @@
+#include <complex>
+#include <cmath>
+#include <iomanip>
+#include <stdlib.h>
+#include <limits>
+#include <iostream>
+#include <cstdlib>
+#include <sycl/sycl.hpp>
+#include "sycl_ext_complex.hpp"
+using namespace std;
+bool almost_equal(complex<double> x, complex<double> y, int ulp) {
+   return std::abs(x-y) <= std::numeric_limits<double>::epsilon() * std::abs(x+y) * ulp || std::abs(x-y) < std::numeric_limits<double>::min();
+}
+void test_log10(){
+   sycl::queue Q(sycl::gpu_selector{});
+   const char* usr_precision = getenv("SYCL_TOL_ULP");
+   const int precision = usr_precision ? atoi(usr_precision) : 4;
+   complex<double> in0_host { 0.42, 0.0 };
+   sycl::ext::cplx::complex<double> in0_device { 0.42, 0.0 };
+   complex<double> out1_host {};
+   auto* out1_device = sycl::malloc_shared<sycl::ext::cplx::complex<double>>(1,Q);;
+   {
+      out1_host = log10(in0_host);
+   }
+  Q.single_task([=]() {
+   out1_device[0] = sycl::ext::cplx::log10(in0_device);
+   }).wait();
+   std::complex<double> out1_device_std = { out1_device[0].real(), out1_device[0].imag() };
+   {
+      if ( !almost_equal(out1_host,out1_device_std, precision) ) {
+          std::cerr << std::setprecision (std::numeric_limits<double>::max_digits10 )
+                    << "Host: " << out1_host << " GPU: " << out1_device_std << std::endl;
+          std::exit(112);
+      }
+   }
+}
+int main()
+{
+    test_log10();
+}

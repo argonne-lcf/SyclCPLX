@@ -3,7 +3,8 @@
 Sycl complex library header-only. 
 
 
-A sycl port of https://github.com/llvm/llvm-project/tree/main/libcxx/include/complex
+A sycl port of https://github.com/llvm/llvm-project/tree/main/libcxx/include/complex.
+See `include/sycl_ext_complex.hpp` 
 
 ```c++
 #include <sycl/sycl.hpp>
@@ -41,3 +42,7 @@ int main() {
   return 0;
 }
 ```
+
+## Tests
+
+Crude tests for all C++ complex math functions are provided in `/tests/`. Just defined a correct `CXX` and then `make` , `make run` 
