@@ -1122,7 +1122,7 @@ inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
 complex<_Tp>
 log10(const complex<_Tp>& __x)
 {
-    return sycl::log(__x) / sycl::log(_Tp(10));
+    return log(__x) / sycl::log(_Tp(10));
 }
 
 // sqrt
@@ -1139,7 +1139,7 @@ sqrt(const complex<_Tp>& __x)
             return complex<_Tp>(__x.real(), sycl::isnan(__x.imag()) ? __x.imag() : sycl::copysign(_Tp(0), __x.imag()));
         return complex<_Tp>(sycl::isnan(__x.imag()) ? __x.imag() : _Tp(0), sycl::copysign(__x.real(), __x.imag()));
     }
-    return polar(sycl::sqrt(sycl::fabs(__x)), arg(__x) / _Tp(2));
+    return polar(sycl::sqrt(abs(__x)), arg(__x) / _Tp(2));
 }
 
 // exp
@@ -1251,7 +1251,7 @@ asinh(const complex<_Tp>& __x)
     }
     if (sycl::isinf(__x.imag()))
         return complex<_Tp>(sycl::copysign(__x.imag(), __x.real()), sycl::copysign(__pi/_Tp(2), __x.imag()));
-    complex<_Tp> __z = sycl::log(__x + sycl::sqrt(__sqr(__x) + _Tp(1)));
+    complex<_Tp> __z = log(__x + sqrt(__sqr(__x) + _Tp(1)));
     return complex<_Tp>(sycl::copysign(__z.real(), __x.real()), sycl::copysign(__z.imag(), __x.imag()));
 }
 
@@ -1285,7 +1285,7 @@ acosh(const complex<_Tp>& __x)
     }
     if (sycl::isinf(__x.imag()))
         return complex<_Tp>(sycl::fabs(__x.imag()), sycl::copysign(__pi/_Tp(2), __x.imag()));
-    complex<_Tp> __z = sycl::log(__x + sycl::sqrt(__sqr(__x) - _Tp(1)));
+    complex<_Tp> __z = log(__x + sqrt(__sqr(__x) - _Tp(1)));
     return complex<_Tp>(sycl::copysign(__z.real(), _Tp(0)), sycl::copysign(__z.imag(), __x.imag()));
 }
 
@@ -1419,7 +1419,7 @@ acos(const complex<_Tp>& __x)
         return complex<_Tp>(__pi/_Tp(2), -__x.imag());
     if (__x.real() == 0 && (__x.imag() == 0 || isnan(__x.imag())))
         return complex<_Tp>(__pi/_Tp(2), -__x.imag());
-    complex<_Tp> __z = sycl::log(__x + sycl::sqrt(__sqr(__x) - _Tp(1)));
+    complex<_Tp> __z = log(__x + sqrt(__sqr(__x) - _Tp(1)));
     if (sycl::signbit(__x.imag()))
         return complex<_Tp>(sycl::fabs(__z.imag()), sycl::fabs(__z.real()));
     return complex<_Tp>(sycl::fabs(__z.imag()), -sycl::fabs(__z.real()));
