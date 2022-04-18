@@ -9,8 +9,9 @@ bool almost_equal(std::complex<double> x, std::complex<double> y, int ulp) {
 
 int main() {
 
+  std::cout << "Is sycl::ext::cplx::complex<double> trivially_copyable? " << std::boolalpha <<std::is_trivially_copyable<sycl::ext::cplx::complex<double>>::value << '\n';
+
   sycl::queue Q(sycl::gpu_selector{});
-  
   std::cout << "Running on "
             << Q.get_device().get_info<sycl::info::device::name>()
             << "\n";
@@ -19,15 +20,14 @@ int main() {
   std::complex<double> i01{0.2,0.3};
   std::complex<double> cpu_result = std::pow(i00,i01);
   auto* gpu_result = sycl::malloc_shared<sycl::ext::cplx::complex<double>>(1,Q);
-
   Q.single_task([=]() {
     //Using implicit cast from std::complex -> sycl::ext::cplx::complex
     gpu_result[0] = sycl::ext::cplx::pow<double>(i00, i01); 
   }).wait();  
 
   std::cout << "cpu_result " << cpu_result << std::endl;
-  std::cout << "gpu_result" << gpu_result[0] << std::endl;
-  //Using implicit cast from sycl::ext::cplx::complex ->  std::complex
+  std::cout << "gpu_result " << gpu_result[0] << std::endl;
+  //Using implicit cast from sycl::ext::cplx::complex -> std::complex
   assert(almost_equal(cpu_result, gpu_result[0], 1));
   return 0;
 }
