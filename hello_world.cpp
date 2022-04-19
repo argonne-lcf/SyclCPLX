@@ -22,7 +22,8 @@ int main() {
   auto* gpu_result = sycl::malloc_shared<sycl::ext::cplx::complex<double>>(1,Q);
   Q.single_task([=]() {
     //Using implicit cast from std::complex -> sycl::ext::cplx::complex
-    gpu_result[0] = sycl::ext::cplx::pow<double>(i00, i01); 
+    sycl::ext::cplx::complex<double> i11{i01};
+    gpu_result[0] = sycl::ext::cplx::pow<double>(i00, i11); 
   }).wait();  
 
   std::cout << "cpu_result " << cpu_result << std::endl;
