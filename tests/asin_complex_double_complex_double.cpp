@@ -1,34 +1,29 @@
-#include <complex>
-#include <cmath>
-#include <iomanip>
-#include <stdlib.h>
-#include <limits>
-#include <iostream>
-#include <cstdlib>
-#include <sycl/sycl.hpp>
 #include "sycl_ext_complex.hpp"
+#include <cmath>
+#include <complex>
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <stdlib.h>
+#include <sycl/sycl.hpp>
 using namespace std;
-bool almost_equal(complex<double> x, complex<double> y, int ulp) {
-   return std::abs(x-y) <= std::numeric_limits<double>::epsilon() * std::abs(x+y) * ulp || std::abs(x-y) < std::numeric_limits<double>::min();
+bool almost_equal(double x, double y, int ulp) { return std::abs(x - y) <= std::numeric_limits<double>::epsilon() * std::abs(x + y) * ulp || std::abs(x - y) < std::numeric_limits<double>::min(); }
+bool almost_equal(complex<double> x, complex<double> y, int ulp) { return almost_equal(x.real(), y.real(), ulp) && almost_equal(x.imag(), y.imag(), ulp); }
+void test_asin() {
+  sycl::queue Q(sycl::gpu_selector{});
+  const char *usr_precision = getenv("SYCL_TOL_ULP");
+  const int precision = usr_precision ? atoi(usr_precision) : 1;
+  complex<double> x_host{0.42, 0.0};
+  complex<double> o_host{};
+  auto *o_device = sycl::malloc_shared<sycl::ext::cplx::complex<double>>(1, Q);
+  { o_host = asin(x_host); }
+  Q.single_task([=]() { o_device[0] = sycl::ext::cplx::asin<double>(x_host); }).wait();
+  {
+    if (!almost_equal(o_host, o_device[0], precision)) {
+      std::cerr << std::setprecision(std::numeric_limits<double>::max_digits10) << "Host: " << o_host << " GPU: " << o_device[0] << std::endl;
+      std::exit(112);
+    }
+  }
 }
-void test_asin(){
-   sycl::queue Q(sycl::gpu_selector{});
-   const char* usr_precision = getenv("SYCL_TOL_ULP");
-   const int precision = usr_precision ? atoi(usr_precision) : 4;
-   complex<double> x_host { 0.42, 0.0 };
-   auto* o_device = sycl::malloc_shared<sycl::ext::cplx::complex<double>>(1,Q);;
-  Q.single_task([=]() {
-   o_device[0] = sycl::ext::cplx::asin<double>(x_host);
-   }).wait();
-   {
-     if ( !almost_equal(sin(o_device[0]), x_host, 2*precision) ) {
-          std::cerr << std::setprecision (std::numeric_limits<double>::max_digits10 )
-                    << "Expected:" << x_host << " Got: " << sin(o_device[0]) << std::endl;
-          std::exit(112);
-     }
-   }
-}
-int main()
-{
-    test_asin();
-}
+int main() { test_asin(); }
