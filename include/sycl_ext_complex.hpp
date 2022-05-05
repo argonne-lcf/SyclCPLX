@@ -284,8 +284,6 @@ template<class T> complex<T> tanh (const complex<T>&);
 #   include <sstream> // for std::basic_ostringstream
 #endif
 
-// DPCPP_WA is needed for https://github.com/intel/llvm/issues/6028
-
 _SYCL_EXT_CPLX_BEGIN_NAMESPACE_STD
 
 using std::integral_constant;
@@ -1093,7 +1091,7 @@ struct __libcpp_complex_overload_traits<_Tp, false, true>
 // real
 
 template<class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr
+SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr
 _Tp
 real(const complex<_Tp>& __c)
 {
@@ -1101,7 +1099,7 @@ real(const complex<_Tp>& __c)
 }
 
 template <class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr
+SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr
 typename __libcpp_complex_overload_traits<_Tp>::_ValueType
 real(_Tp __re)
 {
@@ -1111,7 +1109,7 @@ real(_Tp __re)
 // imag
 
 template<class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr
+SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr
 _Tp
 imag(const complex<_Tp>& __c)
 {
@@ -1119,7 +1117,7 @@ imag(const complex<_Tp>& __c)
 }
 
 template <class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr
+SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr
 typename __libcpp_complex_overload_traits<_Tp>::_ValueType
 imag(_Tp)
 {
@@ -1129,7 +1127,7 @@ imag(_Tp)
 // abs
 
 template<class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
 _Tp
 abs(const complex<_Tp>& __c)
 {
@@ -1139,7 +1137,7 @@ abs(const complex<_Tp>& __c)
 // arg
 
 template<class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
 _Tp
 arg(const complex<_Tp>& __c)
 {
@@ -1147,7 +1145,7 @@ arg(const complex<_Tp>& __c)
 }
 
 template <class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
 typename enable_if<
     is_same<_Tp, long double>::value,
     long double
@@ -1158,7 +1156,7 @@ arg(_Tp __re)
 }
 
 template<class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
 typename enable_if
 <
     is_integral<_Tp>::value || is_same<_Tp, double>::value,
@@ -1170,7 +1168,7 @@ arg(_Tp __re)
 }
 
 template <class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
 typename enable_if<
     is_same<_Tp, float>::value,
     float
@@ -1183,7 +1181,7 @@ arg(_Tp __re)
 // norm
 
 template<class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
 _Tp
 norm(const complex<_Tp>& __c)
 {
@@ -1195,7 +1193,7 @@ norm(const complex<_Tp>& __c)
 }
 
 template <class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
 typename __libcpp_complex_overload_traits<_Tp>::_ValueType
 norm(_Tp __re)
 {
@@ -1206,7 +1204,7 @@ norm(_Tp __re)
 // conj
 
 template<class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
 complex<_Tp>
 conj(const complex<_Tp>& __c)
 {
@@ -1214,7 +1212,7 @@ conj(const complex<_Tp>& __c)
 }
 
 template <class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
 typename __libcpp_complex_overload_traits<_Tp>::_ComplexType
 conj(_Tp __re)
 {
@@ -1227,7 +1225,7 @@ conj(_Tp __re)
 // proj
 
 template<class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
 complex<_Tp>
 proj(const complex<_Tp>& __c)
 {
@@ -1238,7 +1236,7 @@ proj(const complex<_Tp>& __c)
 }
 
 template <class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
 typename enable_if
 <
     is_floating_point<_Tp>::value,
@@ -1252,7 +1250,7 @@ proj(_Tp __re)
 }
 
 template <class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
 typename enable_if
 <
     is_integral<_Tp>::value,
@@ -1267,7 +1265,7 @@ proj(_Tp __re)
 // polar
 
 template<class _Tp>
-complex<_Tp>
+SYCL_EXTERNAL complex<_Tp>
 polar(const _Tp& __rho, const _Tp& __theta = _Tp())
 {
     if (sycl::isnan(__rho) || sycl::signbit(__rho))
@@ -1296,7 +1294,7 @@ polar(const _Tp& __rho, const _Tp& __theta = _Tp())
 // log
 
 template<class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
 complex<_Tp>
 log(const complex<_Tp>& __x)
 {
@@ -1306,7 +1304,7 @@ log(const complex<_Tp>& __x)
 // log10
 
 template<class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
 complex<_Tp>
 log10(const complex<_Tp>& __x)
 {
@@ -1316,7 +1314,7 @@ log10(const complex<_Tp>& __x)
 // sqrt
 
 template<class _Tp>
-complex<_Tp>
+SYCL_EXTERNAL complex<_Tp>
 sqrt(const complex<_Tp>& __x)
 {
     if (sycl::isinf(__x.imag()))
@@ -1327,17 +1325,13 @@ sqrt(const complex<_Tp>& __x)
             return complex<_Tp>(__x.real(), sycl::isnan(__x.imag()) ? __x.imag() : sycl::copysign(_Tp(0), __x.imag()));
         return complex<_Tp>(sycl::isnan(__x.imag()) ? __x.imag() : _Tp(0), sycl::copysign(__x.real(), __x.imag()));
     }
-#ifndef DPCPP_WA
     return polar(sycl::sqrt(abs(__x)), arg(__x) / _Tp(2));
-#else
-    return polar<_Tp>(sycl::sqrt(abs(__x)), arg(__x) / _Tp(2));
-#endif
 }
 
 // exp
 
 template<class _Tp>
-complex<_Tp>
+SYCL_EXTERNAL complex<_Tp>
 exp(const complex<_Tp>& __x)
 {
     _Tp __i = __x.imag();
@@ -1365,7 +1359,7 @@ exp(const complex<_Tp>& __x)
 // pow
 
 template<class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
 complex<_Tp>
 pow(const complex<_Tp>& __x, const complex<_Tp>& __y)
 {
@@ -1373,7 +1367,7 @@ pow(const complex<_Tp>& __x, const complex<_Tp>& __y)
 }
 
 template<class _Tp, class _Up>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
 complex<typename __promote<_Tp, _Up>::type>
 pow(const complex<_Tp>& __x, const complex<_Up>& __y)
 {
@@ -1382,7 +1376,7 @@ pow(const complex<_Tp>& __x, const complex<_Up>& __y)
 }
 
 template<class _Tp, class _Up>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
 typename enable_if
 <
     is_arithmetic<_Up>::value,
@@ -1395,7 +1389,7 @@ pow(const complex<_Tp>& __x, const _Up& __y)
 }
 
 template<class _Tp, class _Up>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
 typename enable_if
 <
     is_arithmetic<_Tp>::value,
@@ -1421,7 +1415,7 @@ __sqr(const complex<_Tp>& __x)
 // asinh
 
 template<class _Tp>
-complex<_Tp>
+SYCL_EXTERNAL complex<_Tp>
 asinh(const complex<_Tp>& __x)
 {
     const _Tp __pi(sycl::atan2(+0., -0.));
@@ -1430,11 +1424,7 @@ asinh(const complex<_Tp>& __x)
         if (sycl::isnan(__x.imag()))
             return __x;
         if (sycl::isinf(__x.imag()))
-#ifndef DPCPP_WA
             return complex<_Tp>(__x.real(), sycl::copysign(__pi * _Tp(0.25), __x.imag()));
-#else
-            return complex<_Tp>(__x.real(), sycl::copysign<_Tp>(__pi * _Tp(0.25), __x.imag()));
-#endif
         return complex<_Tp>(__x.real(), sycl::copysign(_Tp(0), __x.imag()));
     }
     if (sycl::isnan(__x.real()))
@@ -1446,11 +1436,7 @@ asinh(const complex<_Tp>& __x)
         return complex<_Tp>(__x.real(), __x.real());
     }
     if (sycl::isinf(__x.imag()))
-#ifndef DPCPP_WA
         return complex<_Tp>(sycl::copysign(__x.imag(), __x.real()), sycl::copysign(__pi/_Tp(2), __x.imag()));
-#else
-        return complex<_Tp>(sycl::copysign(__x.imag(), __x.real()), sycl::copysign<_Tp>(__pi/_Tp(2), __x.imag()));
-#endif
     complex<_Tp> __z = log(__x + sqrt(__sqr(__x) + _Tp(1)));
     return complex<_Tp>(sycl::copysign(__z.real(), __x.real()), sycl::copysign(__z.imag(), __x.imag()));
 }
@@ -1458,7 +1444,7 @@ asinh(const complex<_Tp>& __x)
 // acosh
 
 template<class _Tp>
-complex<_Tp>
+SYCL_EXTERNAL complex<_Tp>
 acosh(const complex<_Tp>& __x)
 {
     const _Tp __pi(sycl::atan2(+0., -0.));
@@ -1469,17 +1455,9 @@ acosh(const complex<_Tp>& __x)
         if (sycl::isinf(__x.imag()))
         {
             if (__x.real() > 0)
-#ifndef DPCPP_WA
                 return complex<_Tp>(__x.real(), sycl::copysign(__pi * _Tp(0.25), __x.imag()));
-#else
-                return complex<_Tp>(__x.real(), sycl::copysign<_Tp>(__pi * _Tp(0.25), __x.imag()));
-#endif
             else
-#ifndef DPCPP_WA
                 return complex<_Tp>(-__x.real(), sycl::copysign(__pi * _Tp(0.75), __x.imag()));
-#else
-                return complex<_Tp>(-__x.real(), sycl::copysign<_Tp>(__pi * _Tp(0.75), __x.imag()));
-#endif
 
         }
         if (__x.real() < 0)
@@ -1493,11 +1471,7 @@ acosh(const complex<_Tp>& __x)
         return complex<_Tp>(__x.real(), __x.real());
     }
     if (sycl::isinf(__x.imag()))
-#ifndef DPCPP_WA
         return complex<_Tp>(sycl::fabs(__x.imag()), sycl::copysign(__pi/_Tp(2), __x.imag()));
-#else
-        return complex<_Tp>(sycl::fabs(__x.imag()), sycl::copysign<_Tp>(__pi/_Tp(2), __x.imag()));
-#endif
     complex<_Tp> __z = log(__x + sqrt(__sqr(__x) - _Tp(1)));
     return complex<_Tp>(sycl::copysign(__z.real(), _Tp(0)), sycl::copysign(__z.imag(), __x.imag()));
 }
@@ -1505,17 +1479,13 @@ acosh(const complex<_Tp>& __x)
 // atanh
 
 template<class _Tp>
-complex<_Tp>
+SYCL_EXTERNAL complex<_Tp>
 atanh(const complex<_Tp>& __x)
 {
     const _Tp __pi(sycl::atan2(+0., -0.));
     if (sycl::isinf(__x.imag()))
     {
-#ifndef DPCPP_WA
         return complex<_Tp>(sycl::copysign(_Tp(0), __x.real()), sycl::copysign(__pi/_Tp(2), __x.imag()));
-#else
-        return complex<_Tp>(sycl::copysign(_Tp(0), __x.real()), sycl::copysign<_Tp>(__pi/_Tp(2), __x.imag()));
-#endif
     }
     if (sycl::isnan(__x.imag()))
     {
@@ -1529,11 +1499,7 @@ atanh(const complex<_Tp>& __x)
     }
     if (sycl::isinf(__x.real()))
     {
-#ifndef DPCPP_WA
         return complex<_Tp>(sycl::copysign(_Tp(0), __x.real()), sycl::copysign(__pi/_Tp(2), __x.imag()));
-#else
-        return complex<_Tp>(sycl::copysign(_Tp(0), __x.real()), sycl::copysign<_Tp>(__pi/_Tp(2), __x.imag()));
-#endif
     }
     if (sycl::fabs(__x.real()) == _Tp(1) && __x.imag() == _Tp(0))
     {
@@ -1546,7 +1512,7 @@ atanh(const complex<_Tp>& __x)
 // sinh
 
 template<class _Tp>
-complex<_Tp>
+SYCL_EXTERNAL complex<_Tp>
 sinh(const complex<_Tp>& __x)
 {
     if (sycl::isinf(__x.real()) && !sycl::isfinite(__x.imag()))
@@ -1561,7 +1527,7 @@ sinh(const complex<_Tp>& __x)
 // cosh
 
 template<class _Tp>
-complex<_Tp>
+SYCL_EXTERNAL complex<_Tp>
 cosh(const complex<_Tp>& __x)
 {
     if (sycl::isinf(__x.real()) && !sycl::isfinite(__x.imag()))
@@ -1578,18 +1544,14 @@ cosh(const complex<_Tp>& __x)
 // tanh
 
 template<class _Tp>
-complex<_Tp>
+SYCL_EXTERNAL complex<_Tp>
 tanh(const complex<_Tp>& __x)
 {
     if (sycl::isinf(__x.real()))
     {
         if (!sycl::isfinite(__x.imag()))
             return complex<_Tp>(sycl::copysign(_Tp(1), __x.real()), _Tp(0));
-#ifndef DPCPP_WA
         return complex<_Tp>(sycl::copysign(_Tp(1), __x.real()), sycl::copysign(_Tp(0), sycl::sin(_Tp(2) * __x.imag())));
-#else
-        return complex<_Tp>(sycl::copysign(_Tp(1), __x.real()), sycl::copysign<_Tp>(_Tp(0), sycl::sin(_Tp(2) * __x.imag())));
-#endif
     }
     if (sycl::isnan(__x.real()) && __x.imag() == 0)
         return __x;
@@ -1606,7 +1568,7 @@ tanh(const complex<_Tp>& __x)
 // asin
 
 template<class _Tp>
-complex<_Tp>
+SYCL_EXTERNAL complex<_Tp>
 asin(const complex<_Tp>& __x)
 {
     complex<_Tp> __z = asinh(complex<_Tp>(-__x.imag(), __x.real()));
@@ -1616,7 +1578,7 @@ asin(const complex<_Tp>& __x)
 // acos
 
 template<class _Tp>
-complex<_Tp>
+SYCL_EXTERNAL complex<_Tp>
 acos(const complex<_Tp>& __x)
 {
     const _Tp __pi(sycl::atan2(+0., -0.));
@@ -1653,7 +1615,7 @@ acos(const complex<_Tp>& __x)
 // atan
 
 template<class _Tp>
-complex<_Tp>
+SYCL_EXTERNAL complex<_Tp>
 atan(const complex<_Tp>& __x)
 {
     complex<_Tp> __z = atanh(complex<_Tp>(-__x.imag(), __x.real()));
@@ -1663,7 +1625,7 @@ atan(const complex<_Tp>& __x)
 // sin
 
 template<class _Tp>
-complex<_Tp>
+SYCL_EXTERNAL complex<_Tp>
 sin(const complex<_Tp>& __x)
 {
     complex<_Tp> __z = sinh(complex<_Tp>(-__x.imag(), __x.real()));
@@ -1673,7 +1635,7 @@ sin(const complex<_Tp>& __x)
 // cos
 
 template<class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
 complex<_Tp>
 cos(const complex<_Tp>& __x)
 {
@@ -1683,7 +1645,7 @@ cos(const complex<_Tp>& __x)
 // tan
 
 template<class _Tp>
-complex<_Tp>
+SYCL_EXTERNAL complex<_Tp>
 tan(const complex<_Tp>& __x)
 {
     complex<_Tp> __z = tanh(complex<_Tp>(-__x.imag(), __x.real()));
