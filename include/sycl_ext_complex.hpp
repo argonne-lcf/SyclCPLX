@@ -234,7 +234,7 @@ template<class T> complex<T> tanh (const complex<T>&);
 
 #define _SYCL_EXT_CPLX_BEGIN_NAMESPACE_STD namespace sycl::ext::cplx {
 #define _SYCL_EXT_CPLX_END_NAMESPACE_STD   }
-#define _SYCL_EXT_CPLX_INLINE_VISIBILITY __attribute__ ((__visibility__("hidden"), __always_inline__))
+#define _SYCL_EXT_CPLX_INLINE_VISIBILITY inline __attribute__ ((__visibility__("hidden"), __always_inline__))
 
 #include <complex>
 #include <type_traits>
@@ -651,7 +651,7 @@ complex<double>::complex(const complex<float>& __c)
 // 26.3.6 operators:
 
 template<class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+_SYCL_EXT_CPLX_INLINE_VISIBILITY
 complex<_Tp>
 operator+(const complex<_Tp>& __x, const complex<_Tp>& __y)
 {
@@ -661,7 +661,7 @@ operator+(const complex<_Tp>& __x, const complex<_Tp>& __y)
 }
 
 template<class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+_SYCL_EXT_CPLX_INLINE_VISIBILITY
 complex<_Tp>
 operator+(const complex<_Tp>& __x, const _Tp& __y)
 {
@@ -671,7 +671,7 @@ operator+(const complex<_Tp>& __x, const _Tp& __y)
 }
 
 template<class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+_SYCL_EXT_CPLX_INLINE_VISIBILITY
 complex<_Tp>
 operator+(const _Tp& __x, const complex<_Tp>& __y)
 {
@@ -681,7 +681,7 @@ operator+(const _Tp& __x, const complex<_Tp>& __y)
 }
 
 template<class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+_SYCL_EXT_CPLX_INLINE_VISIBILITY
 complex<_Tp>
 operator-(const complex<_Tp>& __x, const complex<_Tp>& __y)
 {
@@ -691,7 +691,7 @@ operator-(const complex<_Tp>& __x, const complex<_Tp>& __y)
 }
 
 template<class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+_SYCL_EXT_CPLX_INLINE_VISIBILITY
 complex<_Tp>
 operator-(const complex<_Tp>& __x, const _Tp& __y)
 {
@@ -701,7 +701,7 @@ operator-(const complex<_Tp>& __x, const _Tp& __y)
 }
 
 template<class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+_SYCL_EXT_CPLX_INLINE_VISIBILITY
 complex<_Tp>
 operator-(const _Tp& __x, const complex<_Tp>& __y)
 {
@@ -770,7 +770,7 @@ operator*(const complex<_Tp>& __z, const complex<_Tp>& __w)
 }
 
 template<class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+_SYCL_EXT_CPLX_INLINE_VISIBILITY
 complex<_Tp>
 operator*(const complex<_Tp>& __x, const _Tp& __y)
 {
@@ -780,7 +780,7 @@ operator*(const complex<_Tp>& __x, const _Tp& __y)
 }
 
 template<class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+_SYCL_EXT_CPLX_INLINE_VISIBILITY
 complex<_Tp>
 operator*(const _Tp& __x, const complex<_Tp>& __y)
 {
@@ -834,7 +834,7 @@ operator/(const complex<_Tp>& __z, const complex<_Tp>& __w)
 }
 
 template<class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+_SYCL_EXT_CPLX_INLINE_VISIBILITY
 complex<_Tp>
 operator/(const complex<_Tp>& __x, const _Tp& __y)
 {
@@ -842,7 +842,7 @@ operator/(const complex<_Tp>& __x, const _Tp& __y)
 }
 
 template<class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+_SYCL_EXT_CPLX_INLINE_VISIBILITY
 complex<_Tp>
 operator/(const _Tp& __x, const complex<_Tp>& __y)
 {
@@ -852,7 +852,7 @@ operator/(const _Tp& __x, const complex<_Tp>& __y)
 }
 
 template<class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+_SYCL_EXT_CPLX_INLINE_VISIBILITY
 complex<_Tp>
 operator+(const complex<_Tp>& __x)
 {
@@ -860,7 +860,7 @@ operator+(const complex<_Tp>& __x)
 }
 
 template<class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+_SYCL_EXT_CPLX_INLINE_VISIBILITY
 complex<_Tp>
 operator-(const complex<_Tp>& __x)
 {
@@ -868,7 +868,7 @@ operator-(const complex<_Tp>& __x)
 }
 
 template<class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr
+_SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr
 bool
 operator==(const complex<_Tp>& __x, const complex<_Tp>& __y)
 {
@@ -876,7 +876,7 @@ operator==(const complex<_Tp>& __x, const complex<_Tp>& __y)
 }
 
 template<class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr
+ _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr
 bool
 operator==(const complex<_Tp>& __x, const _Tp& __y)
 {
@@ -884,7 +884,7 @@ operator==(const complex<_Tp>& __x, const _Tp& __y)
 }
 
 template<class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr
+_SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr
 bool
 operator==(const _Tp& __x, const complex<_Tp>& __y)
 {
@@ -892,7 +892,7 @@ operator==(const _Tp& __x, const complex<_Tp>& __y)
 }
 
 template<class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr
+_SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr
 bool
 operator!=(const complex<_Tp>& __x, const complex<_Tp>& __y)
 {
@@ -900,7 +900,7 @@ operator!=(const complex<_Tp>& __x, const complex<_Tp>& __y)
 }
 
 template<class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr
+_SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr
 bool
 operator!=(const complex<_Tp>& __x, const _Tp& __y)
 {
@@ -908,7 +908,7 @@ operator!=(const complex<_Tp>& __x, const _Tp& __y)
 }
 
 template<class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr
+_SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr
 bool
 operator!=(const _Tp& __x, const complex<_Tp>& __y)
 {
@@ -941,7 +941,7 @@ struct __libcpp_complex_overload_traits<_Tp, false, true>
 // real
 
 template<class _Tp>
-SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr
 _Tp
 real(const complex<_Tp>& __c)
 {
@@ -949,7 +949,7 @@ real(const complex<_Tp>& __c)
 }
 
 template <class _Tp>
-SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr
 typename __libcpp_complex_overload_traits<_Tp>::_ValueType
 real(_Tp __re)
 {
@@ -959,7 +959,7 @@ real(_Tp __re)
 // imag
 
 template<class _Tp>
-SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr
 _Tp
 imag(const complex<_Tp>& __c)
 {
@@ -967,7 +967,7 @@ imag(const complex<_Tp>& __c)
 }
 
 template <class _Tp>
-SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr
 typename __libcpp_complex_overload_traits<_Tp>::_ValueType
 imag(_Tp)
 {
@@ -977,7 +977,7 @@ imag(_Tp)
 // abs
 
 template<class _Tp>
-SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
 _Tp
 abs(const complex<_Tp>& __c)
 {
@@ -987,7 +987,7 @@ abs(const complex<_Tp>& __c)
 // arg
 
 template<class _Tp>
-SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
 _Tp
 arg(const complex<_Tp>& __c)
 {
@@ -995,7 +995,7 @@ arg(const complex<_Tp>& __c)
 }
 
 template<class _Tp>
-SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
 typename enable_if
 <
     is_integral<_Tp>::value || is_same<_Tp, double>::value,
@@ -1007,7 +1007,7 @@ arg(_Tp __re)
 }
 
 template <class _Tp>
-SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
 typename enable_if<
     is_same<_Tp, float>::value,
     float
@@ -1020,7 +1020,7 @@ arg(_Tp __re)
 // norm
 
 template<class _Tp>
-SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
 _Tp
 norm(const complex<_Tp>& __c)
 {
@@ -1032,7 +1032,7 @@ norm(const complex<_Tp>& __c)
 }
 
 template <class _Tp>
-SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
 typename __libcpp_complex_overload_traits<_Tp>::_ValueType
 norm(_Tp __re)
 {
@@ -1043,7 +1043,7 @@ norm(_Tp __re)
 // conj
 
 template<class _Tp>
-SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
 complex<_Tp>
 conj(const complex<_Tp>& __c)
 {
@@ -1051,7 +1051,7 @@ conj(const complex<_Tp>& __c)
 }
 
 template <class _Tp>
-SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
 typename __libcpp_complex_overload_traits<_Tp>::_ComplexType
 conj(_Tp __re)
 {
@@ -1064,7 +1064,7 @@ conj(_Tp __re)
 // proj
 
 template<class _Tp>
-SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
 complex<_Tp>
 proj(const complex<_Tp>& __c)
 {
@@ -1075,7 +1075,7 @@ proj(const complex<_Tp>& __c)
 }
 
 template <class _Tp>
-SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
 typename enable_if
 <
     is_floating_point<_Tp>::value,
@@ -1089,7 +1089,7 @@ proj(_Tp __re)
 }
 
 template <class _Tp>
-SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
 typename enable_if
 <
     is_integral<_Tp>::value,
@@ -1133,7 +1133,7 @@ polar(const _Tp& __rho, const _Tp& __theta = _Tp())
 // log
 
 template<class _Tp>
-SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
 complex<_Tp>
 log(const complex<_Tp>& __x)
 {
@@ -1143,7 +1143,7 @@ log(const complex<_Tp>& __x)
 // log10
 
 template<class _Tp>
-SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
 complex<_Tp>
 log10(const complex<_Tp>& __x)
 {
@@ -1198,15 +1198,15 @@ exp(const complex<_Tp>& __x)
 // pow
 
 template<class _Tp>
-SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
 complex<_Tp>
 pow(const complex<_Tp>& __x, const complex<_Tp>& __y)
 {
     return exp(__y * log(__x));
 }
 
-template<class _Tp, class _Up>
-SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+template<class _Tp>
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
 complex<typename __promote<_Tp, _Up>::type>
 pow(const complex<_Tp>& __x, const complex<_Up>& __y)
 {
@@ -1214,8 +1214,8 @@ pow(const complex<_Tp>& __x, const complex<_Up>& __y)
     return sycl::pow(result_type(__x), result_type(__y));
 }
 
-template<class _Tp, class _Up>
-SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+template<class _Tp>
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
 typename enable_if
 <
     is_arithmetic<_Up>::value,
@@ -1228,10 +1228,10 @@ pow(const complex<_Tp>& __x, const _Up& __y)
 }
 
 template<class _Tp, class _Up>
-SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
 typename enable_if
 <
-    is_arithmetic<_Tp>::value,
+    is_arithmetic<_Up>::value,
     complex<typename __promote<_Tp, _Up>::type>
 >::type
 pow(const _Tp& __x, const complex<_Up>& __y)
@@ -1243,7 +1243,7 @@ pow(const _Tp& __x, const complex<_Up>& __y)
 // __sqr, computes pow(x, 2)
 
 template<class _Tp>
-inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+_SYCL_EXT_CPLX_INLINE_VISIBILITY
 complex<_Tp>
 __sqr(const complex<_Tp>& __x)
 {
@@ -1454,7 +1454,8 @@ acos(const complex<_Tp>& __x)
 // atan
 
 template<class _Tp>
-SYCL_EXTERNAL complex<_Tp>
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
+complex<_Tp>
 atan(const complex<_Tp>& __x)
 {
     complex<_Tp> __z = atanh(complex<_Tp>(-__x.imag(), __x.real()));
@@ -1464,7 +1465,8 @@ atan(const complex<_Tp>& __x)
 // sin
 
 template<class _Tp>
-SYCL_EXTERNAL complex<_Tp>
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
+complex<_Tp>
 sin(const complex<_Tp>& __x)
 {
     complex<_Tp> __z = sinh(complex<_Tp>(-__x.imag(), __x.real()));
@@ -1474,7 +1476,7 @@ sin(const complex<_Tp>& __x)
 // cos
 
 template<class _Tp>
-SYCL_EXTERNAL inline _SYCL_EXT_CPLX_INLINE_VISIBILITY
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
 complex<_Tp>
 cos(const complex<_Tp>& __x)
 {
@@ -1484,7 +1486,8 @@ cos(const complex<_Tp>& __x)
 // tan
 
 template<class _Tp>
-SYCL_EXTERNAL complex<_Tp>
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
+complex<_Tp>
 tan(const complex<_Tp>& __x)
 {
     complex<_Tp> __z = tanh(complex<_Tp>(-__x.imag(), __x.real()));
@@ -1571,6 +1574,6 @@ _SYCL_EXT_CPLX_END_NAMESPACE_STD
 
 #undef _SYCL_EXT_CPLX_BEGIN_NAMESPACE_STD 
 #undef _SYCL_EXT_CPLX_END_NAMESPACE_STD 
-#undef _SYCL_EXT_CPLX_INLINE_VISIBILITY 
+#undef _SYCL_EXT_CPLX_INLINE_VISIBILITY
 
 #endif // _SYCL_EXT_CPLX_COMPLEX
