@@ -1229,7 +1229,7 @@ complex<typename __promote<_Tp, _Up>::type>
 pow(const complex<_Tp>& __x, const complex<_Up>& __y)
 {
     typedef complex<typename __promote<_Tp, _Up>::type> result_type;
-    return sycl::pow(result_type(__x), result_type(__y));
+    return sycl::ext::cplx::pow(result_type(__x), result_type(__y));
 }
 
 template<class _Tp, class _Up, class = std::enable_if<is_gencomplex<_Tp>::value>>
@@ -1242,7 +1242,7 @@ typename enable_if
 pow(const complex<_Tp>& __x, const _Up& __y)
 {
     typedef complex<typename __promote<_Tp, _Up>::type> result_type;
-    return sycl::pow(result_type(__x), result_type(__y));
+    return sycl::ext::cplx::pow(result_type(__x), result_type(__y));
 }
 
 template<class _Tp, class _Up, class = std::enable_if<is_gencomplex<_Tp>::value>>
@@ -1255,7 +1255,7 @@ typename enable_if
 pow(const _Tp& __x, const complex<_Up>& __y)
 {
     typedef complex<typename __promote<_Tp, _Up>::type> result_type;
-    return sycl::pow(result_type(__x), result_type(__y));
+    return sycl::ext::cplx::pow(result_type(__x), result_type(__y));
 }
 
 // __sqr, computes pow(x, 2)
