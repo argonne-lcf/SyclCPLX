@@ -168,6 +168,9 @@ template<class T, class charT, class traits>
 template<class T, class charT, class traits>
   basic_ostream<charT, traits>&
   operator<<(basic_ostream<charT, traits>&, const complex<T>&);
+template<class T>
+  const stream&
+  operator<<(const stream&, const complex<T>&);
 
 // 26.3.7 values:
 
@@ -1584,6 +1587,12 @@ operator<<(basic_ostream<_CharT, _Traits>& __os, const complex<_Tp>& __x)
     return __os << __s.str();
 }
 #endif // !_SYCL_EXT_CPLX_HAS_NO_LOCALIZATION
+
+template<class _Tp, class = std::enable_if<is_gencomplex<_Tp>::value>>
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
+inline const stream &operator<<(const stream &Out, const complex<_Tp>& RHS) {
+  return Out << "(" << RHS.real() << "," << RHS.imag() << ")";
+}
 
 _SYCL_EXT_CPLX_END_NAMESPACE_STD
 
