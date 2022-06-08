@@ -123,9 +123,8 @@ bool check_results(sycl::ext::cplx::complex<T> output,
     std::cerr << std::setprecision(std::numeric_limits<T>::max_digits10)
               << "Test failed with complex_type: " << get_typename<T>()
               << " Computed on " << (is_device ? "device" : "host")
-              << " Output: (" << output.real() << "," << output.imag() << ")"
-              << " Reference: (" << reference.real() << "," << reference.imag()
-              << ")" << std::endl;
+              << " Output: " << output << " Reference: " << reference
+              << std::endl;
     return false;
   }
   return true;
