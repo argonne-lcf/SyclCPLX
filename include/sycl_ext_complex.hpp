@@ -56,6 +56,8 @@ public:
     explicit constexpr complex(const complex<float>&);
     explicit constexpr complex(const complex<double>&);
 
+    constexpr operator std::complex<sycl::half>();
+
     constexpr sycl::half real() const;
     void real(sycl::half);
     constexpr sycl::half imag() const;
@@ -445,6 +447,9 @@ public:
     explicit constexpr complex(const complex<float>& __c);
     _SYCL_EXT_CPLX_INLINE_VISIBILITY
     explicit constexpr complex(const complex<double>& __c);
+    _SYCL_EXT_CPLX_INLINE_VISIBILITY
+    constexpr operator std::complex<sycl::half>()
+        {return std::complex<sycl::half>(__re_, __im_);}
 
     _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr sycl::half real() const {return __re_;}
     _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr sycl::half imag() const {return __im_;}
