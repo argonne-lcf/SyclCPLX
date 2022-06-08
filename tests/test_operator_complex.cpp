@@ -46,27 +46,28 @@ test_op(test_div, /);
       auto std_in = init_std_complex(init_re1, init_im1);                      \
       sycl::ext::cplx::complex<T> cplx_input{init_re1, init_im1};              \
                                                                                \
-      auto std_out = init_std_complex(init_re2, init_im2);                     \
-      auto *cplx_out = sycl::malloc_shared<sycl::ext::cplx::complex<T>>(1, Q); \
-      cplx_out[0].real(init_re2);                                              \
-      cplx_out[0].imag(init_im2);                                              \
+      auto std_inout = init_std_complex(init_re2, init_im2);                   \
+      auto *cplx_inout =                                                       \
+          sycl::malloc_shared<sycl::ext::cplx::complex<T>>(1, Q);              \
+      cplx_inout[0].real(init_re2);                                            \
+      cplx_inout[0].imag(init_im2);                                            \
                                                                                \
-      std_out op_assign std_in;                                                \
+      std_inout op_assign std_in;                                              \
                                                                                \
-      Q.single_task([=]() { cplx_out[0] op_assign cplx_input; }).wait();       \
+      Q.single_task([=]() { cplx_inout[0] op_assign cplx_input; }).wait();     \
                                                                                \
-      pass &= check_results(cplx_out[0],                                       \
-                            std::complex<T>(std_out.real(), std_out.imag()),   \
-                            /*is_device*/ true);                               \
+      pass &= check_results(                                                   \
+          cplx_inout[0], std::complex<T>(std_inout.real(), std_inout.imag()),  \
+          /*is_device*/ true);                                                 \
                                                                                \
-      cplx_out[0].real(init_re2);                                              \
-      cplx_out[0].imag(init_im2);                                              \
+      cplx_inout[0].real(init_re2);                                            \
+      cplx_inout[0].imag(init_im2);                                            \
                                                                                \
-      cplx_out[0] op_assign cplx_input;                                        \
+      cplx_inout[0] op_assign cplx_input;                                      \
                                                                                \
-      pass &= check_results(cplx_out[0],                                       \
-                            std::complex<T>(std_out.real(), std_out.imag()),   \
-                            /*is_device*/ false);                              \
+      pass &= check_results(                                                   \
+          cplx_inout[0], std::complex<T>(std_inout.real(), std_inout.imag()),  \
+          /*is_device*/ false);                                                \
                                                                                \
       return pass;                                                             \
     }                                                                          \
