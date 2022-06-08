@@ -5,9 +5,9 @@ using namespace sycl::ext::cplx;
 
 // Check is_gencomplex
 void check_is_gencomplex() {
-  static_assert(is_gencomplex<complex<double>>::value == true, " ");
-  static_assert(is_gencomplex<complex<float>>::value == true, " ");
-  static_assert(is_gencomplex<complex<sycl::half>>::value == true, " ");
+  static_assert(is_gencomplex<complex<double>>::value == true);
+  static_assert(is_gencomplex<complex<float>>::value == true);
+  static_assert(is_gencomplex<complex<sycl::half>>::value == true);
 
   static_assert(is_gencomplex<complex<long long>>::value == false);
   static_assert(is_gencomplex<complex<long>>::value == false);
