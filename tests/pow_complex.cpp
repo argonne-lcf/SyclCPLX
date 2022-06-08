@@ -4,8 +4,8 @@ template<typename T>
 bool test_pow_cplx_cplx(sycl::queue &Q, T init_re, T init_im) {
   bool pass = true;
 
-  auto std_in1 = init_std(init_re, init_im);
-  auto std_in2 = init_std(init_re, init_im);
+  auto std_in1 = init_std_complex(init_re, init_im);
+  auto std_in2 = init_std_complex(init_re, init_im);
   sycl::ext::cplx::complex<T> cplx_input1{init_re, init_im};
   sycl::ext::cplx::complex<T> cplx_input2{init_re, init_im};
 
@@ -34,7 +34,7 @@ template<typename T>
 bool test_pow_cplx_deci(sycl::queue &Q, T init_re, T init_im) {
   bool pass = true;
 
-  auto std_in = init_std(init_re, init_im);
+  auto std_in = init_std_complex(init_re, init_im);
   auto std_deci_in = init_deci(init_re);
   sycl::ext::cplx::complex<T> cplx_input{init_re, init_im};
   T deci_input = init_re;
@@ -64,7 +64,7 @@ template<typename T>
 bool test_pow_deci_cplx(sycl::queue &Q, T init_re, T init_im) {
   bool pass = true;
 
-  auto std_in = init_std(init_re, init_im);
+  auto std_in = init_std_complex(init_re, init_im);
   auto std_deci_in = init_deci(init_re);
   sycl::ext::cplx::complex<T> cplx_input{init_re, init_im};
   T deci_input = init_re;

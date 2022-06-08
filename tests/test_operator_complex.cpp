@@ -6,8 +6,8 @@
                     T init_im2) {                                              \
       bool pass = true;                                                        \
                                                                                \
-      auto std_in1 = init_std(init_re1, init_im1);                             \
-      auto std_in2 = init_std(init_re2, init_im2);                             \
+      auto std_in1 = init_std_complex(init_re1, init_im1);                     \
+      auto std_in2 = init_std_complex(init_re2, init_im2);                     \
       sycl::ext::cplx::complex<T> cplx_input1{init_re1, init_im1};             \
       sycl::ext::cplx::complex<T> cplx_input2{init_re2, init_im2};             \
                                                                                \
@@ -43,10 +43,10 @@ test_op(test_div, /);
                     T init_im2) {                                              \
       bool pass = true;                                                        \
                                                                                \
-      auto std_in = init_std(init_re1, init_im1);                              \
+      auto std_in = init_std_complex(init_re1, init_im1);                      \
       sycl::ext::cplx::complex<T> cplx_input{init_re1, init_im1};              \
                                                                                \
-      auto std_out = init_std(init_re2, init_im2);                             \
+      auto std_out = init_std_complex(init_re2, init_im2);                     \
       auto *cplx_out = sycl::malloc_shared<sycl::ext::cplx::complex<T>>(1, Q); \
       cplx_out[0].real(init_re2);                                              \
       cplx_out[0].imag(init_im2);                                              \

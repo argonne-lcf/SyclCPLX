@@ -161,11 +161,14 @@ std::complex<float> trunc_float(std::complex<float> c) {
   return sycl_half_to_float(c_sycl_half);
 }
 
-template <typename T_in> auto constexpr init_std(T_in re, T_in im) {
+// Helper for initializing std::complex values for tests only needed because
+// sycl::half cases are emulated with float for std::complex class
+
+template <typename T_in> auto constexpr init_std_complex(T_in re, T_in im) {
   return std::complex<T_in>(re, im);
 }
 
-template <> auto constexpr init_std(sycl::half re, sycl::half im) {
+template <> auto constexpr init_std_complex(sycl::half re, sycl::half im) {
   return trunc_float(std::complex<float>(re, im));
 }
 

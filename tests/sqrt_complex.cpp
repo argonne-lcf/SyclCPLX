@@ -4,7 +4,7 @@ template <typename T> struct test_sqrt {
   bool operator()(sycl::queue &Q, T init_re, T init_im) {
     bool pass = true;
 
-    auto std_in = init_std(init_re, init_im);
+    auto std_in = init_std_complex(init_re, init_im);
     sycl::ext::cplx::complex<T> cplx_input{init_re, init_im};
 
     std::complex<T> std_out{};
