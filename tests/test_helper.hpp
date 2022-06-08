@@ -6,9 +6,6 @@
 
 #define SYCL_CPLX_TOL_ULP 5
 
-#define __half_epsilon 9.765625e-04f
-#define __half_min 6.103515625e-05f
-
 // Helpers for displaying results
 
 template <typename T> const char *get_typename() { return "Unknown type"; }
@@ -41,6 +38,20 @@ bool test_valid_types(argsT... args) {
 }
 
 // Helpers for comparison
+
+// Do not define for DPCPP as it already defines this struct
+#ifndef __SYCL_DPCPP__
+namespace std {
+
+// Specialization of std::numeric<sycl::half> for almost_equal_scalar
+template <> struct numeric_limits<sycl::half> {
+  static constexpr const sycl::half(min)() noexcept { return 6.103515625e-05f; }
+
+  static constexpr const sycl::half epsilon() noexcept { return 9.765625e-04f; }
+};
+
+} // namespace std
+#endif
 
 template <typename T> bool almost_equal_scalar(T x, T y, int ulp) {
   if (std::isnan(x) && std::isnan(y))
