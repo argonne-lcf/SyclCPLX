@@ -50,4 +50,6 @@ int main() {
 
   if (!test_passes)
     std::cerr << "sinh complex test fails\n";
+
+  return !test_passes;
 }

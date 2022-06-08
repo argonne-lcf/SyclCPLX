@@ -83,6 +83,8 @@ test_op_assign(test_div_assign, /=);
 int main() {
   sycl::queue Q;
 
+  bool test_failed = false;
+  
   {
     bool test_passes = true;
     test_passes &= test_valid_types<test_add>(Q, 4.42, 2.02, -1.5, 3.2);
@@ -102,8 +104,10 @@ int main() {
     test_passes &= test_valid_types<test_add>(Q, INFINITY, NAN, INFINITY, NAN);
     test_passes &= test_valid_types<test_add>(Q, NAN, INFINITY, NAN, INFINITY);
     test_passes &= test_valid_types<test_add>(Q, INFINITY, NAN, INFINITY, NAN);
-    if (!test_passes)
+    if (!test_passes) {
       std::cerr << "Addition operator complex test fails\n";
+      test_failed = true;
+    }
   }
 
   {
@@ -125,8 +129,10 @@ int main() {
     test_passes &= test_valid_types<test_sub>(Q, INFINITY, NAN, INFINITY, NAN);
     test_passes &= test_valid_types<test_sub>(Q, NAN, INFINITY, NAN, INFINITY);
     test_passes &= test_valid_types<test_sub>(Q, INFINITY, NAN, INFINITY, NAN);
-    if (!test_passes)
+    if (!test_passes) {
       std::cerr << "Subtraction operator complex test fails\n";
+      test_failed = true;
+    }
   }
 
   {
@@ -148,8 +154,10 @@ int main() {
     test_passes &= test_valid_types<test_mul>(Q, INFINITY, NAN, INFINITY, NAN);
     test_passes &= test_valid_types<test_mul>(Q, NAN, INFINITY, NAN, INFINITY);
     test_passes &= test_valid_types<test_mul>(Q, INFINITY, NAN, INFINITY, NAN);
-    if (!test_passes)
+    if (!test_passes) {
       std::cerr << "Multiplication operator complex test fails\n";
+      test_failed = true;
+    }
   }
 
   {
@@ -171,8 +179,10 @@ int main() {
     test_passes &= test_valid_types<test_div>(Q, INFINITY, NAN, INFINITY, NAN);
     test_passes &= test_valid_types<test_div>(Q, NAN, INFINITY, NAN, INFINITY);
     test_passes &= test_valid_types<test_div>(Q, INFINITY, NAN, INFINITY, NAN);
-    if (!test_passes)
+    if (!test_passes) {
       std::cerr << "Division operator complex test fails\n";
+      test_failed = true;
+    }
   }
 
   {
@@ -198,8 +208,10 @@ int main() {
         test_valid_types<test_add_assign>(Q, NAN, INFINITY, NAN, INFINITY);
     test_passes &=
         test_valid_types<test_add_assign>(Q, INFINITY, NAN, INFINITY, NAN);
-    if (!test_passes)
+    if (!test_passes) {
       std::cerr << "Addition assign operator complex test fails\n";
+      test_failed = true;
+    }
   }
 
   {
@@ -225,8 +237,10 @@ int main() {
         test_valid_types<test_sub_assign>(Q, NAN, INFINITY, NAN, INFINITY);
     test_passes &=
         test_valid_types<test_sub_assign>(Q, INFINITY, NAN, INFINITY, NAN);
-    if (!test_passes)
+    if (!test_passes) {
       std::cerr << "Subtraction assign operator complex test fails\n";
+      test_failed = true;
+    }
   }
 
   {
@@ -252,8 +266,10 @@ int main() {
         test_valid_types<test_mul_assign>(Q, NAN, INFINITY, NAN, INFINITY);
     test_passes &=
         test_valid_types<test_mul_assign>(Q, INFINITY, NAN, INFINITY, NAN);
-    if (!test_passes)
+    if (!test_passes) {
       std::cerr << "Multiplication assign operator complex test fails\n";
+      test_failed = true;
+    }
   }
 
   {
@@ -279,7 +295,11 @@ int main() {
         test_valid_types<test_div_assign>(Q, NAN, INFINITY, NAN, INFINITY);
     test_passes &=
         test_valid_types<test_div_assign>(Q, INFINITY, NAN, INFINITY, NAN);
-    if (!test_passes)
+    if (!test_passes) {
       std::cerr << "Division assign operator complex test fails\n";
+      test_failed = true;
+    }
   }
+
+  return test_failed;
 }

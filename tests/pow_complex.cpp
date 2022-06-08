@@ -121,4 +121,6 @@ int main() {
 
   if (!test_passes)
     std::cerr << "pow complex test fails\n";
+
+  return !test_passes;
 }

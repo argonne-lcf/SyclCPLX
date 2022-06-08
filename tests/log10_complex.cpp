@@ -50,4 +50,6 @@ int main() {
 
   if (!test_passes)
     std::cerr << "log10 complex test fails\n";
+
+  return !test_passes;
 }
