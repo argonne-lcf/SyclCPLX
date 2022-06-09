@@ -819,7 +819,7 @@ operator/(const complex<_Tp>& __z, const complex<_Tp>& __w)
     _Tp __b = __z.imag();
     _Tp __c = __w.real();
     _Tp __d = __w.imag();
-    _Tp __logbw = sycl::logb(fmax(sycl::fabs(__c), sycl::fabs(__d)));
+    _Tp __logbw = sycl::logb(sycl::fmax(sycl::fabs(__c), sycl::fabs(__d)));
     if (sycl::isfinite(__logbw))
     {
         __ilogbw = static_cast<int>(__logbw);
