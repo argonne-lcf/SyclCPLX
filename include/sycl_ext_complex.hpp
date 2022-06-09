@@ -244,9 +244,7 @@ template<class T> complex<T> tanh (const complex<T>&);
 #include <complex>
 #include <type_traits>
 #include <sycl/sycl.hpp>
-#if !defined(_SYCL_EXT_CPLX_HAS_NO_LOCALIZATION)
-#   include <sstream> // for std::basic_ostringstream
-#endif
+#include <sstream> // for std::basic_ostringstream
 
 _SYCL_EXT_CPLX_BEGIN_NAMESPACE_STD
 
@@ -1579,7 +1577,6 @@ operator>>(basic_istream<_CharT, _Traits>& __is, complex<_Tp>& __x)
     return __is;
 }
 
-#if !defined(_SYCL_EXT_CPLX_HAS_NO_LOCALIZATION)
 template<class _Tp, class _CharT, class _Traits>
 basic_ostream<_CharT, _Traits>&
 operator<<(basic_ostream<_CharT, _Traits>& __os, const complex<_Tp>& __x)
@@ -1591,7 +1588,6 @@ operator<<(basic_ostream<_CharT, _Traits>& __os, const complex<_Tp>& __x)
     __s << '(' << __x.real() << ',' << __x.imag() << ')';
     return __os << __s.str();
 }
-#endif // !_SYCL_EXT_CPLX_HAS_NO_LOCALIZATION
 
 template<class _Tp, class = std::enable_if<is_gencomplex<_Tp>::value>>
 SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
