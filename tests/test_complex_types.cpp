@@ -7,7 +7,7 @@ using namespace sycl::ext::cplx;
   template <typename T> struct test##_##op_name##_##types {                    \
     bool operator()() {                                                        \
       static_assert(                                                           \
-          std::is_same_v<complex<T>, decltype(declval<complex<T>>() +          \
+          std::is_same_v<complex<T>, decltype(declval<complex<T>>() op         \
                                               declval<complex<T>>())>);        \
       return true;                                                             \
     }                                                                          \
