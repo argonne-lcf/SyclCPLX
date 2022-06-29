@@ -27,7 +27,7 @@ template <typename T> struct test_ostream_operator {
     os << c;
 
     std::ostringstream ref_oss;
-    ref_oss << "(" << init_re << "," << init_im << ")";
+    ref_oss << std::complex<T>(init_re, init_im);
 
     if (ref_oss.str() == os.str())
       return true;
