@@ -140,3 +140,16 @@ bool check_results(sycl::ext::cplx::complex<T> output,
   }
   return true;
 }
+
+template <typename T>
+bool check_results(T output, T reference, bool is_device) {
+  if (!almost_equal_scalar(output, reference, SYCL_CPLX_TOL_ULP)) {
+    std::cerr << std::setprecision(std::numeric_limits<T>::max_digits10)
+              << "Test failed with complex_type: " << get_typename<T>()
+              << " Computed on " << (is_device ? "device" : "host")
+              << " Output: " << output << " Reference: " << reference
+              << std::endl;
+    return false;
+  }
+  return true;
+}
