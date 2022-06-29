@@ -43,7 +43,7 @@ bool test_valid_types(argsT... args) {
 #ifndef __INTEL_LLVM_COMPILER
 namespace std {
 
-// Specialization of std::numeric<sycl::half> for almost_equal_scalar
+// Specialization of std::numeric<sycl::half> for almost_equal
 template <> struct numeric_limits<sycl::half> {
   static constexpr const sycl::half(min)() noexcept { return 6.103515625e-05f; }
 
@@ -53,7 +53,7 @@ template <> struct numeric_limits<sycl::half> {
 } // namespace std
 #endif
 
-template <typename T> bool almost_equal_scalar(T x, T y, int ulp) {
+template <typename T> bool almost_equal(T x, T y, int ulp) {
   if (std::isnan(x) && std::isnan(y))
     return true;
   else if (std::isinf(x) && std::isinf(y))
@@ -64,33 +64,20 @@ template <typename T> bool almost_equal_scalar(T x, T y, int ulp) {
          std::abs(x - y) < std::numeric_limits<T>::min();
 }
 
-template <typename T>
-bool almost_equal_cplx(sycl::ext::cplx::complex<T> x,
-                       sycl::ext::cplx::complex<T> y, int ulp) {
-  return almost_equal_scalar(x.real(), y.real(), ulp) &&
-         almost_equal_scalar(x.imag(), y.imag(), ulp);
+template <typename T,
+          template<typename> typename T1,
+          template<typename> typename T2>
+bool almost_equal(T1<T> x, T2<T> y, int ulp) {
+  static_assert( ( std::is_same<T1<T>, std::complex<T>>::value ||
+                   std::is_same<T1<T>, sycl::ext::cplx::complex<T>>::value),
+                   "almost_equal should be used to compare complex number");
+  static_assert( ( std::is_same<T2<T>, std::complex<T>>::value ||
+                   std::is_same<T2<T>, sycl::ext::cplx::complex<T>>::value),
+                   "almost_equal should be used to compare complex number");
+  //Somebody should be smart enough to refactor to use `enable_if`...
+  return almost_equal(x.real(), y.real(), ulp) &&
+         almost_equal(x.imag(), y.imag(), ulp);
 }
-
-template <typename T>
-bool almost_equal_cplx(sycl::ext::cplx::complex<T> x, std::complex<T> y,
-                       int ulp) {
-  return almost_equal_scalar(x.real(), y.real(), ulp) &&
-         almost_equal_scalar(x.imag(), y.imag(), ulp);
-}
-
-template <typename T>
-bool almost_equal_cplx(std::complex<T> x, sycl::ext::cplx::complex<T> y,
-                       int ulp) {
-  return almost_equal_scalar(x.real(), y.real(), ulp) &&
-         almost_equal_scalar(x.imag(), y.imag(), ulp);
-}
-
-template <typename T>
-bool almost_equal_cplx(std::complex<T> x, std::complex<T> y, int ulp) {
-  return almost_equal_scalar(x.real(), y.real(), ulp) &&
-         almost_equal_scalar(x.imag(), y.imag(), ulp);
-}
-
 // Helpers for testing half
 
 std::complex<float> sycl_half_to_float(sycl::ext::cplx::complex<sycl::half> c) {
@@ -130,7 +117,7 @@ template <> auto constexpr init_deci(sycl::half re) {
 template <typename T>
 bool check_results(sycl::ext::cplx::complex<T> output,
                    std::complex<T> reference, bool is_device) {
-  if (!almost_equal_cplx(output, reference, SYCL_CPLX_TOL_ULP)) {
+  if (!almost_equal(output, reference, SYCL_CPLX_TOL_ULP)) {
     std::cerr << std::setprecision(std::numeric_limits<T>::max_digits10)
               << "Test failed with complex_type: " << get_typename<T>()
               << " Computed on " << (is_device ? "device" : "host")
@@ -143,7 +130,7 @@ bool check_results(sycl::ext::cplx::complex<T> output,
 
 template <typename T>
 bool check_results(T output, T reference, bool is_device) {
-  if (!almost_equal_scalar(output, reference, SYCL_CPLX_TOL_ULP)) {
+  if (!almost_equal(output, reference, SYCL_CPLX_TOL_ULP)) {
     std::cerr << std::setprecision(std::numeric_limits<T>::max_digits10)
               << "Test failed with complex_type: " << get_typename<T>()
               << " Computed on " << (is_device ? "device" : "host")
