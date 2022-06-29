@@ -1591,7 +1591,7 @@ operator<<(basic_ostream<_CharT, _Traits>& __os, const complex<_Tp>& __x)
 
 template<class _Tp, class = std::enable_if<is_gencomplex<_Tp>::value>>
 SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
-inline const sycl::stream &operator<<(const sycl::stream & __ss, const complex<_Tp>& _x) {
+const sycl::stream &operator<<(const sycl::stream & __ss, const complex<_Tp>& _x) {
   return __ss << "(" << _x.real() << "," << _x.imag() << ")";
 }
 
