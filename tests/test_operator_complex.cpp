@@ -14,6 +14,7 @@
       std::complex<T> std_out{};                                               \
       auto *cplx_out = sycl::malloc_shared<sycl::ext::cplx::complex<T>>(1, Q); \
                                                                                \
+      /* Check complex-complex op */                                           \
       std_out = std_in1 op std_in2;                                            \
                                                                                \
       Q.single_task([=]() {                                                    \
@@ -23,6 +24,30 @@
       pass &= check_results(cplx_out[0], std_out, /*is_device*/ true);         \
                                                                                \
       cplx_out[0] = cplx_input1 op cplx_input2;                                \
+                                                                               \
+      pass &= check_results(cplx_out[0], std_out, /*is_device*/ false);        \
+                                                                               \
+      /* Check complex-decimal op */                                           \
+      T dec = init_re2;                                                        \
+      std_out = std_in1 op init_deci(dec);                                     \
+                                                                               \
+      Q.single_task([=]() { cplx_out[0] = cplx_input1 op dec; }).wait();       \
+                                                                               \
+      pass &= check_results(cplx_out[0], std_out, /*is_device*/ true);         \
+                                                                               \
+      cplx_out[0] = cplx_input1 op dec;                                        \
+                                                                               \
+      pass &= check_results(cplx_out[0], std_out, /*is_device*/ false);        \
+                                                                               \
+      /* Check decimal-complex op */                                           \
+      dec = init_re1;                                                          \
+      std_out = init_deci(dec) op std_in2;                                     \
+                                                                               \
+      Q.single_task([=]() { cplx_out[0] = dec op cplx_input2; }).wait();       \
+                                                                               \
+      pass &= check_results(cplx_out[0], std_out, /*is_device*/ true);         \
+                                                                               \
+      cplx_out[0] = dec op cplx_input2;                                        \
                                                                                \
       pass &= check_results(cplx_out[0], std_out, /*is_device*/ false);        \
                                                                                \
@@ -69,6 +94,29 @@ test_op(test_div, /);
           cplx_inout[0], std::complex<T>(std_inout.real(), std_inout.imag()),  \
           /*is_device*/ false);                                                \
                                                                                \
+      /* Check complex-decimal op */                                           \
+      std_inout = init_std_complex(init_re2, init_im2);                        \
+      cplx_inout[0].real(init_re2);                                            \
+      cplx_inout[0].imag(init_im2);                                            \
+                                                                               \
+      T dec = init_re1;                                                        \
+      std_inout op_assign init_deci(dec);                                      \
+                                                                               \
+      Q.single_task([=]() { cplx_inout[0] op_assign dec; }).wait();            \
+                                                                               \
+      pass &= check_results(                                                   \
+          cplx_inout[0], std::complex<T>(std_inout.real(), std_inout.imag()),  \
+          /*is_device*/ true);                                                 \
+                                                                               \
+      cplx_inout[0].real(init_re2);                                            \
+      cplx_inout[0].imag(init_im2);                                            \
+                                                                               \
+      cplx_inout[0] op_assign dec;                                             \
+                                                                               \
+      pass &= check_results(                                                   \
+          cplx_inout[0], std::complex<T>(std_inout.real(), std_inout.imag()),  \
+          /*is_device*/ false);                                                \
+                                                                               \
       return pass;                                                             \
     }                                                                          \
   };
@@ -84,7 +132,7 @@ int main() {
   sycl::queue Q;
 
   bool test_failed = false;
-  
+
   {
     bool test_passes = true;
     test_passes &= test_valid_types<test_add>(Q, 4.42, 2.02, -1.5, 3.2);
