@@ -6,9 +6,7 @@ using namespace sycl::ext::cplx;
 #define TEST_MATH_OP_TYPE(op_name, op)                                         \
   template <typename T> struct test##_##op_name##_##types {                    \
     bool operator()() {                                                        \
-      static_assert(                                                           \
-          std::is_same_v<complex<T>, decltype(declval<complex<T>>() +          \
-                                              declval<complex<T>>())>);        \
+                                                                               \
       static_assert(                                                           \
           std::is_same_v<complex<T>,                                           \
                          decltype(declval<complex<T>>() op declval<T>())>);    \
