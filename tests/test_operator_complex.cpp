@@ -132,7 +132,7 @@ int main() {
   sycl::queue Q;
 
   bool test_failed = false;
-  
+
   {
     bool test_passes = true;
     test_passes &= test_valid_types<test_add>(Q, 4.42, 2.02, -1.5, 3.2);
@@ -244,10 +244,9 @@ int main() {
     test_passes &= test_valid_types<test_add_assign>(Q, INFINITY, INFINITY,
                                                      INFINITY, INFINITY);
 
-    test_passes &= test_valid_types<test_add_assign>(Q, NAN, 2.02,
-    NAN, 2.02); test_passes &= test_valid_types<test_add_assign>(Q, 4.42,
-    NAN, 4.42, NAN); test_passes &= test_valid_types<test_add_assign>(Q, NAN,
-    NAN, NAN, NAN);
+    test_passes &= test_valid_types<test_add_assign>(Q, NAN, 2.02, NAN, 2.02);
+    test_passes &= test_valid_types<test_add_assign>(Q, 4.42, NAN, 4.42, NAN);
+    test_passes &= test_valid_types<test_add_assign>(Q, NAN, NAN, NAN, NAN);
 
     test_passes &=
         test_valid_types<test_add_assign>(Q, NAN, INFINITY, NAN, INFINITY);
@@ -265,8 +264,7 @@ int main() {
 
   {
     bool test_passes = true;
-    test_passes &= test_valid_types<test_sub_assign>(Q, 4.42, 2.02,
-    -1.5, 3.2);
+    test_passes &= test_valid_types<test_sub_assign>(Q, 4.42, 2.02, -1.5, 3.2);
 
     test_passes &=
         test_valid_types<test_sub_assign>(Q, INFINITY, 2.02, INFINITY, 2.02);
@@ -275,10 +273,9 @@ int main() {
     test_passes &= test_valid_types<test_sub_assign>(Q, INFINITY, INFINITY,
                                                      INFINITY, INFINITY);
 
-    test_passes &= test_valid_types<test_sub_assign>(Q, NAN, 2.02,
-    NAN, 2.02); test_passes &= test_valid_types<test_sub_assign>(Q, 4.42,
-    NAN, 4.42, NAN); test_passes &= test_valid_types<test_sub_assign>(Q, NAN,
-    NAN, NAN, NAN);
+    test_passes &= test_valid_types<test_sub_assign>(Q, NAN, 2.02, NAN, 2.02);
+    test_passes &= test_valid_types<test_sub_assign>(Q, 4.42, NAN, 4.42, NAN);
+    test_passes &= test_valid_types<test_sub_assign>(Q, NAN, NAN, NAN, NAN);
 
     test_passes &=
         test_valid_types<test_sub_assign>(Q, NAN, INFINITY, NAN, INFINITY);
@@ -296,8 +293,7 @@ int main() {
 
   {
     bool test_passes = true;
-    test_passes &= test_valid_types<test_mul_assign>(Q, 4.42, 2.02,
-    -1.5, 3.2);
+    test_passes &= test_valid_types<test_mul_assign>(Q, 4.42, 2.02, -1.5, 3.2);
 
     test_passes &=
         test_valid_types<test_mul_assign>(Q, INFINITY, 2.02, INFINITY, 2.02);
@@ -306,10 +302,9 @@ int main() {
     test_passes &= test_valid_types<test_mul_assign>(Q, INFINITY, INFINITY,
                                                      INFINITY, INFINITY);
 
-    test_passes &= test_valid_types<test_mul_assign>(Q, NAN, 2.02,
-    NAN, 2.02); test_passes &= test_valid_types<test_mul_assign>(Q, 4.42,
-    NAN, 4.42, NAN); test_passes &= test_valid_types<test_mul_assign>(Q, NAN,
-    NAN, NAN, NAN);
+    test_passes &= test_valid_types<test_mul_assign>(Q, NAN, 2.02, NAN, 2.02);
+    test_passes &= test_valid_types<test_mul_assign>(Q, 4.42, NAN, 4.42, NAN);
+    test_passes &= test_valid_types<test_mul_assign>(Q, NAN, NAN, NAN, NAN);
 
     test_passes &=
         test_valid_types<test_mul_assign>(Q, NAN, INFINITY, NAN, INFINITY);
@@ -327,8 +322,7 @@ int main() {
 
   {
     bool test_passes = true;
-    test_passes &= test_valid_types<test_div_assign>(Q, 4.42, 2.02,
-    -1.5, 3.2);
+    test_passes &= test_valid_types<test_div_assign>(Q, 4.42, 2.02, -1.5, 3.2);
 
     test_passes &=
         test_valid_types<test_div_assign>(Q, INFINITY, 2.02, INFINITY, 2.02);
@@ -337,10 +331,9 @@ int main() {
     test_passes &= test_valid_types<test_div_assign>(Q, INFINITY, INFINITY,
                                                      INFINITY, INFINITY);
 
-    test_passes &= test_valid_types<test_div_assign>(Q, NAN, 2.02,
-    NAN, 2.02); test_passes &= test_valid_types<test_div_assign>(Q, 4.42,
-    NAN, 4.42, NAN); test_passes &= test_valid_types<test_div_assign>(Q, NAN,
-    NAN, NAN, NAN);
+    test_passes &= test_valid_types<test_div_assign>(Q, NAN, 2.02, NAN, 2.02);
+    test_passes &= test_valid_types<test_div_assign>(Q, 4.42, NAN, 4.42, NAN);
+    test_passes &= test_valid_types<test_div_assign>(Q, NAN, NAN, NAN, NAN);
 
     test_passes &=
         test_valid_types<test_div_assign>(Q, NAN, INFINITY, NAN, INFINITY);
