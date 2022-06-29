@@ -9,6 +9,13 @@ using namespace sycl::ext::cplx;
       static_assert(                                                           \
           std::is_same_v<complex<T>, decltype(declval<complex<T>>() +          \
                                               declval<complex<T>>())>);        \
+      static_assert(                                                           \
+          std::is_same_v<complex<T>,                                           \
+                         decltype(declval<complex<T>>() op declval<T>())>);    \
+                                                                               \
+      static_assert(                                                           \
+          std::is_same_v<complex<T>,                                           \
+                         decltype(declval<T>() op declval<complex<T>>())>);    \
       return true;                                                             \
     }                                                                          \
   };
