@@ -26,6 +26,8 @@
                                                                                \
       pass &= check_results(cplx_out[0], std_out, /*is_device*/ false);        \
                                                                                \
+      sycl::free(cplx_out, Q);                                                 \
+                                                                               \
       return pass;                                                             \
     }                                                                          \
   };
@@ -69,6 +71,8 @@ test_op(test_div, /);
           cplx_inout[0], std::complex<T>(std_inout.real(), std_inout.imag()),  \
           /*is_device*/ false);                                                \
                                                                                \
+      sycl::free(cplx_inout, Q);                                               \
+                                                                               \
       return pass;                                                             \
     }                                                                          \
   };
@@ -84,7 +88,7 @@ int main() {
   sycl::queue Q;
 
   bool test_failed = false;
-  
+
   {
     bool test_passes = true;
     test_passes &= test_valid_types<test_add>(Q, 4.42, 2.02, -1.5, 3.2);

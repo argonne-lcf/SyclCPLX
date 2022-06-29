@@ -27,6 +27,8 @@ bool test_pow_cplx_cplx(sycl::queue &Q, T init_re, T init_im) {
 
   pass &= check_results(cplx_out[0], std_out, /*is_device*/ false);
 
+  sycl::free(cplx_out, Q);
+
   return pass;
 }
 

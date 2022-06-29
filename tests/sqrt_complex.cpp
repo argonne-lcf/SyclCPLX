@@ -25,6 +25,8 @@ template <typename T> struct test_sqrt {
 
     pass &= check_results(cplx_out[0], std_out, /*is_device*/ false);
 
+    sycl::free(cplx_out, Q);
+
     return pass;
   }
 };

@@ -12,6 +12,8 @@ template <typename T> struct test_sycl_stream_operator {
       });
     });
 
+    sycl::free(cplx_out, Q);
+
     return true;
   }
 };
