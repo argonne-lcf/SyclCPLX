@@ -82,7 +82,7 @@ test_op(test_div, /);
       pass &= check_results(                                                   \
           cplx_inout[0], std::complex<T>(std_inout.real(), std_inout.imag()),  \
           /*is_device*/ false);                                                \
-
+                                                                               \
       /* Check complex-decimal op */                                           \
       std_inout = init_std_complex(init_re2, init_im2);                        \
       cplx_inout[0].real(init_re2);                                            \
