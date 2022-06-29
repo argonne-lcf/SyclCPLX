@@ -40,7 +40,7 @@ bool test_valid_types(argsT... args) {
 // Helpers for comparison
 
 // Do not define for DPCPP as it already defines this struct
-#ifndef __SYCL_DPCPP__
+#ifndef __INTEL_LLVM_COMPILER
 namespace std {
 
 // Specialization of std::numeric<sycl::half> for almost_equal_scalar
