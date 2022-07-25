@@ -10,6 +10,8 @@
 #ifndef _SYCL_EXT_CPLX_COMPLEX
 #define _SYCL_EXT_CPLX_COMPLEX
 
+// clang-format off
+
 /*
     complex synopsis
 
@@ -157,13 +159,12 @@ template<class T> complex<T> operator/(const complex<T>&, const T&);
 template<class T> complex<T> operator/(const T&, const complex<T>&);
 template<class T> complex<T> operator+(const complex<T>&);
 template<class T> complex<T> operator-(const complex<T>&);
-template<class T> bool operator==(const complex<T>&, const complex<T>&); //
-constexpr in C++14 template<class T> bool operator==(const complex<T>&, const
-T&); // constexpr in C++14 template<class T> bool operator==(const T&, const
-complex<T>&); // constexpr in C++14 template<class T> bool operator!=(const
-complex<T>&, const complex<T>&); // constexpr in C++14 template<class T> bool
-operator!=(const complex<T>&, const T&); // constexpr in C++14 template<class T>
-bool operator!=(const T&, const complex<T>&); // constexpr in C++14
+template<class T> bool operator==(const complex<T>&, const complex<T>&); // constexpr in C++14
+template<class T> bool operator==(const complex<T>&, const T&); // constexpr in C++14
+template<class T> bool operator==(const T&, const complex<T>&); // constexpr in C++14
+template<class T> bool operator!=(const complex<T>&, const complex<T>&); // constexpr in C++14
+template<class T> bool operator!=(const complex<T>&, const T&); // constexpr in C++14
+template<class T> bool operator!=(const T&, const complex<T>&); // constexpr in C++14
 
 template<class T, class charT, class traits>
   basic_istream<charT, traits>&
@@ -237,6 +238,8 @@ template<class T> complex<T> tanh (const complex<T>&);
 }  // sycl::ext::cplx
 
 */
+
+// clang-format on
 
 #define _SYCL_EXT_CPLX_BEGIN_NAMESPACE_STD namespace sycl::ext::cplx {
 #define _SYCL_EXT_CPLX_END_NAMESPACE_STD }
