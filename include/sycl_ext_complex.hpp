@@ -12,6 +12,9 @@
 
 // clang-format off
 
+// Last time synced SyclCPLX with llvm-project
+// https://github.com/llvm/llvm-project/commit/385cc25a531a72c393cee44689e2c3194615bcec
+
 /*
     complex synopsis
 
