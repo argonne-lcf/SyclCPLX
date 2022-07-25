@@ -64,17 +64,16 @@ template <typename T> bool almost_equal(T x, T y, int ulp) {
          std::abs(x - y) < std::numeric_limits<T>::min();
 }
 
-template <typename T,
-          template<typename> typename T1,
-          template<typename> typename T2>
+template <typename T, template <typename> typename T1,
+          template <typename> typename T2>
 bool almost_equal(T1<T> x, T2<T> y, int ulp) {
-  static_assert( ( std::is_same<T1<T>, std::complex<T>>::value ||
-                   std::is_same<T1<T>, sycl::ext::cplx::complex<T>>::value),
-                   "almost_equal should be used to compare complex number");
-  static_assert( ( std::is_same<T2<T>, std::complex<T>>::value ||
-                   std::is_same<T2<T>, sycl::ext::cplx::complex<T>>::value),
-                   "almost_equal should be used to compare complex number");
-  //Somebody should be smart enough to refactor to use `enable_if`...
+  static_assert((std::is_same<T1<T>, std::complex<T>>::value ||
+                 std::is_same<T1<T>, sycl::ext::cplx::complex<T>>::value),
+                "almost_equal should be used to compare complex number");
+  static_assert((std::is_same<T2<T>, std::complex<T>>::value ||
+                 std::is_same<T2<T>, sycl::ext::cplx::complex<T>>::value),
+                "almost_equal should be used to compare complex number");
+  // Somebody should be smart enough to refactor to use `enable_if`...
   return almost_equal(x.real(), y.real(), ulp) &&
          almost_equal(x.imag(), y.imag(), ulp);
 }
