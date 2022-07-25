@@ -52,6 +52,6 @@ int main() {
 
   if (!test_passes)
     std::cerr << "sqrt complex test fails\n";
-  
+
   return !test_passes;
 }

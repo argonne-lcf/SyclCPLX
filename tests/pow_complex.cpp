@@ -1,6 +1,6 @@
 #include "test_helper.hpp"
 
-template<typename T>
+template <typename T>
 bool test_pow_cplx_cplx(sycl::queue &Q, T init_re, T init_im) {
   bool pass = true;
 
@@ -17,8 +17,8 @@ bool test_pow_cplx_cplx(sycl::queue &Q, T init_re, T init_im) {
 
   // Check cplx::complex output from device
   Q.single_task([=]() {
-      cplx_out[0] = sycl::ext::cplx::pow<T>(cplx_input1, cplx_input2);
-    }).wait();
+     cplx_out[0] = sycl::ext::cplx::pow<T>(cplx_input1, cplx_input2);
+   }).wait();
 
   pass &= check_results(cplx_out[0], std_out, /*is_device*/ true);
 
@@ -32,7 +32,7 @@ bool test_pow_cplx_cplx(sycl::queue &Q, T init_re, T init_im) {
   return pass;
 }
 
-template<typename T>
+template <typename T>
 bool test_pow_cplx_deci(sycl::queue &Q, T init_re, T init_im) {
   bool pass = true;
 
@@ -49,8 +49,8 @@ bool test_pow_cplx_deci(sycl::queue &Q, T init_re, T init_im) {
 
   // Check cplx::complex output from device
   Q.single_task([=]() {
-      cplx_out[0] = sycl::ext::cplx::pow(cplx_input, deci_input);
-    }).wait();
+     cplx_out[0] = sycl::ext::cplx::pow(cplx_input, deci_input);
+   }).wait();
 
   pass &= check_results(cplx_out[0], std_out, /*is_device*/ true);
 
@@ -62,7 +62,7 @@ bool test_pow_cplx_deci(sycl::queue &Q, T init_re, T init_im) {
   return pass;
 }
 
-template<typename T>
+template <typename T>
 bool test_pow_deci_cplx(sycl::queue &Q, T init_re, T init_im) {
   bool pass = true;
 
@@ -79,8 +79,8 @@ bool test_pow_deci_cplx(sycl::queue &Q, T init_re, T init_im) {
 
   // Check cplx::complex output from device
   Q.single_task([=]() {
-      cplx_out[0] = sycl::ext::cplx::pow(deci_input, cplx_input);
-    }).wait();
+     cplx_out[0] = sycl::ext::cplx::pow(deci_input, cplx_input);
+   }).wait();
 
   pass &= check_results(cplx_out[0], std_out, /*is_device*/ true);
 
@@ -106,8 +106,8 @@ int main() {
   sycl::queue Q;
 
   bool test_passes = true;
-  test_passes &= test_valid_types<test_pow>(Q, 4.42,  2.02);
-  
+  test_passes &= test_valid_types<test_pow>(Q, 4.42, 2.02);
+
   test_passes &= test_valid_types<test_pow>(Q, INFINITY, 2.02);
   test_passes &= test_valid_types<test_pow>(Q, 4.42, INFINITY);
   test_passes &= test_valid_types<test_pow>(Q, INFINITY, INFINITY);

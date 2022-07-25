@@ -61,7 +61,7 @@ test_op(test_div, /);
       sycl::ext::cplx::complex<T> cplx_input{init_re1, init_im1};              \
       auto *cplx_inout =                                                       \
           sycl::malloc_shared<sycl::ext::cplx::complex<T>>(1, Q);              \
-      /* Check complex-decimal op */                                           \   
+      /* Check complex-decimal op */                                           \
       auto std_inout = init_std_complex(init_re2, init_im2);                   \
       cplx_inout[0].real(init_re2);                                            \
       cplx_inout[0].imag(init_im2);                                            \
