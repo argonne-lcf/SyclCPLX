@@ -256,19 +256,7 @@ template<class T> complex<T> tanh (const complex<T>&);
 
 _SYCL_EXT_CPLX_BEGIN_NAMESPACE_STD
 
-using std::enable_if;
-using std::integral_constant;
-using std::is_floating_point;
-using std::is_integral;
-using std::is_same;
-
-using std::basic_istream;
-using std::basic_ostream;
-using std::basic_ostringstream;
-
-using std::declval;
-
-template <bool _Val> using _BoolConstant = integral_constant<bool, _Val>;
+template <bool _Val> using _BoolConstant = std::integral_constant<bool, _Val>;
 
 template <class _Tp, class _Up>
 using _IsNotSame = _BoolConstant<!__is_same(_Tp, _Up)>;
@@ -286,7 +274,7 @@ template <class _Tp> struct __numeric_type {
   static double __test(unsigned long long);
   static double __test(double);
 
-  typedef decltype(__test(declval<_Tp>())) type;
+  typedef decltype(__test(std::declval<_Tp>())) type;
   static const bool value = _IsNotSame<type, void>::value;
 };
 
@@ -980,8 +968,8 @@ operator!=(const _Tp &__x, const complex<_Tp> &__y) {
 
 // 26.3.7 values:
 
-template <class _Tp, bool = is_integral<_Tp>::value,
-          bool = is_floating_point<_Tp>::value>
+template <class _Tp, bool = std::is_integral<_Tp>::value,
+          bool = std::is_floating_point<_Tp>::value>
 struct __libcpp_complex_overload_traits {};
 
 // Integral Types
@@ -1044,15 +1032,16 @@ arg(const complex<_Tp> &__c) {
 
 template <class _Tp>
 SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
-    typename enable_if<is_integral<_Tp>::value || is_same<_Tp, double>::value,
-                       double>::type
+    typename std::enable_if<std::is_integral<_Tp>::value ||
+                                std::is_same<_Tp, double>::value,
+                            double>::type
     arg(_Tp __re) {
   return sycl::atan2(0., __re);
 }
 
 template <class _Tp>
 SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
-    typename enable_if<is_same<_Tp, float>::value, float>::type
+    typename std::enable_if<std::is_same<_Tp, float>::value, float>::type
     arg(_Tp __re) {
   return sycl::atan2(0.F, __re);
 }
@@ -1106,8 +1095,8 @@ proj(const complex<_Tp> &__c) {
 }
 
 template <class _Tp>
-SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY typename enable_if<
-    is_floating_point<_Tp>::value,
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY typename std::enable_if<
+    std::is_floating_point<_Tp>::value,
     typename __libcpp_complex_overload_traits<_Tp>::_ComplexType>::type
 proj(_Tp __re) {
   if (sycl::isinf(__re))
@@ -1116,8 +1105,8 @@ proj(_Tp __re) {
 }
 
 template <class _Tp>
-SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY typename enable_if<
-    is_integral<_Tp>::value,
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY typename std::enable_if<
+    std::is_integral<_Tp>::value,
     typename __libcpp_complex_overload_traits<_Tp>::_ComplexType>::type
 proj(_Tp __re) {
   typedef
@@ -1226,8 +1215,8 @@ SYCL_EXTERNAL
 template <class _Tp, class _Up,
           class = std::enable_if<is_gencomplex<_Tp>::value>>
 SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
-    typename enable_if<is_genfloat<_Up>::value,
-                       complex<typename __promote<_Tp, _Up>::type>>::type
+    typename std::enable_if<is_genfloat<_Up>::value,
+                            complex<typename __promote<_Tp, _Up>::type>>::type
     pow(const complex<_Tp> &__x, const _Up &__y) {
   typedef complex<typename __promote<_Tp, _Up>::type> result_type;
   return sycl::ext::cplx::pow(result_type(__x), result_type(__y));
@@ -1236,8 +1225,8 @@ SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
 template <class _Tp, class _Up,
           class = std::enable_if<is_gencomplex<_Tp>::value>>
 SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
-    typename enable_if<is_genfloat<_Up>::value,
-                       complex<typename __promote<_Tp, _Up>::type>>::type
+    typename std::enable_if<is_genfloat<_Up>::value,
+                            complex<typename __promote<_Tp, _Up>::type>>::type
     pow(const _Tp &__x, const complex<_Up> &__y) {
   typedef complex<typename __promote<_Tp, _Up>::type> result_type;
   return sycl::ext::cplx::pow(result_type(__x), result_type(__y));
@@ -1472,8 +1461,8 @@ tan(const complex<_Tp> &__x) {
 }
 
 template <class _Tp, class _CharT, class _Traits>
-basic_istream<_CharT, _Traits> &operator>>(basic_istream<_CharT, _Traits> &__is,
-                                           complex<_Tp> &__x) {
+std::basic_istream<_CharT, _Traits> &
+operator>>(std::basic_istream<_CharT, _Traits> &__is, complex<_Tp> &__x) {
   if (__is.good()) {
     ws(__is);
     if (__is.peek() == _CharT('(')) {
@@ -1518,9 +1507,9 @@ basic_istream<_CharT, _Traits> &operator>>(basic_istream<_CharT, _Traits> &__is,
 }
 
 template <class _Tp, class _CharT, class _Traits>
-basic_ostream<_CharT, _Traits> &operator<<(basic_ostream<_CharT, _Traits> &__os,
-                                           const complex<_Tp> &__x) {
-  basic_ostringstream<_CharT, _Traits> __s;
+std::basic_ostream<_CharT, _Traits> &
+operator<<(std::basic_ostream<_CharT, _Traits> &__os, const complex<_Tp> &__x) {
+  std::basic_ostringstream<_CharT, _Traits> __s;
   __s.flags(__os.flags());
   __s.imbue(__os.getloc());
   __s.precision(__os.precision());
