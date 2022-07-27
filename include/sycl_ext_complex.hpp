@@ -259,7 +259,7 @@ _SYCL_EXT_CPLX_BEGIN_NAMESPACE_STD
 template <bool _Val> using _BoolConstant = std::integral_constant<bool, _Val>;
 
 template <class _Tp, class _Up>
-using _IsNotSame = _BoolConstant<!__is_same(_Tp, _Up)>;
+using _IsNotSame = _BoolConstant<!(std::is_same<_Tp, _Up>::value)>;
 
 template <class _Tp> struct __numeric_type {
   static void __test(...);
