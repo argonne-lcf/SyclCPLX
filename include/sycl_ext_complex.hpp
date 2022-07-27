@@ -256,11 +256,6 @@ template<class T> complex<T> tanh (const complex<T>&);
 
 _SYCL_EXT_CPLX_BEGIN_NAMESPACE_STD
 
-template <bool _Val> using _BoolConstant = std::integral_constant<bool, _Val>;
-
-template <class _Tp, class _Up>
-using _IsNotSame = _BoolConstant<!(std::is_same<_Tp, _Up>::value)>;
-
 template <class _Tp> struct __numeric_type {
   static void __test(...);
   static sycl::half __test(sycl::half);
@@ -275,7 +270,7 @@ template <class _Tp> struct __numeric_type {
   static double __test(double);
 
   typedef decltype(__test(std::declval<_Tp>())) type;
-  static const bool value = _IsNotSame<type, void>::value;
+  static const bool value = !std::is_same<type, void>::value;
 };
 
 template <> struct __numeric_type<void> { static const bool value = true; };
