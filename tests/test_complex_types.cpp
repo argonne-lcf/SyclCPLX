@@ -8,12 +8,13 @@ using namespace sycl::ext::cplx;
     bool operator()() {                                                        \
                                                                                \
       static_assert(                                                           \
-          std::is_same_v<complex<T>,                                           \
-                         decltype(declval<complex<T>>() op declval<T>())>);    \
+          std::is_same_v<complex<T>, decltype(std::declval<complex<T>>()       \
+                                                  op std::declval<T>())>);     \
                                                                                \
       static_assert(                                                           \
           std::is_same_v<complex<T>,                                           \
-                         decltype(declval<T>() op declval<complex<T>>())>);    \
+                         decltype(std::declval<T>()                            \
+                                      op std::declval<complex<T>>())>);        \
       return true;                                                             \
     }                                                                          \
   };
