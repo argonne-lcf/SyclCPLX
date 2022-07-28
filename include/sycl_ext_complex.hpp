@@ -45,17 +45,7 @@ public:
 
     complex& operator=(const complex&);
     template<class X> complex<T>& operator= (const complex<X>&);
-    template<class X> complex<T>& operator+=(const complex<X>&);
-    template<class X> complex<T>& operator-=(const complex<X>&);
-    template<class X> complex<T>& operator*=(const complex<X>&);
-    template<class X> complex<T>& operator/=(const complex<X>&);
-};
-
-template<>
-class complex<sycl::half>
-{
-public:
-    typedef sycl::half value_type;
+    template<class X> complex<T>& operator+=(const complex<X>&);_SYCL_BEGIN_NAMESPACE_STD
 
     constexpr complex(sycl::half re = 0.0f, sycl::half im = 0.0f);
     explicit constexpr complex(const complex<float>&);
@@ -244,8 +234,10 @@ template<class T> complex<T> tanh (const complex<T>&);
 
 // clang-format on
 
-#define _SYCL_EXT_CPLX_BEGIN_NAMESPACE_STD namespace sycl::ext::cplx {
-#define _SYCL_EXT_CPLX_END_NAMESPACE_STD }
+#define _SYCL_EXT_CPLX_BEGIN_NAMESPACE namespace sycl::ext::cplx {
+#define _SYCL_BEGIN_NAMESPACE namespace sycl {
+#define _SYCL_EXT_CPLX_END_NAMESPACE }
+#define _SYCL_END_NAMESPACE }
 #define _SYCL_EXT_CPLX_INLINE_VISIBILITY                                       \
   inline __attribute__((__visibility__("hidden"), __always_inline__))
 
@@ -254,7 +246,7 @@ template<class T> complex<T> tanh (const complex<T>&);
 #include <sycl/sycl.hpp>
 #include <type_traits>
 
-_SYCL_EXT_CPLX_BEGIN_NAMESPACE_STD
+_SYCL_EXT_CPLX_BEGIN_NAMESPACE
 
 template <class _Tp> struct __numeric_type {
   static void __test(...);
@@ -314,7 +306,15 @@ public:
 template <class _A1, class _A2 = void, class _A3 = void>
 class __promote : public __promote_imp<_A1, _A2, _A3> {};
 
+// Forward declarations
 template <class _Tp> class complex;
+
+_SYCL_EXT_CPLX_END_NAMESPACE
+_SYCL_BEGIN_NAMESPACE
+template <typename T, std::size_t NumElements>
+class marray<sycl::ext::cplx::complex<T>, NumElements>;
+_SYCL_END_NAMESPACE
+_SYCL_EXT_CPLX_BEGIN_NAMESPACE
 
 template <class _Tp>
 struct is_gencomplex
@@ -328,6 +328,16 @@ struct is_genfloat
     : std::integral_constant<bool, std::is_same_v<_Tp, double> ||
                                        std::is_same_v<_Tp, float> ||
                                        std::is_same_v<_Tp, sycl::half>> {};
+
+template <class _Tp, std::size_t NumElements>
+struct is_mgencomplex
+    : std::integral_constant<
+          bool,
+          std::is_same_v<_Tp, sycl::marray<complex<double>, NumElements>> ||
+              std::is_same_v<_Tp, sycl::marray<complex<float>, NumElements>> ||
+              std::is_same_v<_Tp,
+                             sycl::marray<complex<sycl::half>, NumElements>>> {
+};
 
 template <class _Tp>
 complex<_Tp> operator*(const complex<_Tp> &__z, const complex<_Tp> &__w);
@@ -964,7 +974,7 @@ operator!=(const _Tp &__x, const complex<_Tp> &__y) {
 // 26.3.7 values:
 
 template <class _Tp, bool = std::is_integral<_Tp>::value,
-          bool = std::is_floating_point<_Tp>::value>
+          bool = is_genfloat<_Tp>::value>
 struct __libcpp_complex_overload_traits {};
 
 // Integral Types
@@ -1091,7 +1101,7 @@ proj(const complex<_Tp> &__c) {
 
 template <class _Tp>
 SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY typename std::enable_if<
-    std::is_floating_point<_Tp>::value,
+    is_genfloat<_Tp>::value,
     typename __libcpp_complex_overload_traits<_Tp>::_ComplexType>::type
 proj(_Tp __re) {
   if (sycl::isinf(__re))
@@ -1518,10 +1528,520 @@ operator<<(const sycl::stream &__ss, const complex<_Tp> &_x) {
   return __ss << "(" << _x.real() << "," << _x.imag() << ")";
 }
 
-_SYCL_EXT_CPLX_END_NAMESPACE_STD
+_SYCL_EXT_CPLX_END_NAMESPACE
 
-#undef _SYCL_EXT_CPLX_BEGIN_NAMESPACE_STD
-#undef _SYCL_EXT_CPLX_END_NAMESPACE_STD
+// ----------------------------------------------------------------------------
+// -------------------------------complex-marray-------------------------------
+// ----------------------------------------------------------------------------
+
+_SYCL_BEGIN_NAMESPACE
+
+// marray of complex class specialisation
+template <typename T, std::size_t NumElements>
+class marray<sycl::ext::cplx::complex<T>, NumElements> {
+private:
+  using DataT = sycl::ext::cplx::complex<T>;
+
+public:
+  using value_type = DataT;
+  using reference = DataT &;
+  using const_reference = const DataT &;
+  using iterator = DataT *;
+  using const_iterator = const DataT *;
+
+private:
+  value_type MData[NumElements];
+
+public:
+  marray() : MData{} {};
+
+  explicit constexpr marray(const DataT &arg) {
+    for (size_t i = 0; i < NumElements; ++i)
+      MData[i] = arg;
+  }
+
+  template <typename... ArgTN>
+  constexpr marray(const ArgTN &... args) : MData{args...} {};
+
+  constexpr marray(const marray<DataT, NumElements> &rhs) = default;
+  constexpr marray(marray<DataT, NumElements> &&rhs) = default;
+
+  // Available only when: NumElements == 1
+  template <typename = typename std::enable_if<NumElements == 1>>
+  operator DataT() const {
+    return MData[0];
+  }
+
+  static constexpr std::size_t size() noexcept { return NumElements; }
+
+  // subscript operator
+  reference operator[](std::size_t index) { return MData[index]; }
+  const_reference operator[](std::size_t index) const { return MData[index]; }
+
+  marray &operator=(const marray<DataT, NumElements> &rhs) = default;
+  marray &operator=(const DataT &rhs) {
+    for (std::size_t i = 0; i < NumElements; ++i)
+      MData[i] = rhs;
+
+    return *this;
+  }
+
+  // iterator functions
+  iterator begin() { return MData; }
+  const_iterator begin() const { return MData; }
+
+  iterator end() { return MData + NumElements; }
+  const_iterator end() const { return MData + NumElements; }
+
+  // OP is: +, -, *, /
+#define OP(op)                                                                 \
+  friend marray operator op(const marray &lhs, const marray &rhs) {            \
+    marray rtn;                                                                \
+    for (std::size_t i = 0; i < NumElements; ++i)                              \
+      rtn[i] = lhs[i] op rhs[i];                                               \
+                                                                               \
+    return rtn;                                                                \
+  }                                                                            \
+                                                                               \
+  friend marray operator op(const marray &lhs, const DataT &rhs) {             \
+    marray rtn;                                                                \
+    for (std::size_t i = 0; i < NumElements; ++i)                              \
+      rtn[i] = lhs[i] op rhs;                                                  \
+                                                                               \
+    return rtn;                                                                \
+  }                                                                            \
+                                                                               \
+  friend marray operator op(const DataT &lhs, const marray &rhs) {             \
+    marray rtn;                                                                \
+    for (std::size_t i = 0; i < NumElements; ++i)                              \
+      rtn[i] = lhs op rhs[i];                                                  \
+                                                                               \
+    return rtn;                                                                \
+  }
+
+  OP(+)
+  OP(-)
+  OP(*)
+  OP(/)
+
+#undef OP
+
+  // OP is: %
+  friend marray operator%(const marray &lhs, const marray &rhs) = delete;
+  friend marray operator%(const marray &lhs, const DataT &rhs) = delete;
+  friend marray operator%(const DataT &lhs, const marray &rhs) = delete;
+
+  // OP is: +=, -=, *=, /=
+#define OP(op)                                                                 \
+  friend marray &operator op(marray &lhs, const marray &rhs) {                 \
+    for (std::size_t i = 0; i < NumElements; ++i)                              \
+      lhs[i] op rhs[i];                                                        \
+                                                                               \
+    return lhs;                                                                \
+  }                                                                            \
+                                                                               \
+  friend marray &operator op(marray &lhs, const DataT &rhs) {                  \
+    for (std::size_t i = 0; i < NumElements; ++i)                              \
+      lhs[i] op rhs;                                                           \
+                                                                               \
+    return lhs;                                                                \
+  }                                                                            \
+  friend marray &operator op(DataT &lhs, const marray &rhs) {                  \
+    for (std::size_t i = 0; i < NumElements; ++i)                              \
+      lhs[i] op rhs;                                                           \
+                                                                               \
+    return lhs;                                                                \
+  }
+
+  OP(+=)
+  OP(-=)
+  OP(*=)
+  OP(/=)
+
+#undef OP
+
+  // OP is: %=
+  friend marray &operator%=(marray &lhs, const marray &rhs) = delete;
+  friend marray &operator%=(marray &lhs, const DataT &rhs) = delete;
+  friend marray &operator%=(DataT &lhs, const marray &rhs) = delete;
+
+// OP is: ++, --
+#define OP(op)                                                                 \
+  friend marray operator op(marray &lhs, int) = delete;                        \
+  friend marray &operator op(marray &rhs) = delete;
+
+  OP(++)
+  OP(--)
+
+#undef OP
+
+  // OP is unary +, -
+  friend marray operator+(marray &rhs) = delete;
+  friend marray operator-(marray &rhs) = delete;
+
+// OP is: &, |, ^
+#define OP(op)                                                                 \
+  friend marray operator op(const marray &lhs, const marray &rhs) = delete;    \
+  friend marray operator op(const marray &lhs, const DataT &rhs) = delete;
+
+  OP(&)
+  OP(|)
+  OP(^)
+
+#undef OP
+
+// OP is: &=, |=, ^=
+#define OP(op)                                                                 \
+  friend marray &operator op(marray &lhs, const marray &rhs) = delete;         \
+  friend marray &operator op(marray &lhs, const DataT &rhs) = delete;          \
+  friend marray &operator op(DataT &lhs, const marray &rhs) = delete;
+
+  OP(&=)
+  OP(|=)
+  OP(^=)
+
+#undef OP
+
+// OP is: &&, ||
+#define OP(op)                                                                 \
+  friend marray<bool, NumElements> operator op(const marray &lhs,              \
+                                               const marray &rhs) = delete;    \
+  friend marray<bool, NumElements> operator op(const marray &lhs,              \
+                                               const DataT &rhs) = delete;     \
+  friend marray<bool, NumElements> operator op(const DataT &lhs,               \
+                                               const marray &rhs) = delete;
+
+  OP(&&)
+  OP(||)
+
+#undef OP
+
+// OP is: <<, >>
+#define OP(op)                                                                 \
+  friend marray operator op(const marray &lhs, const marray &rhs) = delete;    \
+  friend marray operator op(const marray &lhs, const DataT &rhs) = delete;     \
+  friend marray operator op(const DataT &lhs, const marray &rhs) = delete;
+
+  OP(<<)
+  OP(>>)
+
+#undef OP
+
+// OP is: <<=, >>=
+#define OP(op)                                                                 \
+  friend marray &operator op(marray &lhs, const marray &rhs) = delete;         \
+  friend marray &operator op(marray &lhs, const DataT &rhs) = delete;
+
+  OP(<<=)
+  OP(>>=)
+
+#undef OP
+
+  // OP is: ==, !=
+#define OP(op)                                                                 \
+  friend marray<bool, NumElements> operator op(const marray &lhs,              \
+                                               const marray &rhs) {            \
+    marray<bool, NumElements> rtn;                                             \
+    for (std::size_t i = 0; i < NumElements; ++i)                              \
+      rtn[i] = lhs[i] op rhs[i];                                               \
+                                                                               \
+    return rtn;                                                                \
+  }                                                                            \
+                                                                               \
+  friend marray<bool, NumElements> operator op(const marray &lhs,              \
+                                               const DataT &rhs) {             \
+    marray<bool, NumElements> rtn;                                             \
+    for (std::size_t i = 0; i < NumElements; ++i)                              \
+      rtn[i] = lhs[i] op rhs;                                                  \
+                                                                               \
+    return rtn;                                                                \
+  }                                                                            \
+                                                                               \
+  friend marray<bool, NumElements> operator op(const DataT &lhs,               \
+                                               const marray &rhs) {            \
+    marray<bool, NumElements> rtn;                                             \
+    for (std::size_t i = 0; i < NumElements; ++i)                              \
+      rtn[i] = lhs op rhs[i];                                                  \
+                                                                               \
+    return rtn;                                                                \
+  }
+
+  OP(==)
+  OP(!=)
+
+#undef OP
+
+  // OP is: <, >, <=, >=
+#define OP(op)                                                                 \
+  friend marray<bool, NumElements> operator op(const marray &lhs,              \
+                                               const marray &rhs) = delete;    \
+  friend marray<bool, NumElements> operator op(const marray &lhs,              \
+                                               const DataT &rhs) = delete;     \
+  friend marray<bool, NumElements> operator op(const DataT &lhs,               \
+                                               const marray &rhs) = delete;
+
+  OP(<);
+  OP(>);
+  OP(<=);
+  OP(>=);
+
+#undef OP
+
+  friend marray operator~(const marray &v) = delete;
+
+  friend marray<bool, NumElements> operator!(const marray &v) = delete;
+};
+
+_SYCL_END_NAMESPACE
+
+_SYCL_EXT_CPLX_BEGIN_NAMESPACE
+
+// Make_complex_marray
+
+template <class T, std::size_t NumElements>
+sycl::marray<complex<T>, NumElements>
+make_complex_marray(const sycl::marray<T, NumElements> &real,
+                    const sycl::marray<T, NumElements> &imag) {
+  sycl::marray<complex<T>, NumElements> rtn;
+
+  for (std::size_t i = 0; i < NumElements; ++i) {
+    rtn[i].real(real[i]);
+    rtn[i].imag(imag[i]);
+  }
+
+  return rtn;
+}
+
+template <class T, std::size_t NumElements>
+sycl::marray<complex<T>, NumElements>
+make_complex_marray(const sycl::marray<T, NumElements> &real, const T &imag) {
+  sycl::marray<complex<T>, NumElements> rtn;
+
+  for (std::size_t i = 0; i < NumElements; ++i) {
+    rtn[i].real(real[i]);
+    rtn[i].imag(imag);
+  }
+
+  return rtn;
+}
+
+template <class T, std::size_t NumElements>
+sycl::marray<complex<T>, NumElements>
+make_complex_marray(const T &real, const sycl::marray<T, NumElements> &imag) {
+  sycl::marray<complex<T>, NumElements> rtn;
+
+  for (std::size_t i = 0; i < NumElements; ++i) {
+    rtn[i].real(real);
+    rtn[i].imag(imag[i]);
+  }
+
+  return rtn;
+}
+
+// Get
+
+template <class T, std::size_t NumElements>
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY sycl::marray<T, NumElements>
+get_real(const sycl::marray<complex<T>, NumElements> &input) {
+  sycl::marray<T, NumElements> rtn;
+
+  for (std::size_t i = 0; i < NumElements; ++i)
+    rtn[i] = input[i].real();
+
+  return rtn;
+}
+
+template <class T, std::size_t NumElements>
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY sycl::marray<T, NumElements>
+get_imag(const sycl::marray<complex<T>, NumElements> &input) {
+  sycl::marray<T, NumElements> rtn;
+
+  for (std::size_t i = 0; i < NumElements; ++i)
+    rtn[i] = input[i].imag();
+
+  return rtn;
+}
+
+template <class T, std::size_t NumElements>
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY T get_real(
+    const sycl::marray<complex<T>, NumElements> &input, std::size_t index) {
+  return input[index].real();
+}
+
+template <class T, std::size_t NumElements>
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY T get_imag(
+    const sycl::marray<complex<T>, NumElements> &input, std::size_t index) {
+  return input[index].imag();
+}
+
+// Set
+
+template <class T, std::size_t NumElements>
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY void
+set_real(sycl::marray<complex<T>, NumElements> &input,
+         const sycl::marray<T, NumElements> &values) {
+  for (std::size_t i = 0; i < NumElements; ++i)
+    input[i].real(values[i]);
+}
+
+template <class T, std::size_t NumElements>
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY void
+set_imag(sycl::marray<complex<T>, NumElements> &input,
+         const sycl::marray<T, NumElements> &values) {
+  for (std::size_t i = 0; i < NumElements; ++i)
+    input[i].imag(values[i]);
+}
+
+template <class T, std::size_t NumElements>
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY void
+set_real(sycl::marray<complex<T>, NumElements> &input, const T &value) {
+  for (std::size_t i = 0; i < NumElements; ++i)
+    input[i].real(value);
+}
+
+template <class T, std::size_t NumElements>
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY void
+set_imag(sycl::marray<complex<T>, NumElements> &input, const T &value) {
+  for (std::size_t i = 0; i < NumElements; ++i)
+    input[i].imag(value);
+}
+
+template <class T, std::size_t NumElements>
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY void
+set_real(sycl::marray<complex<T>, NumElements> &input, std::size_t index,
+         const T &value) {
+  input[index].real(value);
+}
+
+template <class T, std::size_t NumElements>
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY void
+set_imag(sycl::marray<complex<T>, NumElements> &input, std::size_t index,
+         const T &value) {
+  input[index].imag(value);
+}
+
+// Math marray overloads
+
+#define MATH_OP_ONE_PARAM(math_func, rtn_type, arg_type)                       \
+  template <typename T, std::size_t NumElements>                               \
+  SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY                               \
+      sycl::marray<rtn_type, NumElements>                                      \
+      math_func(const sycl::marray<arg_type, NumElements> &x) {                \
+    sycl::marray<rtn_type, NumElements> rtn;                                   \
+    for (std::size_t i = 0; i < NumElements; ++i)                              \
+      rtn[i] = sycl::ext::cplx::math_func(x[i]);                               \
+                                                                               \
+    return rtn;                                                                \
+  }
+
+#define MATH_OP_TWO_PARAM(math_func, rtn_type, arg_type1, arg_type2)           \
+  template <typename T, std::size_t NumElements>                               \
+  SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY                               \
+      sycl::marray<rtn_type, NumElements>                                      \
+      math_func(const sycl::marray<arg_type1, NumElements> &x,                 \
+                const sycl::marray<arg_type2, NumElements> &y) {               \
+    sycl::marray<rtn_type, NumElements> rtn;                                   \
+    for (std::size_t i = 0; i < NumElements; ++i)                              \
+      rtn[i] = sycl::ext::cplx::math_func(x[i], y[i]);                         \
+                                                                               \
+    return rtn;                                                                \
+  }                                                                            \
+                                                                               \
+  template <typename T, std::size_t NumElements>                               \
+  SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY                               \
+      sycl::marray<rtn_type, NumElements>                                      \
+      math_func(const sycl::marray<arg_type1, NumElements> &x,                 \
+                const arg_type2 &y) {                                          \
+    sycl::marray<rtn_type, NumElements> rtn;                                   \
+    for (std::size_t i = 0; i < NumElements; ++i)                              \
+      rtn[i] = sycl::ext::cplx::math_func(x[i], y);                            \
+                                                                               \
+    return rtn;                                                                \
+  }                                                                            \
+                                                                               \
+  template <typename T, std::size_t NumElements>                               \
+  SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY                               \
+      sycl::marray<rtn_type, NumElements>                                      \
+      math_func(const arg_type1 &x,                                            \
+                const sycl::marray<arg_type2, NumElements> &y) {               \
+    sycl::marray<rtn_type, NumElements> rtn;                                   \
+    for (std::size_t i = 0; i < NumElements; ++i)                              \
+      rtn[i] = math_func(x, y[i]);                                             \
+                                                                               \
+    return rtn;                                                                \
+  }
+
+MATH_OP_ONE_PARAM(abs, T, complex<T>);
+MATH_OP_ONE_PARAM(acos, complex<T>, complex<T>);
+MATH_OP_ONE_PARAM(asin, complex<T>, complex<T>);
+MATH_OP_ONE_PARAM(atan, complex<T>, complex<T>);
+MATH_OP_ONE_PARAM(acosh, complex<T>, complex<T>);
+MATH_OP_ONE_PARAM(asinh, complex<T>, complex<T>);
+MATH_OP_ONE_PARAM(atanh, complex<T>, complex<T>);
+MATH_OP_ONE_PARAM(arg, T, complex<T>);
+MATH_OP_ONE_PARAM(conj, complex<T>, complex<T>);
+MATH_OP_ONE_PARAM(cos, complex<T>, complex<T>);
+MATH_OP_ONE_PARAM(cosh, complex<T>, complex<T>);
+MATH_OP_ONE_PARAM(exp, complex<T>, complex<T>);
+MATH_OP_ONE_PARAM(log, complex<T>, complex<T>);
+MATH_OP_ONE_PARAM(log10, complex<T>, complex<T>);
+MATH_OP_ONE_PARAM(norm, T, complex<T>);
+MATH_OP_TWO_PARAM(pow, complex<T>, complex<T>, T);
+MATH_OP_TWO_PARAM(pow, complex<T>, complex<T>, complex<T>);
+MATH_OP_TWO_PARAM(pow, complex<T>, T, complex<T>);
+MATH_OP_ONE_PARAM(proj, complex<T>, complex<T>);
+MATH_OP_ONE_PARAM(proj, complex<T>, T);
+MATH_OP_ONE_PARAM(sin, complex<T>, complex<T>);
+MATH_OP_ONE_PARAM(sinh, complex<T>, complex<T>);
+MATH_OP_ONE_PARAM(sqrt, complex<T>, complex<T>);
+MATH_OP_ONE_PARAM(tan, complex<T>, complex<T>);
+MATH_OP_ONE_PARAM(tanh, complex<T>, complex<T>);
+
+// Special definition as polar requires default argument
+
+template <typename T, std::size_t NumElements>
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
+    sycl::marray<sycl::ext::cplx::complex<T>, NumElements>
+    polar(const sycl::marray<T, NumElements> &rho,
+          const sycl::marray<T, NumElements> &theta) {
+  sycl::marray<sycl::ext::cplx::complex<T>, NumElements> rtn;
+  for (std::size_t i = 0; i < NumElements; ++i)
+    rtn[i] = sycl::ext::cplx::polar(rho[i], theta[i]);
+
+  return rtn;
+}
+
+template <typename T, std::size_t NumElements>
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
+    sycl::marray<sycl::ext::cplx::complex<T>, NumElements>
+    polar(const sycl::marray<T, NumElements> &rho, const T &theta = 0) {
+  sycl::marray<sycl::ext::cplx::complex<T>, NumElements> rtn;
+  for (std::size_t i = 0; i < NumElements; ++i)
+    rtn[i] = sycl::ext::cplx::polar(rho[i], theta);
+
+  return rtn;
+}
+
+template <typename T, std::size_t NumElements>
+SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
+    sycl::marray<sycl::ext::cplx::complex<T>, NumElements>
+    polar(const T &rho, const sycl::marray<T, NumElements> &theta) {
+  sycl::marray<sycl::ext::cplx::complex<T>, NumElements> rtn;
+  for (std::size_t i = 0; i < NumElements; ++i)
+    rtn[i] = sycl::ext::cplx::polar(rho, theta[i]);
+
+  return rtn;
+}
+
+#undef MATH_OP_ONE_PARAM
+#undef MATH_OP_TWO_PARAM
+
+_SYCL_EXT_CPLX_END_NAMESPACE
+
+#undef _SYCL_EXT_CPLX_BEGIN_NAMESPACE
+#undef _SYCL_BEGIN_NAMESPACE
+#undef _SYCL_EXT_CPLX_END_NAMESPACE
+#undef _SYCL_END_NAMESPACE
 #undef _SYCL_EXT_CPLX_INLINE_VISIBILITY
 
 #endif // _SYCL_EXT_CPLX_COMPLEX
