@@ -4,7 +4,7 @@
 
 #include "sycl_ext_complex.hpp"
 
-#define SYCL_CPLX_TOL_ULP 5
+#define SYCL_CPLX_TOL_ULP 10
 
 // Helpers for displaying results
 
@@ -53,6 +53,21 @@ template <> struct numeric_limits<sycl::half> {
 } // namespace std
 #endif
 
+template <typename T> T complex_magnitude(std::complex<T> a) {
+  return std::sqrt(a.real() * a.real() + a.imag() * a.imag());
+}
+
+template <typename T> T complex_magnitude(sycl::ext::cplx::complex<T> a) {
+  return std::sqrt(a.real() * a.real() + a.imag() * a.imag());
+}
+
+template <typename T, typename U> inline bool is_nan_or_inf(T x, U y) {
+  return (std::isnan(x.real()) && std::isnan(y.real())) ||
+         (std::isnan(x.imag()) && std::isnan(y.imag())) ||
+         (std::isinf(x.real()) && std::isinf(y.real())) ||
+         (std::isinf(x.imag()) && std::isinf(y.imag()));
+}
+
 template <typename T> bool almost_equal(T x, T y, int ulp) {
   if (std::isnan(x) && std::isnan(y))
     return true;
@@ -74,8 +89,13 @@ bool almost_equal(T1<T> x, T2<T> y, int ulp) {
                  std::is_same<T2<T>, sycl::ext::cplx::complex<T>>::value),
                 "almost_equal should be used to compare complex number");
   // Somebody should be smart enough to refactor to use `enable_if`...
-  return almost_equal(x.real(), y.real(), ulp) &&
-         almost_equal(x.imag(), y.imag(), ulp);
+  auto diff =
+      complex_magnitude(std::complex(x.real() - y.real(), x.imag() - y.imag()));
+  return diff <= std::numeric_limits<T>::epsilon() *
+                     std::abs(std::complex(x.real() + y.real(),
+                                           x.imag() + y.imag())) *
+                     ulp ||
+         diff < std::numeric_limits<T>::min() || is_nan_or_inf(x, y);
 }
 // Helpers for testing half
 
