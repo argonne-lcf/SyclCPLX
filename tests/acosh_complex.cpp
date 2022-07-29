@@ -27,7 +27,8 @@ template <typename T> struct test_acosh {
     }
     Q.wait();
 
-    pass &= check_results(cplx_out[0], std_out, /*is_device*/ true);
+    pass &= check_results(cplx_out[0], std_out, /*is_device*/ true,
+                          /*tol_multiplier*/ 2);
 
     // Check cplx::complex output from host
     if (is_error_checking)
@@ -36,7 +37,8 @@ template <typename T> struct test_acosh {
       cplx_out[0] =
           sycl::ext::cplx::cosh<T>(sycl::ext::cplx::acosh<T>(cplx_input));
 
-    pass &= check_results(cplx_out[0], std_out, /*is_device*/ false);
+    pass &= check_results(cplx_out[0], std_out, /*is_device*/ false,
+                          /*tol_multiplier*/ 2);
 
     sycl::free(cplx_out, Q);
 
