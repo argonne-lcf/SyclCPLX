@@ -53,6 +53,13 @@ template <> struct numeric_limits<sycl::half> {
 } // namespace std
 #endif
 
+template <typename T, typename U> inline bool is_nan_or_inf(T x, U y) {
+  return (std::isnan(x.real()) && std::isnan(y.real())) ||
+         (std::isnan(x.imag()) && std::isnan(y.imag())) ||
+         (std::isinf(x.real()) && std::isinf(y.real())) ||
+         (std::isinf(x.imag()) && std::isinf(y.imag()));
+}
+
 template <typename T> bool almost_equal(T x, T y, int ulp) {
   if (std::isnan(x) && std::isnan(y))
     return true;
@@ -74,8 +81,10 @@ bool almost_equal(T1<T> x, T2<T> y, int ulp) {
                  std::is_same<T2<T>, sycl::ext::cplx::complex<T>>::value),
                 "almost_equal should be used to compare complex number");
   // Somebody should be smart enough to refactor to use `enable_if`...
-  return almost_equal(x.real(), y.real(), ulp) &&
-         almost_equal(x.imag(), y.imag(), ulp);
+  auto diff = std::abs((T2<T>)x - y);
+  return diff <=
+             std::numeric_limits<T>::epsilon() * std::abs((T2<T>)x + y) * ulp ||
+         diff < std::numeric_limits<T>::min() || is_nan_or_inf(x, y);
 }
 // Helpers for testing half
 
@@ -115,8 +124,9 @@ template <> auto constexpr init_deci(sycl::half re) {
 
 template <typename T>
 bool check_results(sycl::ext::cplx::complex<T> output,
-                   std::complex<T> reference, bool is_device) {
-  if (!almost_equal(output, reference, SYCL_CPLX_TOL_ULP)) {
+                   std::complex<T> reference, bool is_device,
+                   int tol_multiplier = 1) {
+  if (!almost_equal(output, reference, tol_multiplier * SYCL_CPLX_TOL_ULP)) {
     std::cerr << std::setprecision(std::numeric_limits<T>::max_digits10)
               << "Test failed with complex_type: " << get_typename<T>()
               << " Computed on " << (is_device ? "device" : "host")
@@ -128,8 +138,9 @@ bool check_results(sycl::ext::cplx::complex<T> output,
 }
 
 template <typename T>
-bool check_results(T output, T reference, bool is_device) {
-  if (!almost_equal(output, reference, SYCL_CPLX_TOL_ULP)) {
+bool check_results(T output, T reference, bool is_device,
+                   int tol_multiplier = 1) {
+  if (!almost_equal(output, reference, tol_multiplier * SYCL_CPLX_TOL_ULP)) {
     std::cerr << std::setprecision(std::numeric_limits<T>::max_digits10)
               << "Test failed with complex_type: " << get_typename<T>()
               << " Computed on " << (is_device ? "device" : "host")
