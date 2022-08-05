@@ -37,6 +37,50 @@ bool test_valid_types(argsT... args) {
   return test_passes;
 }
 
+template <template <typename, std::size_t> typename action,
+          std::size_t NumElements, typename... argsT>
+bool test_valid_types(argsT... args) {
+  bool test_passes = true;
+
+  {
+    action<double, NumElements> test;
+    test_passes &= test(args...);
+  }
+
+  {
+    action<float, NumElements> test;
+    test_passes &= test(args...);
+  }
+
+  {
+    action<sycl::half, NumElements> test;
+    test_passes &= test(args...);
+  }
+
+  return test_passes;
+}
+
+// Helper classes to handle implicit conversion for passing marray types
+
+template <typename T, std::size_t NumElements> class test_marray {
+  sycl::marray<T, NumElements> Data;
+
+public:
+  template <typename... ArgTN>
+  constexpr test_marray(const ArgTN &... args) : Data{args...} {};
+
+  T operator[](std::size_t index) const { return Data[index]; }
+
+  template <typename X> test_marray(test_marray<X, NumElements> &input) {
+    for (std::size_t i = 0; i < NumElements; ++i) {
+      Data[i] = input[i];
+    }
+  }
+
+  sycl::marray<T, NumElements> &get() { return Data; }
+  const sycl::marray<T, NumElements> &get() const { return Data; }
+};
+
 // Helpers for comparison
 
 // Do not define for DPCPP as it already defines this struct
@@ -114,10 +158,57 @@ template <> auto constexpr init_std_complex(sycl::half re, sycl::half im) {
   return trunc_float(std::complex<float>(re, im));
 }
 
+template <typename T_in, std::size_t NumElements>
+auto constexpr init_std_complex(sycl::marray<T_in, NumElements> re,
+                                sycl::marray<T_in, NumElements> im) {
+  sycl::marray<std::complex<T_in>, NumElements> rtn;
+
+  for (std::size_t i = 0; i < rtn.size(); ++i)
+    rtn[i] = std::complex<T_in>(re[i], im[i]);
+
+  return rtn;
+}
+
+template <std::size_t NumElements>
+auto constexpr init_std_complex(sycl::marray<sycl::half, NumElements> re,
+                                sycl::marray<sycl::half, NumElements> im) {
+  sycl::marray<std::complex<float>, NumElements> rtn;
+
+  for (std::size_t i = 0; i < rtn.size(); ++i)
+    rtn[i] = trunc_float(std::complex<float>(re[i], im[i]));
+
+  return rtn;
+}
+
 template <typename T_in> auto constexpr init_deci(T_in re) { return re; }
 
 template <> auto constexpr init_deci(sycl::half re) {
   return static_cast<float>(re);
+}
+
+template <typename T_in, std::size_t NumElements>
+auto constexpr init_deci(sycl::marray<T_in, NumElements> re) {
+  return re;
+}
+
+template <std::size_t NumElements>
+auto constexpr init_deci(sycl::marray<sycl::half, NumElements> re) {
+  sycl::marray<float, NumElements> rtn;
+  for (std::size_t i = 0; i < NumElements; ++i)
+    rtn[i] = static_cast<float>(re[i]);
+  return rtn;
+}
+
+// Helper to change marray of std::complex value type
+
+template <typename Tout, typename Tin, std::size_t NumElements>
+auto constexpr convert_marray(sycl::marray<std::complex<Tin>, NumElements> c) {
+  sycl::marray<std::complex<Tout>, NumElements> rtn;
+
+  for (std::size_t i = 0; i < NumElements; ++i)
+    rtn[i] = c[i];
+
+  return rtn;
 }
 
 // Helpers for comparing SyclCPLX and standard c++ results
@@ -149,4 +240,37 @@ bool check_results(T output, T reference, bool is_device,
     return false;
   }
   return true;
+}
+
+template <typename T, std::size_t NumElements>
+bool check_results(
+    sycl::marray<sycl::ext::cplx::complex<T>, NumElements> output,
+    sycl::marray<std::complex<T>, NumElements> reference, bool is_device,
+    int tol_multiplier = 1) {
+  bool test_passes = true;
+  for (std::size_t i = 0; i < NumElements; ++i)
+    test_passes &= check_results(output[i], reference[i], is_device);
+
+  return test_passes;
+}
+
+template <typename T, std::size_t NumElements>
+bool check_results(sycl::marray<T, NumElements> output,
+                   sycl::marray<T, NumElements> reference, bool is_device,
+                   int tol_multiplier = 1) {
+  bool test_passes = true;
+  for (std::size_t i = 0; i < NumElements; ++i)
+    test_passes &= check_results<T>(output[i], reference[i], is_device);
+
+  return test_passes;
+}
+
+template <typename T, std::size_t NumElements>
+bool check_results(sycl::marray<T, NumElements> output, T reference,
+                   bool is_device, int tol_multiplier = 1) {
+  bool test_passes = true;
+  for (std::size_t i = 0; i < NumElements; ++i)
+    test_passes &= check_results<T>(output[i], reference, is_device);
+
+  return test_passes;
 }
