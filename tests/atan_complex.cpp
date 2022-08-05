@@ -46,6 +46,62 @@ template <typename T> struct test_atan {
   }
 };
 
+template <typename T, std::size_t NumElements> struct test_atan_marray {
+  bool operator()(sycl::queue &Q, test_marray<T, NumElements> init_re,
+                  test_marray<T, NumElements> init_im,
+                  bool is_error_checking = false) {
+    bool pass = true;
+
+    auto std_in = init_std_complex(init_re.get(), init_im.get());
+    sycl::marray<sycl::ext::cplx::complex<T>, NumElements> cplx_input =
+        sycl::ext::cplx::make_complex_marray(init_re.get(), init_im.get());
+
+    sycl::marray<std::complex<T>, NumElements> std_out{};
+    auto *cplx_out = sycl::malloc_shared<
+        sycl::marray<sycl::ext::cplx::complex<T>, NumElements>>(1, Q);
+
+    // Get std::complex output
+    if (is_error_checking) {
+      for (std::size_t i = 0; i < NumElements; ++i)
+        std_out[i] = std::atan(std_in[i]);
+    } else {
+      // Need to manually copy to handle as for for halfs, std_in is of value
+      // type float and std_out is of value type half
+      for (std::size_t i = 0; i < NumElements; ++i)
+        std_out[i] = std_in[i];
+    }
+
+    // Check cplx::complex output from device
+    if (is_error_checking) {
+      Q.single_task([=]() {
+         *cplx_out = sycl::ext::cplx::atan<T>(cplx_input);
+       }).wait();
+    } else {
+      Q.single_task([=]() {
+         *cplx_out =
+             sycl::ext::cplx::tan<T>(sycl::ext::cplx::atan<T>(cplx_input));
+       }).wait();
+    }
+
+    pass &= check_results(*cplx_out, std_out, /*is_device*/ true,
+                          /*tol_multiplier*/ 2);
+
+    // Check cplx::complex output from host
+    if (is_error_checking) {
+      *cplx_out = sycl::ext::cplx::atan<T>(cplx_input);
+    } else {
+      *cplx_out = sycl::ext::cplx::tan<T>(sycl::ext::cplx::atan<T>(cplx_input));
+    }
+
+    pass &= check_results(*cplx_out, std_out, /*is_device*/ false,
+                          /*tol_multiplier*/ 2);
+
+    sycl::free(cplx_out, Q);
+
+    return pass;
+  }
+};
+
 int main() {
   sycl::queue Q;
 
@@ -64,6 +120,12 @@ int main() {
   test_passes &= test_valid_types<test_atan>(Q, INFINITY, NAN, true);
   test_passes &= test_valid_types<test_atan>(Q, NAN, INFINITY, true);
   test_passes &= test_valid_types<test_atan>(Q, INFINITY, NAN, true);
+
+  // marray test
+  constexpr size_t m_size = 4;
+  test_marray<double, m_size> A = {1, 4.42, -3, 4};
+  test_marray<double, m_size> B = {1, 2.02, 3.5, -4};
+  test_passes &= test_valid_types<test_atan_marray, m_size>(Q, A, B);
 
   if (!test_passes)
     std::cerr << "atan complex test fails\n";

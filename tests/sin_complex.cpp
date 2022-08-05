@@ -31,6 +31,41 @@ template <typename T> struct test_sin {
   }
 };
 
+template <typename T, std::size_t NumElements> struct test_sin_marray {
+  bool operator()(sycl::queue &Q, test_marray<T, NumElements> init_re,
+                  test_marray<T, NumElements> init_im) {
+    bool pass = true;
+
+    auto std_in = init_std_complex(init_re.get(), init_im.get());
+    sycl::marray<sycl::ext::cplx::complex<T>, NumElements> cplx_input =
+        sycl::ext::cplx::make_complex_marray(init_re.get(), init_im.get());
+
+    sycl::marray<std::complex<T>, NumElements> std_out{};
+    auto *cplx_out = sycl::malloc_shared<
+        sycl::marray<sycl::ext::cplx::complex<T>, NumElements>>(1, Q);
+
+    // Get std::complex output
+    for (std::size_t i = 0; i < NumElements; ++i)
+      std_out[i] = std::sin(std_in[i]);
+
+    // Check cplx::complex output from device
+    Q.single_task([=]() {
+       *cplx_out = sycl::ext::cplx::sin<T>(cplx_input);
+     }).wait();
+
+    pass &= check_results(*cplx_out, std_out, /*is_device*/ true);
+
+    // Check cplx::complex output from host
+    *cplx_out = sycl::ext::cplx::sin<T>(cplx_input);
+
+    pass &= check_results(*cplx_out, std_out, /*is_device*/ false);
+
+    sycl::free(cplx_out, Q);
+
+    return pass;
+  }
+};
+
 int main() {
   sycl::queue Q;
 
@@ -49,6 +84,12 @@ int main() {
   test_passes &= test_valid_types<test_sin>(Q, INFINITY, NAN);
   test_passes &= test_valid_types<test_sin>(Q, NAN, INFINITY);
   test_passes &= test_valid_types<test_sin>(Q, INFINITY, NAN);
+
+  // marray test
+  constexpr size_t m_size = 4;
+  test_marray<double, m_size> A = {1, 4.42, -3, 4};
+  test_marray<double, m_size> B = {1, 2.02, 3.5, -4};
+  test_passes &= test_valid_types<test_sin_marray, m_size>(Q, A, B);
 
   if (!test_passes)
     std::cerr << "sin complex test fails\n";

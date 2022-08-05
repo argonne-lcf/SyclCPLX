@@ -31,6 +31,41 @@ template <typename T> struct test_sqrt {
   }
 };
 
+template <typename T, std::size_t NumElements> struct test_sqrt_marray {
+  bool operator()(sycl::queue &Q, test_marray<T, NumElements> init_re,
+                  test_marray<T, NumElements> init_im) {
+    bool pass = true;
+
+    auto std_in = init_std_complex(init_re.get(), init_im.get());
+    sycl::marray<sycl::ext::cplx::complex<T>, NumElements> cplx_input =
+        sycl::ext::cplx::make_complex_marray(init_re.get(), init_im.get());
+
+    sycl::marray<std::complex<T>, NumElements> std_out{};
+    auto *cplx_out = sycl::malloc_shared<
+        sycl::marray<sycl::ext::cplx::complex<T>, NumElements>>(1, Q);
+
+    // Get std::complex output
+    for (std::size_t i = 0; i < NumElements; ++i)
+      std_out[i] = std::sqrt(std_in[i]);
+
+    // Check cplx::complex output from device
+    Q.single_task([=]() {
+       *cplx_out = sycl::ext::cplx::sqrt<T>(cplx_input);
+     }).wait();
+
+    pass &= check_results(*cplx_out, std_out, /*is_device*/ true);
+
+    // Check cplx::complex output from host
+    *cplx_out = sycl::ext::cplx::sqrt<T>(cplx_input);
+
+    pass &= check_results(*cplx_out, std_out, /*is_device*/ false);
+
+    sycl::free(cplx_out, Q);
+
+    return pass;
+  }
+};
+
 int main() {
   sycl::queue Q;
 

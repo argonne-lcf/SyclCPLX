@@ -17,7 +17,40 @@ void check_is_gencomplex() {
   static_assert(is_gencomplex<complex<unsigned int>>::value == false);
 }
 
+// Check is_mgencomplex
+template <std::size_t NumElements> void check_is_mgencomplex() {
+  static_assert(is_mgencomplex<sycl::marray<complex<double>, NumElements>,
+                               NumElements>::value == true);
+  static_assert(is_mgencomplex<sycl::marray<complex<float>, NumElements>,
+                               NumElements>::value == true);
+  static_assert(is_mgencomplex<sycl::marray<complex<sycl::half>, NumElements>,
+                               NumElements>::value == true);
+
+  static_assert(is_mgencomplex<sycl::marray<complex<long long>, NumElements>,
+                               NumElements>::value == false);
+  static_assert(is_mgencomplex<sycl::marray<complex<long>, NumElements>,
+                               NumElements>::value == false);
+  static_assert(is_mgencomplex<sycl::marray<complex<int>, NumElements>,
+                               NumElements>::value == false);
+  static_assert(
+      is_mgencomplex<sycl::marray<complex<unsigned long long>, NumElements>,
+                     NumElements>::value == false);
+  static_assert(
+      is_mgencomplex<sycl::marray<complex<unsigned long>, NumElements>,
+                     NumElements>::value == false);
+  static_assert(is_mgencomplex<sycl::marray<complex<unsigned int>, NumElements>,
+                               NumElements>::value == false);
+}
+
+// Check is_mgencomplex
+template <typename T, T... ints>
+void check_is_mgencomplex_for_sizes(std::integer_sequence<T, ints...> int_seq) {
+  ((check_is_mgencomplex<ints>()), ...);
+}
+
 int main() {
   check_is_gencomplex();
-  return 0;
+
+  check_is_mgencomplex_for_sizes(
+      std::integer_sequence<int, 5, 20, 31, 64, 100, 500>{});
 }
