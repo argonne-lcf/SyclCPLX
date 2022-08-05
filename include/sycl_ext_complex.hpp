@@ -1838,6 +1838,22 @@ make_complex_marray(const T &real, const sycl::marray<T, NumElements> &imag) {
   return rtn;
 }
 
+template <class T, std::size_t NumElements, std::size_t... I>
+auto constexpr make_complex_marray(
+    const sycl::marray<complex<T>, NumElements> &cmplx,
+    std::integer_sequence<std::size_t, I...> int_seq) {
+  return sycl::marray<complex<T>, int_seq.size()>{cmplx[I]...};
+}
+
+template <class T, std::size_t NumElements, std::size_t... I>
+auto constexpr make_complex_marray(
+    const sycl::marray<T, NumElements> &real,
+    const sycl::marray<T, NumElements> &imag,
+    std::integer_sequence<std::size_t, I...> int_seq) {
+  return sycl::marray<complex<T>, int_seq.size()>{
+      complex<T>(real[I], imag[I])...};
+}
+
 // Get
 
 template <class T, std::size_t NumElements>
@@ -1872,6 +1888,18 @@ template <class T, std::size_t NumElements>
 SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY T get_imag(
     const sycl::marray<complex<T>, NumElements> &input, std::size_t index) {
   return input[index].imag();
+}
+
+template <class T, std::size_t NumElements, std::size_t... I>
+auto constexpr get_real(const sycl::marray<complex<T>, NumElements> &input,
+                        std::integer_sequence<std::size_t, I...> int_seq) {
+  return sycl::marray<T, int_seq.size()>{input[I].real()...};
+}
+
+template <class T, std::size_t NumElements, std::size_t... I>
+auto constexpr get_imag(const sycl::marray<complex<T>, NumElements> &input,
+                        std::integer_sequence<std::size_t, I...> int_seq) {
+  return sycl::marray<T, int_seq.size()>{input[I].imag()...};
 }
 
 // Set

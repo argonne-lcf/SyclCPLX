@@ -106,6 +106,8 @@ template <typename T, std::size_t NumElements> struct test_make_complex_marray {
                             /* is_device */ false);
     }
 
+    sycl::free(cplx, Q);
+
     return pass;
   }
 
@@ -182,6 +184,10 @@ struct test_get_component_marray {
                             /* is_device */ false);
     }
 
+    sycl::free(cplx, Q);
+    sycl::free(re, Q);
+    sycl::free(im, Q);
+
     return pass;
   }
 
@@ -246,6 +252,8 @@ struct test_set_component_marray {
     pass &= check_results(get_imag(*cplx), init_im[0],
                           /* is_device */ false);
 
+    sycl::free(cplx, Q);
+
     return pass;
   }
 
@@ -282,6 +290,8 @@ struct test_set_component_marray {
                             /* is_device */ false);
     }
 
+    sycl::free(cplx, Q);
+
     return pass;
   }
 
@@ -291,6 +301,147 @@ struct test_set_component_marray {
 
     test_passes &= test_set_vec(Q, init_re, init_im);
     test_passes &= test_set_elem(Q, init_re, init_im);
+
+    return test_passes;
+  }
+};
+
+template <typename T, std::size_t NumElements, std::size_t... I>
+struct test_integer_sequence_overloads {
+
+  bool
+  test_make_complex_int_seq(sycl::queue &Q,
+                            std::integer_sequence<std::size_t, I...> int_seq,
+                            test_marray<T, NumElements> init_re,
+                            test_marray<T, NumElements> init_im) {
+    bool pass = true;
+    int i = 0;
+
+    auto cplx =
+        sycl::ext::cplx::make_complex_marray(init_re.get(), init_im.get());
+    auto *cplx_dev = sycl::malloc_shared<
+        sycl::marray<sycl::ext::cplx::complex<T>, int_seq.size()>>(1, Q);
+
+    // Check on device
+
+    // Check re, im, int_seq overload
+    {
+      Q.single_task([=]() {
+         *cplx_dev = sycl::ext::cplx::make_complex_marray(
+             init_re.get(), init_im.get(), int_seq);
+       }).wait();
+
+      i = 0;
+      ((pass &=
+        check_results((*cplx_dev)[i++], std::complex<T>(init_re[I], init_im[I]),
+                      /* is_device */ true)),
+       ...);
+    }
+
+    // Check complex, int_seq overload
+    {
+      Q.single_task([=]() {
+         *cplx_dev = sycl::ext::cplx::make_complex_marray(cplx, int_seq);
+       }).wait();
+
+      i = 0;
+      ((pass &=
+        check_results((*cplx_dev)[i++], std::complex<T>(init_re[I], init_im[I]),
+                      /* is_device */ true)),
+       ...);
+    }
+
+    // Check on host (redeclare components to test marray size)
+
+    // Check re, im, int_seq overload
+    {
+      auto cplx_host = sycl::ext::cplx::make_complex_marray(
+          init_re.get(), init_im.get(), int_seq);
+
+      if (cplx_host.size() != int_seq.size())
+        pass = false;
+
+      i = 0;
+      ((pass &=
+        check_results(cplx_host[i++], std::complex<T>(init_re[I], init_im[I]),
+                      /* is_device */ true)),
+       ...);
+    }
+
+    // Check complex, int_seq overload
+    {
+      auto cplx_host = sycl::ext::cplx::make_complex_marray(cplx, int_seq);
+
+      if (cplx_host.size() != int_seq.size())
+        pass = false;
+
+      i = 0;
+      ((pass &=
+        check_results(cplx_host[i++], std::complex<T>(init_re[I], init_im[I]),
+                      /* is_device */ true)),
+       ...);
+    }
+
+    sycl::free(cplx_dev, Q);
+
+    return pass;
+  }
+
+  bool test_set_int_seq(sycl::queue &Q,
+                        std::integer_sequence<std::size_t, I...> int_seq,
+                        test_marray<T, NumElements> init_re,
+                        test_marray<T, NumElements> init_im) {
+    bool pass = true;
+    int i = 0;
+
+    auto cplx =
+        sycl::ext::cplx::make_complex_marray(init_re.get(), init_im.get());
+    auto *re_dev = sycl::malloc_shared<sycl::marray<T, int_seq.size()>>(1, Q);
+    auto *im_dev = sycl::malloc_shared<sycl::marray<T, int_seq.size()>>(1, Q);
+
+    // Check on device
+    Q.single_task([=]() {
+       *re_dev = get_real(cplx, int_seq);
+       *im_dev = get_imag(cplx, int_seq);
+     }).wait();
+
+    i = 0;
+    ((pass &= check_results((*re_dev)[i++], init_re[I], /* is_device */ true)),
+     ...);
+    i = 0;
+    ((pass &= check_results((*im_dev)[i++], init_im[I], /* is_device */ true)),
+     ...);
+
+    // Check on host (redeclare components to test marray size)
+    auto re_host = get_real(cplx, int_seq);
+    auto im_host = get_imag(cplx, int_seq);
+
+    if (re_host.size() != int_seq.size())
+      pass = false;
+    if (im_host.size() != int_seq.size())
+      pass = false;
+
+    i = 0;
+    ((pass &= check_results(re_host[i++], init_re[I], /* is_device */ false)),
+     ...);
+    i = 0;
+    ((pass &= check_results(im_host[i++], init_im[I], /* is_device */ false)),
+     ...);
+
+    sycl::free(re_dev, Q);
+    sycl::free(im_dev, Q);
+
+    return pass;
+  }
+
+  bool operator()(sycl::queue &Q,
+                  std::integer_sequence<std::size_t, I...> int_seq,
+                  test_marray<T, NumElements> init_re,
+                  test_marray<T, NumElements> init_im) {
+    bool test_passes = true;
+
+    test_passes &= test_set_int_seq(Q, int_seq, init_re, init_im);
+    test_passes &= test_make_complex_int_seq(Q, int_seq, init_re, init_im);
 
     return test_passes;
   }
@@ -307,7 +458,8 @@ int main() {
     constexpr size_t m_size = 4;
     test_marray<double, m_size> A = {1, 4.42, -3, 4};
     test_marray<double, m_size> B = {1, 2.02, 3.5, -4};
-    test_passes &= test_valid_types<test_make_complex_marray, m_size>(Q, A, B);
+    test_passes &= test_valid_types<test_make_complex_marray, m_size>(Q, A,
+    B);
 
     if (!test_passes)
       std::cerr << "make_complex_marray free function test fails\n";
@@ -319,10 +471,11 @@ int main() {
     constexpr size_t m_size = 4;
     test_marray<double, m_size> A = {1, 4.42, -3, 4};
     test_marray<double, m_size> B = {1, 2.02, 3.5, -4};
-    test_passes &= test_valid_types<test_get_component_marray, m_size>(Q, A, B);
+    test_passes &= test_valid_types<test_get_component_marray, m_size>(Q, A,
+    B);
 
     if (!test_passes)
-      std::cerr << "test get_X free function test fails\n";
+      std::cerr << "get_X free function test fails\n";
   }
 
   {
@@ -331,10 +484,26 @@ int main() {
     constexpr size_t m_size = 4;
     test_marray<double, m_size> A = {1, 4.42, -3, 4};
     test_marray<double, m_size> B = {1, 2.02, 3.5, -4};
-    test_passes &= test_valid_types<test_set_component_marray, m_size>(Q, A, B);
+    test_passes &= test_valid_types<test_set_component_marray, m_size>(Q, A,
+    B);
 
     if (!test_passes)
-      std::cerr << "test set_X free function test fails\n";
+      std::cerr << "set_X free function test fails\n";
+  }
+
+  {
+    bool test_passes = true;
+
+    constexpr size_t m_size = 4;
+    test_marray<double, m_size> A = {1, 4.42, -3, 4};
+    test_marray<double, m_size> B = {1, 2.02, 3.5, -4};
+    std::integer_sequence<std::size_t, 0, 1, 2, 3, 0, 1, 0, 3, 3, 3> int_seq{};
+
+    test_passes &= test_valid_types<test_integer_sequence_overloads, m_size>(
+        Q, int_seq, A, B);
+
+    if (!test_passes)
+      std::cerr << "integer sequence overloads test fails\n";
   }
 
   return test_failed;

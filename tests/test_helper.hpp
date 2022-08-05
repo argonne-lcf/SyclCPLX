@@ -60,6 +60,31 @@ bool test_valid_types(argsT... args) {
   return test_passes;
 }
 
+template <template <typename, std::size_t, std::size_t...> typename action,
+          std::size_t NumElements, std::size_t... I, typename... argsT>
+bool test_valid_types(sycl::queue Q,
+                      std::integer_sequence<std::size_t, I...> int_seq,
+                      argsT... args) {
+  bool test_passes = true;
+
+  {
+    action<double, NumElements, I...> test;
+    test_passes &= test(Q, int_seq, args...);
+  }
+
+  {
+    action<float, NumElements, I...> test;
+    test_passes &= test(Q, int_seq, args...);
+  }
+
+  {
+    action<sycl::half, NumElements, I...> test;
+    test_passes &= test(Q, int_seq, args...);
+  }
+
+  return test_passes;
+}
+
 // Helper classes to handle implicit conversion for passing marray types
 
 template <typename T, std::size_t NumElements> class test_marray {
