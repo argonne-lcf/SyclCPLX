@@ -106,26 +106,44 @@ int main() {
   sycl::queue Q;
 
   bool test_passes = true;
-  test_passes &= test_valid_types<test_atan>(Q, 0.42, 2.02);
+  {
+    test_passes &= test_valid_types<test_atan>(Q, 0.42, 2.02);
 
-  test_passes &= test_valid_types<test_atan>(Q, INFINITY, 2.02, true);
-  test_passes &= test_valid_types<test_atan>(Q, 4.42, INFINITY, true);
-  test_passes &= test_valid_types<test_atan>(Q, INFINITY, INFINITY, true);
+    test_passes &= test_valid_types<test_atan>(Q, INFINITY, 2.02, true);
+    test_passes &= test_valid_types<test_atan>(Q, 4.42, INFINITY, true);
+    test_passes &= test_valid_types<test_atan>(Q, INFINITY, INFINITY, true);
 
-  test_passes &= test_valid_types<test_atan>(Q, NAN, 2.02, true);
-  test_passes &= test_valid_types<test_atan>(Q, 4.42, NAN, true);
-  test_passes &= test_valid_types<test_atan>(Q, NAN, NAN, true);
+    test_passes &= test_valid_types<test_atan>(Q, NAN, 2.02, true);
+    test_passes &= test_valid_types<test_atan>(Q, 4.42, NAN, true);
+    test_passes &= test_valid_types<test_atan>(Q, NAN, NAN, true);
 
-  test_passes &= test_valid_types<test_atan>(Q, NAN, INFINITY, true);
-  test_passes &= test_valid_types<test_atan>(Q, INFINITY, NAN, true);
-  test_passes &= test_valid_types<test_atan>(Q, NAN, INFINITY, true);
-  test_passes &= test_valid_types<test_atan>(Q, INFINITY, NAN, true);
+    test_passes &= test_valid_types<test_atan>(Q, NAN, INFINITY, true);
+    test_passes &= test_valid_types<test_atan>(Q, INFINITY, NAN, true);
+    test_passes &= test_valid_types<test_atan>(Q, NAN, INFINITY, true);
+    test_passes &= test_valid_types<test_atan>(Q, INFINITY, NAN, true);
+  }
 
-  // marray test
-  constexpr size_t m_size = 4;
-  test_marray<double, m_size> A = {1, 4.42, -3, 4};
-  test_marray<double, m_size> B = {1, 2.02, 3.5, -4};
-  test_passes &= test_valid_types<test_atan_marray, m_size>(Q, A, B);
+  // marray tests
+  {
+    // Check output values
+    constexpr size_t value_m_size = 4;
+    test_marray<double, value_m_size> re = {1.0, 4.42, -3, 4.0};
+    test_marray<double, value_m_size> im = {1.0, 2.02, 3.5, -4.0};
+
+    test_passes &= test_valid_types<test_atan_marray, value_m_size>(Q, re, im);
+
+    // Check error codes
+    constexpr size_t error_m_size = 10;
+    test_marray<double, error_m_size> error_re = {
+        2.02, INFINITYd, INFINITYd, 2.02,      NANd,
+        NANd, INFINITYd, NANd,      INFINITYd, NANd};
+    test_marray<double, error_m_size> error_im = {
+        INFINITYd, 4.42,      NANd, 4.42,      NANd,
+        NANd,      INFINITYd, NANd, INFINITYd, NANd};
+
+    test_passes &= test_valid_types<test_atan_marray, error_m_size>(
+        Q, error_re, error_im, /* is_error_checking */ true);
+  }
 
   if (!test_passes)
     std::cerr << "atan complex test fails\n";

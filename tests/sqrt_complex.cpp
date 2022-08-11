@@ -70,20 +70,34 @@ int main() {
   sycl::queue Q;
 
   bool test_passes = true;
-  test_passes &= test_valid_types<test_sqrt>(Q, 4.42, 2.02);
+  {
+    test_passes &= test_valid_types<test_sqrt>(Q, 4.42, 2.02);
 
-  test_passes &= test_valid_types<test_sqrt>(Q, INFINITY, 2.02);
-  test_passes &= test_valid_types<test_sqrt>(Q, 4.42, INFINITY);
-  test_passes &= test_valid_types<test_sqrt>(Q, INFINITY, INFINITY);
+    test_passes &= test_valid_types<test_sqrt>(Q, INFINITY, 2.02);
+    test_passes &= test_valid_types<test_sqrt>(Q, 4.42, INFINITY);
+    test_passes &= test_valid_types<test_sqrt>(Q, INFINITY, INFINITY);
 
-  test_passes &= test_valid_types<test_sqrt>(Q, NAN, 2.02);
-  test_passes &= test_valid_types<test_sqrt>(Q, 4.42, NAN);
-  test_passes &= test_valid_types<test_sqrt>(Q, NAN, NAN);
+    test_passes &= test_valid_types<test_sqrt>(Q, NAN, 2.02);
+    test_passes &= test_valid_types<test_sqrt>(Q, 4.42, NAN);
+    test_passes &= test_valid_types<test_sqrt>(Q, NAN, NAN);
 
-  test_passes &= test_valid_types<test_sqrt>(Q, NAN, INFINITY);
-  test_passes &= test_valid_types<test_sqrt>(Q, INFINITY, NAN);
-  test_passes &= test_valid_types<test_sqrt>(Q, NAN, INFINITY);
-  test_passes &= test_valid_types<test_sqrt>(Q, INFINITY, NAN);
+    test_passes &= test_valid_types<test_sqrt>(Q, NAN, INFINITY);
+    test_passes &= test_valid_types<test_sqrt>(Q, INFINITY, NAN);
+    test_passes &= test_valid_types<test_sqrt>(Q, NAN, INFINITY);
+    test_passes &= test_valid_types<test_sqrt>(Q, INFINITY, NAN);
+  }
+
+  // marray tests
+  {
+    constexpr size_t m_size = 14;
+    test_marray<double, m_size> re = {
+        1.0,  4.42, -3,   4.0,       2.02, INFINITYd, INFINITYd,
+        2.02, NANd, NANd, INFINITYd, NANd, INFINITYd, NANd};
+    test_marray<double, m_size> im = {
+        1.0,  2.02, 3.5,  -4.0,      INFINITYd, 4.42,      NANd,
+        4.42, NANd, NANd, INFINITYd, NANd,      INFINITYd, NANd};
+    test_passes &= test_valid_types<test_sqrt_marray, m_size>(Q, re, im);
+  }
 
   if (!test_passes)
     std::cerr << "sqrt complex test fails\n";

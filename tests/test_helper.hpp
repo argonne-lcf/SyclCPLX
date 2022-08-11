@@ -7,6 +7,10 @@
 
 #define SYCL_CPLX_TOL_ULP 5
 
+// Definitions of INFINITY and NAN for double type
+constexpr double INFINITYd(std::numeric_limits<double>::infinity());
+constexpr double NANd(std::numeric_limits<double>::quiet_NaN());
+
 // Helpers for displaying results
 
 template <typename T> const char *get_typename() { return "Unknown type"; }

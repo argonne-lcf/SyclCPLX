@@ -105,10 +105,21 @@ int main() {
   {
     bool test_passes = true;
 
-    constexpr size_t m_size = 4;
-    test_marray<double, m_size> A = {1, 4.42, -3, 4};
-    test_marray<double, m_size> B = {1, 2.02, 3.5, -4};
-    test_passes &= test_valid_types<test_add, m_size>(Q, A, B, A, B);
+    constexpr size_t m_size = 14;
+    test_marray<double, m_size> re1 = {
+        1.0,  4.42, -3,   4.0,       2.02, INFINITYd, INFINITYd,
+        2.02, NANd, NANd, INFINITYd, NANd, INFINITYd, NANd};
+    test_marray<double, m_size> im1 = {
+        1.0,  2.02, 3.5,  -4.0,      INFINITYd, 4.42,      NANd,
+        4.42, NANd, NANd, INFINITYd, NANd,      INFINITYd, NANd};
+
+    test_marray<double, m_size> re2 = {
+        1.0,  4.42, -3,   4.0,       2.02, INFINITYd, INFINITYd,
+        2.02, NANd, NANd, INFINITYd, NANd, INFINITYd, NANd};
+    test_marray<double, m_size> im2 = {
+        1.0,  2.02, 3.5,  -4.0,      INFINITYd, 4.42,      NANd,
+        4.42, NANd, NANd, INFINITYd, NANd,      INFINITYd, NANd};
+    test_passes &= test_valid_types<test_add, m_size>(Q, re1, im1, re2, im2);
 
     if (!test_passes) {
       std::cerr << "Addition operator complex test fails\n";
@@ -119,10 +130,21 @@ int main() {
   {
     bool test_passes = true;
 
-    constexpr size_t m_size = 4;
-    test_marray<double, m_size> A = {1, 4.42, -3, 4};
-    test_marray<double, m_size> B = {1, 2.02, 3.5, -4};
-    test_passes &= test_valid_types<test_sub, m_size>(Q, A, B, A, B);
+    constexpr size_t m_size = 14;
+    test_marray<double, m_size> re1 = {
+        1.0,  4.42, -3,   4.0,       2.02, INFINITYd, INFINITYd,
+        2.02, NANd, NANd, INFINITYd, NANd, INFINITYd, NANd};
+    test_marray<double, m_size> im1 = {
+        1.0,  2.02, 3.5,  -4.0,      INFINITYd, 4.42,      NANd,
+        4.42, NANd, NANd, INFINITYd, NANd,      INFINITYd, NANd};
+
+    test_marray<double, m_size> re2 = {
+        1.0,  4.42, -3,   4.0,       2.02, INFINITYd, INFINITYd,
+        2.02, NANd, NANd, INFINITYd, NANd, INFINITYd, NANd};
+    test_marray<double, m_size> im2 = {
+        1.0,  2.02, 3.5,  -4.0,      INFINITYd, 4.42,      NANd,
+        4.42, NANd, NANd, INFINITYd, NANd,      INFINITYd, NANd};
+    test_passes &= test_valid_types<test_sub, m_size>(Q, re1, im1, re2, im2);
 
     if (!test_passes) {
       std::cerr << "Subtraction operator complex test fails\n";
@@ -133,10 +155,21 @@ int main() {
   {
     bool test_passes = true;
 
-    constexpr size_t m_size = 4;
-    test_marray<double, m_size> A = {1, 4.42, -3, 4};
-    test_marray<double, m_size> B = {1, 2.02, 3.5, -4};
-    test_passes &= test_valid_types<test_mul, m_size>(Q, A, B, A, B);
+    constexpr size_t m_size = 14;
+    test_marray<double, m_size> re1 = {
+        1.0,  4.42, -3,   4.0,       2.02, INFINITYd, INFINITYd,
+        2.02, NANd, NANd, INFINITYd, NANd, INFINITYd, NANd};
+    test_marray<double, m_size> im1 = {
+        1.0,  2.02, 3.5,  -4.0,      INFINITYd, 4.42,      NANd,
+        4.42, NANd, NANd, INFINITYd, NANd,      INFINITYd, NANd};
+
+    test_marray<double, m_size> re2 = {
+        1.0,  4.42, -3,   4.0,       2.02, INFINITYd, INFINITYd,
+        2.02, NANd, NANd, INFINITYd, NANd, INFINITYd, NANd};
+    test_marray<double, m_size> im2 = {
+        1.0,  2.02, 3.5,  -4.0,      INFINITYd, 4.42,      NANd,
+        4.42, NANd, NANd, INFINITYd, NANd,      INFINITYd, NANd};
+    test_passes &= test_valid_types<test_mul, m_size>(Q, re1, im1, re2, im2);
 
     if (!test_passes) {
       std::cerr << "Multiplication operator complex test fails\n";
@@ -147,10 +180,21 @@ int main() {
   {
     bool test_passes = true;
 
-    constexpr size_t m_size = 4;
-    test_marray<double, m_size> A = {1, 4.42, -3, 4};
-    test_marray<double, m_size> B = {1, 2.02, 3.5, -4};
-    test_passes &= test_valid_types<test_div, m_size>(Q, A, B, A, B);
+    constexpr size_t m_size = 14;
+    test_marray<double, m_size> re1 = {
+        1.0,  4.42, -3,   4.0,       2.02, INFINITYd, INFINITYd,
+        2.02, NANd, NANd, INFINITYd, NANd, INFINITYd, NANd};
+    test_marray<double, m_size> im1 = {
+        1.0,  2.02, 3.5,  -4.0,      INFINITYd, 4.42,      NANd,
+        4.42, NANd, NANd, INFINITYd, NANd,      INFINITYd, NANd};
+
+    test_marray<double, m_size> re2 = {
+        1.0,  4.42, -3,   4.0,       2.02, INFINITYd, INFINITYd,
+        2.02, NANd, NANd, INFINITYd, NANd, INFINITYd, NANd};
+    test_marray<double, m_size> im2 = {
+        1.0,  2.02, 3.5,  -4.0,      INFINITYd, 4.42,      NANd,
+        4.42, NANd, NANd, INFINITYd, NANd,      INFINITYd, NANd};
+    test_passes &= test_valid_types<test_div, m_size>(Q, re1, im1, re2, im2);
 
     if (!test_passes) {
       std::cerr << "Division operator complex test fails\n";
@@ -161,10 +205,22 @@ int main() {
   {
     bool test_passes = true;
 
-    constexpr size_t m_size = 4;
-    test_marray<double, m_size> A = {1, 4.42, -3, 4};
-    test_marray<double, m_size> B = {1, 2.02, 3.5, -4};
-    test_passes &= test_valid_types<test_add_assign, m_size>(Q, A, B, A, B);
+    constexpr size_t m_size = 14;
+    test_marray<double, m_size> re1 = {
+        1.0,  4.42, -3,   4.0,       2.02, INFINITYd, INFINITYd,
+        2.02, NANd, NANd, INFINITYd, NANd, INFINITYd, NANd};
+    test_marray<double, m_size> im1 = {
+        1.0,  2.02, 3.5,  -4.0,      INFINITYd, 4.42,      NANd,
+        4.42, NANd, NANd, INFINITYd, NANd,      INFINITYd, NANd};
+
+    test_marray<double, m_size> re2 = {
+        1.0,  4.42, -3,   4.0,       2.02, INFINITYd, INFINITYd,
+        2.02, NANd, NANd, INFINITYd, NANd, INFINITYd, NANd};
+    test_marray<double, m_size> im2 = {
+        1.0,  2.02, 3.5,  -4.0,      INFINITYd, 4.42,      NANd,
+        4.42, NANd, NANd, INFINITYd, NANd,      INFINITYd, NANd};
+    test_passes &=
+        test_valid_types<test_add_assign, m_size>(Q, re1, im1, re2, im2);
 
     if (!test_passes) {
       std::cerr << "Addition assign operator complex test fails\n";
@@ -175,10 +231,22 @@ int main() {
   {
     bool test_passes = true;
 
-    constexpr size_t m_size = 4;
-    test_marray<double, m_size> A = {1, 4.42, -3, 4};
-    test_marray<double, m_size> B = {1, 2.02, 3.5, -4};
-    test_passes &= test_valid_types<test_sub_assign, m_size>(Q, A, B, A, B);
+    constexpr size_t m_size = 14;
+    test_marray<double, m_size> re1 = {
+        1.0,  4.42, -3,   4.0,       2.02, INFINITYd, INFINITYd,
+        2.02, NANd, NANd, INFINITYd, NANd, INFINITYd, NANd};
+    test_marray<double, m_size> im1 = {
+        1.0,  2.02, 3.5,  -4.0,      INFINITYd, 4.42,      NANd,
+        4.42, NANd, NANd, INFINITYd, NANd,      INFINITYd, NANd};
+
+    test_marray<double, m_size> re2 = {
+        1.0,  4.42, -3,   4.0,       2.02, INFINITYd, INFINITYd,
+        2.02, NANd, NANd, INFINITYd, NANd, INFINITYd, NANd};
+    test_marray<double, m_size> im2 = {
+        1.0,  2.02, 3.5,  -4.0,      INFINITYd, 4.42,      NANd,
+        4.42, NANd, NANd, INFINITYd, NANd,      INFINITYd, NANd};
+    test_passes &=
+        test_valid_types<test_sub_assign, m_size>(Q, re1, im1, re2, im2);
 
     if (!test_passes) {
       std::cerr << "Subtaction assign operator complex test fails\n";
@@ -189,10 +257,22 @@ int main() {
   {
     bool test_passes = true;
 
-    constexpr size_t m_size = 4;
-    test_marray<double, m_size> A = {1, 4.42, -3, 4};
-    test_marray<double, m_size> B = {1, 2.02, 3.5, -4};
-    test_passes &= test_valid_types<test_mul_assign, m_size>(Q, A, B, A, B);
+    constexpr size_t m_size = 14;
+    test_marray<double, m_size> re1 = {
+        1.0,  4.42, -3,   4.0,       2.02, INFINITYd, INFINITYd,
+        2.02, NANd, NANd, INFINITYd, NANd, INFINITYd, NANd};
+    test_marray<double, m_size> im1 = {
+        1.0,  2.02, 3.5,  -4.0,      INFINITYd, 4.42,      NANd,
+        4.42, NANd, NANd, INFINITYd, NANd,      INFINITYd, NANd};
+
+    test_marray<double, m_size> re2 = {
+        1.0,  4.42, -3,   4.0,       2.02, INFINITYd, INFINITYd,
+        2.02, NANd, NANd, INFINITYd, NANd, INFINITYd, NANd};
+    test_marray<double, m_size> im2 = {
+        1.0,  2.02, 3.5,  -4.0,      INFINITYd, 4.42,      NANd,
+        4.42, NANd, NANd, INFINITYd, NANd,      INFINITYd, NANd};
+    test_passes &=
+        test_valid_types<test_mul_assign, m_size>(Q, re1, im1, re2, im2);
 
     if (!test_passes) {
       std::cerr << "Multiplication assign operator complex test fails\n";
@@ -203,10 +283,22 @@ int main() {
   {
     bool test_passes = true;
 
-    constexpr size_t m_size = 4;
-    test_marray<double, m_size> A = {1, 4.42, -3, 4};
-    test_marray<double, m_size> B = {1, 2.02, 3.5, -4};
-    test_passes &= test_valid_types<test_div_assign, m_size>(Q, A, B, A, B);
+    constexpr size_t m_size = 14;
+    test_marray<double, m_size> re1 = {
+        1.0,  4.42, -3,   4.0,       2.02, INFINITYd, INFINITYd,
+        2.02, NANd, NANd, INFINITYd, NANd, INFINITYd, NANd};
+    test_marray<double, m_size> im1 = {
+        1.0,  2.02, 3.5,  -4.0,      INFINITYd, 4.42,      NANd,
+        4.42, NANd, NANd, INFINITYd, NANd,      INFINITYd, NANd};
+
+    test_marray<double, m_size> re2 = {
+        1.0,  4.42, -3,   4.0,       2.02, INFINITYd, INFINITYd,
+        2.02, NANd, NANd, INFINITYd, NANd, INFINITYd, NANd};
+    test_marray<double, m_size> im2 = {
+        1.0,  2.02, 3.5,  -4.0,      INFINITYd, 4.42,      NANd,
+        4.42, NANd, NANd, INFINITYd, NANd,      INFINITYd, NANd};
+    test_passes &=
+        test_valid_types<test_div_assign, m_size>(Q, re1, im1, re2, im2);
 
     if (!test_passes) {
       std::cerr << "Division assign operator complex test fails\n";

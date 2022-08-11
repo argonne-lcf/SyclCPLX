@@ -66,15 +66,19 @@ int main() {
   sycl::queue Q;
 
   bool test_passes = true;
-  test_passes &= test_valid_types<test_polar>(Q, 4.42, 2.02);
-  test_passes &= test_valid_types<test_polar>(Q, 1, 3.14);
-  test_passes &= test_valid_types<test_polar>(Q, 1, -3.14);
+  {
+    test_passes &= test_valid_types<test_polar>(Q, 4.42, 2.02);
+    test_passes &= test_valid_types<test_polar>(Q, 1, 3.14);
+    test_passes &= test_valid_types<test_polar>(Q, 1, -3.14);
+  }
 
-  // marray test
-  constexpr size_t m_size = 4;
-  test_marray<double, m_size> A = {1, 4.42, 3, 3};
-  test_marray<double, m_size> B = {1, 2.02, 3.14, -3.14};
-  test_passes &= test_valid_types<test_polar_marray, m_size>(Q, A, B);
+  // marray tests
+  {
+    constexpr size_t m_size = 4;
+    test_marray<double, m_size> rho = {1.0, 4.42, 3, 3.14};
+    test_marray<double, m_size> theta = {1.0, 2.02, 3.5, -3.14};
+    test_passes &= test_valid_types<test_polar_marray, m_size>(Q, rho, theta);
+  }
 
   if (!test_passes)
     std::cerr << "acos complex test fails\n";

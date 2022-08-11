@@ -69,26 +69,34 @@ int main() {
   sycl::queue Q;
 
   bool test_passes = true;
-  test_passes &= test_valid_types<test_arg>(Q, 4.42, 2.02);
+  {
+    test_passes &= test_valid_types<test_arg>(Q, 4.42, 2.02);
 
-  test_passes &= test_valid_types<test_arg>(Q, INFINITY, 2.02);
-  test_passes &= test_valid_types<test_arg>(Q, 4.42, INFINITY);
-  test_passes &= test_valid_types<test_arg>(Q, INFINITY, INFINITY);
+    test_passes &= test_valid_types<test_arg>(Q, INFINITY, 2.02);
+    test_passes &= test_valid_types<test_arg>(Q, 4.42, INFINITY);
+    test_passes &= test_valid_types<test_arg>(Q, INFINITY, INFINITY);
 
-  test_passes &= test_valid_types<test_arg>(Q, NAN, 2.02);
-  test_passes &= test_valid_types<test_arg>(Q, 4.42, NAN);
-  test_passes &= test_valid_types<test_arg>(Q, NAN, NAN);
+    test_passes &= test_valid_types<test_arg>(Q, NAN, 2.02);
+    test_passes &= test_valid_types<test_arg>(Q, 4.42, NAN);
+    test_passes &= test_valid_types<test_arg>(Q, NAN, NAN);
 
-  test_passes &= test_valid_types<test_arg>(Q, NAN, INFINITY);
-  test_passes &= test_valid_types<test_arg>(Q, INFINITY, NAN);
-  test_passes &= test_valid_types<test_arg>(Q, NAN, INFINITY);
-  test_passes &= test_valid_types<test_arg>(Q, INFINITY, NAN);
+    test_passes &= test_valid_types<test_arg>(Q, NAN, INFINITY);
+    test_passes &= test_valid_types<test_arg>(Q, INFINITY, NAN);
+    test_passes &= test_valid_types<test_arg>(Q, NAN, INFINITY);
+    test_passes &= test_valid_types<test_arg>(Q, INFINITY, NAN);
+  }
 
-  // marray test
-  constexpr size_t m_size = 4;
-  test_marray<double, m_size> A = {1, 4.42, -3, 4};
-  test_marray<double, m_size> B = {1, 2.02, 3.5, -4};
-  test_passes &= test_valid_types<test_arg_marray, m_size>(Q, A, B);
+  // marray tests
+  {
+    constexpr size_t m_size = 14;
+    test_marray<double, m_size> re = {
+        1.0,  4.42, -3,   4.0,       2.02, INFINITYd, INFINITYd,
+        2.02, NANd, NANd, INFINITYd, NANd, INFINITYd, NANd};
+    test_marray<double, m_size> im = {
+        1.0,  2.02, 3.5,  -4.0,      INFINITYd, 4.42,      NANd,
+        4.42, NANd, NANd, INFINITYd, NANd,      INFINITYd, NANd};
+    test_passes &= test_valid_types<test_arg_marray, m_size>(Q, re, im);
+  }
 
   if (!test_passes)
     std::cerr << "acos complex test fails\n";

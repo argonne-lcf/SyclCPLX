@@ -455,11 +455,15 @@ int main() {
   {
     bool test_passes = true;
 
-    constexpr size_t m_size = 4;
-    test_marray<double, m_size> A = {1, 4.42, -3, 4};
-    test_marray<double, m_size> B = {1, 2.02, 3.5, -4};
-    test_passes &= test_valid_types<test_make_complex_marray, m_size>(Q, A,
-    B);
+    constexpr size_t m_size = 14;
+    test_marray<double, m_size> re = {
+        1.0,  4.42, -3,   4.0,       2.02, INFINITYd, INFINITYd,
+        2.02, NANd, NANd, INFINITYd, NANd, INFINITYd, NANd};
+    test_marray<double, m_size> im = {
+        1.0,  2.02, 3.5,  -4.0,      INFINITYd, 4.42,      NANd,
+        4.42, NANd, NANd, INFINITYd, NANd,      INFINITYd, NANd};
+    test_passes &=
+        test_valid_types<test_make_complex_marray, m_size>(Q, re, im);
 
     if (!test_passes)
       std::cerr << "make_complex_marray free function test fails\n";
@@ -468,11 +472,15 @@ int main() {
   {
     bool test_passes = true;
 
-    constexpr size_t m_size = 4;
-    test_marray<double, m_size> A = {1, 4.42, -3, 4};
-    test_marray<double, m_size> B = {1, 2.02, 3.5, -4};
-    test_passes &= test_valid_types<test_get_component_marray, m_size>(Q, A,
-    B);
+    constexpr size_t m_size = 14;
+    test_marray<double, m_size> re = {
+        1.0,  4.42, -3,   4.0,       2.02, INFINITYd, INFINITYd,
+        2.02, NANd, NANd, INFINITYd, NANd, INFINITYd, NANd};
+    test_marray<double, m_size> im = {
+        1.0,  2.02, 3.5,  -4.0,      INFINITYd, 4.42,      NANd,
+        4.42, NANd, NANd, INFINITYd, NANd,      INFINITYd, NANd};
+    test_passes &=
+        test_valid_types<test_get_component_marray, m_size>(Q, re, im);
 
     if (!test_passes)
       std::cerr << "get_X free function test fails\n";
@@ -481,11 +489,15 @@ int main() {
   {
     bool test_passes = true;
 
-    constexpr size_t m_size = 4;
-    test_marray<double, m_size> A = {1, 4.42, -3, 4};
-    test_marray<double, m_size> B = {1, 2.02, 3.5, -4};
-    test_passes &= test_valid_types<test_set_component_marray, m_size>(Q, A,
-    B);
+    constexpr size_t m_size = 14;
+    test_marray<double, m_size> re = {
+        1.0,  4.42, -3,   4.0,       2.02, INFINITYd, INFINITYd,
+        2.02, NANd, NANd, INFINITYd, NANd, INFINITYd, NANd};
+    test_marray<double, m_size> im = {
+        1.0,  2.02, 3.5,  -4.0,      INFINITYd, 4.42,      NANd,
+        4.42, NANd, NANd, INFINITYd, NANd,      INFINITYd, NANd};
+    test_passes &=
+        test_valid_types<test_set_component_marray, m_size>(Q, re, im);
 
     if (!test_passes)
       std::cerr << "set_X free function test fails\n";
@@ -494,13 +506,19 @@ int main() {
   {
     bool test_passes = true;
 
-    constexpr size_t m_size = 4;
-    test_marray<double, m_size> A = {1, 4.42, -3, 4};
-    test_marray<double, m_size> B = {1, 2.02, 3.5, -4};
-    std::integer_sequence<std::size_t, 0, 1, 2, 3, 0, 1, 0, 3, 3, 3> int_seq{};
+    constexpr size_t m_size = 14;
+    test_marray<double, m_size> re = {
+        1.0,  4.42, -3,   4.0,       2.02, INFINITYd, INFINITYd,
+        2.02, NANd, NANd, INFINITYd, NANd, INFINITYd, NANd};
+    test_marray<double, m_size> im = {
+        1.0,  2.02, 3.5,  -4.0,      INFINITYd, 4.42,      NANd,
+        4.42, NANd, NANd, INFINITYd, NANd,      INFINITYd, NANd};
+    std::integer_sequence<std::size_t, 11, 2, 7, 12, 5, 2, 9, 10, 7, 0, 7, 4, 5,
+                          3>
+        int_seq{};
 
     test_passes &= test_valid_types<test_integer_sequence_overloads, m_size>(
-        Q, int_seq, A, B);
+        Q, int_seq, re, im);
 
     if (!test_passes)
       std::cerr << "integer sequence overloads test fails\n";

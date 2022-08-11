@@ -41,9 +41,9 @@ constexpr std::size_t marray_test_size = 10;
         static_assert(                                                         \
             std::is_same_v<                                                    \
                 sycl::marray<complex<T>, NumElements>,                         \
-                decltype(                                                      \
-                    std::declval<sycl::marray<complex<T>, NumElements>>()      \
-                        op std::declval<sycl::marray<T, NumElements>>())>);    \
+                decltype(std::declval<sycl::marray<complex<T>, NumElements>>() \
+                             op std::declval<                                  \
+                                 sycl::marray<T, NumElements>>())>);           \
                                                                                \
         static_assert(                                                         \
             std::is_same_v<                                                    \
@@ -100,9 +100,9 @@ TEST_MATH_OP_TYPE(div, /)
         static_assert(                                                         \
             std::is_same_v<                                                    \
                 sycl::marray<bool, NumElements>,                               \
-                decltype(                                                      \
-                    std::declval<sycl::marray<complex<T>, NumElements>>()      \
-                        op std::declval<sycl::marray<T, NumElements>>())>);    \
+                decltype(std::declval<sycl::marray<complex<T>, NumElements>>() \
+                             op std::declval<                                  \
+                                 sycl::marray<T, NumElements>>())>);           \
                                                                                \
         static_assert(                                                         \
             std::is_same_v<                                                    \

@@ -232,31 +232,45 @@ int main() {
   sycl::queue Q;
 
   bool test_passes = true;
-  test_passes &= test_valid_types<test_pow>(Q, 4.42, 2.02, 4.42, 2.02);
+  {
+    test_passes &= test_valid_types<test_pow>(Q, 4.42, 2.02, 4.42, 2.02);
 
-  test_passes &= test_valid_types<test_pow>(Q, INFINITY, 2.02, INFINITY, 2.02);
-  test_passes &= test_valid_types<test_pow>(Q, 4.42, INFINITY, 4.42, INFINITY);
-  test_passes &=
-      test_valid_types<test_pow>(Q, INFINITY, INFINITY, INFINITY, INFINITY);
+    test_passes &=
+        test_valid_types<test_pow>(Q, INFINITY, 2.02, INFINITY, 2.02);
+    test_passes &=
+        test_valid_types<test_pow>(Q, 4.42, INFINITY, 4.42, INFINITY);
+    test_passes &=
+        test_valid_types<test_pow>(Q, INFINITY, INFINITY, INFINITY, INFINITY);
 
-  test_passes &= test_valid_types<test_pow>(Q, NAN, 2.02, NAN, 2.02);
-  test_passes &= test_valid_types<test_pow>(Q, 4.42, NAN, 4.42, NAN);
-  test_passes &= test_valid_types<test_pow>(Q, NAN, NAN, NAN, NAN);
+    test_passes &= test_valid_types<test_pow>(Q, NAN, 2.02, NAN, 2.02);
+    test_passes &= test_valid_types<test_pow>(Q, 4.42, NAN, 4.42, NAN);
+    test_passes &= test_valid_types<test_pow>(Q, NAN, NAN, NAN, NAN);
 
-  test_passes &= test_valid_types<test_pow>(Q, NAN, INFINITY, NAN, INFINITY);
-  test_passes &= test_valid_types<test_pow>(Q, INFINITY, NAN, INFINITY, NAN);
-  test_passes &= test_valid_types<test_pow>(Q, NAN, INFINITY, NAN, INFINITY);
-  test_passes &= test_valid_types<test_pow>(Q, INFINITY, NAN, INFINITY, NAN);
+    test_passes &= test_valid_types<test_pow>(Q, NAN, INFINITY, NAN, INFINITY);
+    test_passes &= test_valid_types<test_pow>(Q, INFINITY, NAN, INFINITY, NAN);
+    test_passes &= test_valid_types<test_pow>(Q, NAN, INFINITY, NAN, INFINITY);
+    test_passes &= test_valid_types<test_pow>(Q, INFINITY, NAN, INFINITY, NAN);
+  }
 
-  // marray test
-  constexpr size_t m_size = 4;
-  test_marray<double, m_size> re1 = {1, 4.42, -3, 4};
-  test_marray<double, m_size> im1 = {1, 2.02, 3.5, -4};
+  // marray tests
+  {
+    constexpr size_t m_size = 14;
+    test_marray<double, m_size> re1 = {
+        1.0,  4.42, -3,   4.0,       2.02, INFINITYd, INFINITYd,
+        2.02, NANd, NANd, INFINITYd, NANd, INFINITYd, NANd};
+    test_marray<double, m_size> im1 = {
+        1.0,  2.02, 3.5,  -4.0,      INFINITYd, 4.42,      NANd,
+        4.42, NANd, NANd, INFINITYd, NANd,      INFINITYd, NANd};
 
-  test_marray<double, m_size> re2 = {1, 4.42, -3, 4};
-  test_marray<double, m_size> im2 = {1, 2.02, 3.5, -4};
-  test_passes &=
-      test_valid_types<test_pow_marray, m_size>(Q, re1, im1, re2, im2);
+    test_marray<double, m_size> re2 = {
+        1.0,  4.42, -3,   4.0,       2.02, INFINITYd, INFINITYd,
+        2.02, NANd, NANd, INFINITYd, NANd, INFINITYd, NANd};
+    test_marray<double, m_size> im2 = {
+        1.0,  2.02, 3.5,  -4.0,      INFINITYd, 4.42,      NANd,
+        4.42, NANd, NANd, INFINITYd, NANd,      INFINITYd, NANd};
+    test_passes &=
+        test_valid_types<test_pow_marray, m_size>(Q, re1, im1, re2, im2);
+  }
 
   if (!test_passes)
     std::cerr << "pow complex test fails\n";
