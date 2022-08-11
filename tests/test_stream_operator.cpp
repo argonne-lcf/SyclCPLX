@@ -11,6 +11,7 @@ template <typename T> struct test_sycl_stream_operator {
         Out << cplx_out[idx] << sycl::endl;
       });
     });
+    Q.wait();
 
     sycl::free(cplx_out, Q);
 
