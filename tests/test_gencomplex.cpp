@@ -17,40 +17,23 @@ void check_is_gencomplex() {
   static_assert(is_gencomplex<complex<unsigned int>>::value == false);
 }
 
-// Check is_mgencomplex
-template <std::size_t NumElements> void check_is_mgencomplex() {
-  static_assert(is_mgencomplex<sycl::marray<complex<double>, NumElements>,
-                               NumElements>::value == true);
-  static_assert(is_mgencomplex<sycl::marray<complex<float>, NumElements>,
-                               NumElements>::value == true);
-  static_assert(is_mgencomplex<sycl::marray<complex<sycl::half>, NumElements>,
-                               NumElements>::value == true);
+// Check is_genfloat
+void check_is_genfloat() {
+  static_assert(is_genfloat<double>::value == true);
+  static_assert(is_genfloat<float>::value == true);
+  static_assert(is_genfloat<sycl::half>::value == true);
 
-  static_assert(is_mgencomplex<sycl::marray<complex<long long>, NumElements>,
-                               NumElements>::value == false);
-  static_assert(is_mgencomplex<sycl::marray<complex<long>, NumElements>,
-                               NumElements>::value == false);
-  static_assert(is_mgencomplex<sycl::marray<complex<int>, NumElements>,
-                               NumElements>::value == false);
-  static_assert(
-      is_mgencomplex<sycl::marray<complex<unsigned long long>, NumElements>,
-                     NumElements>::value == false);
-  static_assert(
-      is_mgencomplex<sycl::marray<complex<unsigned long>, NumElements>,
-                     NumElements>::value == false);
-  static_assert(is_mgencomplex<sycl::marray<complex<unsigned int>, NumElements>,
-                               NumElements>::value == false);
-}
-
-// Check is_mgencomplex
-template <typename T, T... ints>
-void check_is_mgencomplex_for_sizes(std::integer_sequence<T, ints...> int_seq) {
-  ((check_is_mgencomplex<ints>()), ...);
+  static_assert(is_genfloat<long long>::value == false);
+  static_assert(is_genfloat<long>::value == false);
+  static_assert(is_genfloat<int>::value == false);
+  static_assert(is_genfloat<unsigned long long>::value == false);
+  static_assert(is_genfloat<unsigned long>::value == false);
+  static_assert(is_genfloat<unsigned int>::value == false);
 }
 
 int main() {
   check_is_gencomplex();
+  check_is_genfloat();
 
-  check_is_mgencomplex_for_sizes(
-      std::integer_sequence<int, 5, 20, 31, 64, 100, 500>{});
+  return 0;
 }

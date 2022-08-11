@@ -329,16 +329,6 @@ struct is_genfloat
                                        std::is_same_v<_Tp, float> ||
                                        std::is_same_v<_Tp, sycl::half>> {};
 
-template <class _Tp, std::size_t NumElements>
-struct is_mgencomplex
-    : std::integral_constant<
-          bool,
-          std::is_same_v<_Tp, sycl::marray<complex<double>, NumElements>> ||
-              std::is_same_v<_Tp, sycl::marray<complex<float>, NumElements>> ||
-              std::is_same_v<_Tp,
-                             sycl::marray<complex<sycl::half>, NumElements>>> {
-};
-
 template <class _Tp>
 complex<_Tp> operator*(const complex<_Tp> &__z, const complex<_Tp> &__w);
 template <class _Tp>
@@ -1951,7 +1941,9 @@ set_imag(sycl::marray<complex<T>, NumElements> &input, std::size_t index,
 // Math marray overloads
 
 #define MATH_OP_ONE_PARAM(math_func, rtn_type, arg_type)                       \
-  template <typename T, std::size_t NumElements>                               \
+  template <typename T, std::size_t NumElements,                               \
+            typename = std::enable_if<is_genfloat<T>::value ||                 \
+                                      is_gencomplex<T>::value>>                \
   SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY                               \
       sycl::marray<rtn_type, NumElements>                                      \
       math_func(const sycl::marray<arg_type, NumElements> &x) {                \
@@ -1963,7 +1955,9 @@ set_imag(sycl::marray<complex<T>, NumElements> &input, std::size_t index,
   }
 
 #define MATH_OP_TWO_PARAM(math_func, rtn_type, arg_type1, arg_type2)           \
-  template <typename T, std::size_t NumElements>                               \
+  template <typename T, std::size_t NumElements,                               \
+            typename = std::enable_if<is_genfloat<T>::value ||                 \
+                                      is_gencomplex<T>::value>>                \
   SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY                               \
       sycl::marray<rtn_type, NumElements>                                      \
       math_func(const sycl::marray<arg_type1, NumElements> &x,                 \
@@ -1975,7 +1969,9 @@ set_imag(sycl::marray<complex<T>, NumElements> &input, std::size_t index,
     return rtn;                                                                \
   }                                                                            \
                                                                                \
-  template <typename T, std::size_t NumElements>                               \
+  template <typename T, std::size_t NumElements,                               \
+            typename = std::enable_if<is_genfloat<T>::value ||                 \
+                                      is_gencomplex<T>::value>>                \
   SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY                               \
       sycl::marray<rtn_type, NumElements>                                      \
       math_func(const sycl::marray<arg_type1, NumElements> &x,                 \
@@ -1987,7 +1983,9 @@ set_imag(sycl::marray<complex<T>, NumElements> &input, std::size_t index,
     return rtn;                                                                \
   }                                                                            \
                                                                                \
-  template <typename T, std::size_t NumElements>                               \
+  template <typename T, std::size_t NumElements,                               \
+            typename = std::enable_if<is_genfloat<T>::value ||                 \
+                                      is_gencomplex<T>::value>>                \
   SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY                               \
       sycl::marray<rtn_type, NumElements>                                      \
       math_func(const arg_type1 &x,                                            \
@@ -2027,7 +2025,8 @@ MATH_OP_ONE_PARAM(tanh, complex<T>, complex<T>);
 
 // Special definition as polar requires default argument
 
-template <typename T, std::size_t NumElements>
+template <typename T, std::size_t NumElements,
+          typename = std::enable_if<is_genfloat<T>::value>>
 SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
     sycl::marray<sycl::ext::cplx::complex<T>, NumElements>
     polar(const sycl::marray<T, NumElements> &rho,
@@ -2039,7 +2038,8 @@ SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
   return rtn;
 }
 
-template <typename T, std::size_t NumElements>
+template <typename T, std::size_t NumElements,
+          typename = std::enable_if<is_genfloat<T>::value>>
 SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
     sycl::marray<sycl::ext::cplx::complex<T>, NumElements>
     polar(const sycl::marray<T, NumElements> &rho, const T &theta = 0) {
@@ -2050,7 +2050,8 @@ SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
   return rtn;
 }
 
-template <typename T, std::size_t NumElements>
+template <typename T, std::size_t NumElements,
+          typename = std::enable_if<is_genfloat<T>::value>>
 SYCL_EXTERNAL _SYCL_EXT_CPLX_INLINE_VISIBILITY
     sycl::marray<sycl::ext::cplx::complex<T>, NumElements>
     polar(const T &rho, const sycl::marray<T, NumElements> &theta) {
