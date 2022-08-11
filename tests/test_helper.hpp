@@ -61,7 +61,7 @@ template <typename T, typename U> inline bool is_nan_or_inf(T x, U y) {
 template <typename T> bool almost_equal(T x, T y, int ulp) {
   if (std::isnan(x) && std::isnan(y))
     return true;
-  else if (std::isinf(x) && std::isinf(y))
+  if (std::isinf(x) && std::isinf(y))
     return true;
 
   return std::abs(x - y) <=
