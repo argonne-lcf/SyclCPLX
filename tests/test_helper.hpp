@@ -3,6 +3,7 @@
 #include <sycl/sycl.hpp>
 
 #include "sycl_ext_complex.hpp"
+#include "test_valid_types.hpp"
 
 #define SYCL_CPLX_TOL_ULP 5
 
@@ -12,78 +13,6 @@ template <typename T> const char *get_typename() { return "Unknown type"; }
 template <> const char *get_typename<double>() { return "double"; }
 template <> const char *get_typename<float>() { return "float"; }
 template <> const char *get_typename<sycl::half>() { return "sycl::half"; }
-
-// Helper for testing each decimal type
-
-template <template <typename> typename action, typename... argsT>
-bool test_valid_types(argsT... args) {
-  bool test_passes = true;
-
-  {
-    action<double> test;
-    test_passes &= test(args...);
-  }
-
-  {
-    action<float> test;
-    test_passes &= test(args...);
-  }
-
-  {
-    action<sycl::half> test;
-    test_passes &= test(args...);
-  }
-
-  return test_passes;
-}
-
-template <template <typename, std::size_t> typename action,
-          std::size_t NumElements, typename... argsT>
-bool test_valid_types(argsT... args) {
-  bool test_passes = true;
-
-  {
-    action<double, NumElements> test;
-    test_passes &= test(args...);
-  }
-
-  {
-    action<float, NumElements> test;
-    test_passes &= test(args...);
-  }
-
-  {
-    action<sycl::half, NumElements> test;
-    test_passes &= test(args...);
-  }
-
-  return test_passes;
-}
-
-template <template <typename, std::size_t, std::size_t...> typename action,
-          std::size_t NumElements, std::size_t... I, typename... argsT>
-bool test_valid_types(sycl::queue Q,
-                      std::integer_sequence<std::size_t, I...> int_seq,
-                      argsT... args) {
-  bool test_passes = true;
-
-  {
-    action<double, NumElements, I...> test;
-    test_passes &= test(Q, int_seq, args...);
-  }
-
-  {
-    action<float, NumElements, I...> test;
-    test_passes &= test(Q, int_seq, args...);
-  }
-
-  {
-    action<sycl::half, NumElements, I...> test;
-    test_passes &= test(Q, int_seq, args...);
-  }
-
-  return test_passes;
-}
 
 // Helper classes to handle implicit conversion for passing marray types
 
