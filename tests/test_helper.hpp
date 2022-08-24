@@ -1,3 +1,6 @@
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
 #include <cmath>
 #include <iomanip>
 #include <sycl/sycl.hpp>
@@ -6,12 +9,42 @@
 
 #define SYCL_CPLX_TOL_ULP 5
 
-// Helpers for displaying results
+// Helpers for check if type is supported
+template <typename T> inline bool is_type_supported(sycl::queue &Q) { return false; }
 
-template <typename T> const char *get_typename() { return "Unknown type"; }
-template <> const char *get_typename<double>() { return "double"; }
-template <> const char *get_typename<float>() { return "float"; }
-template <> const char *get_typename<sycl::half>() { return "sycl::half"; }
+template <> inline bool is_type_supported<double>(sycl::queue &Q) {
+  return Q.get_device().has(sycl::aspect::fp64);
+}
+
+template <> inline bool is_type_supported<float>(sycl::queue &Q) {
+  return true;
+}
+
+template <> inline bool is_type_supported<sycl::half>(sycl::queue &Q) {
+  return Q.get_device().has(sycl::aspect::fp16);
+}
+
+// Helper for passing infinity and nan values
+template <typename T>
+inline constexpr T inf_val = std::numeric_limits<T>::infinity();
+
+template <typename T>
+inline constexpr T nan_val = std::numeric_limits<T>::quiet_NaN();
+
+// Helper class for passing complex arguments
+
+template <typename T> struct cmplx {
+  constexpr cmplx() : re(0), im(0) {}
+  constexpr cmplx(T real, T imag) : re(real), im(imag) {}
+
+  template <typename X> cmplx(cmplx<X> c) {
+    re = c.re;
+    im = c.im;
+  }
+
+  T re;
+  T im;
+};
 
 // Helper for testing each decimal type
 
@@ -88,17 +121,13 @@ bool almost_equal(T1<T> x, T2<T> y, int ulp) {
 }
 // Helpers for testing half
 
-std::complex<float> sycl_half_to_float(sycl::ext::cplx::complex<sycl::half> c) {
+inline std::complex<float>
+sycl_half_to_float(sycl::ext::cplx::complex<sycl::half> c) {
   auto c_sycl_float = static_cast<sycl::ext::cplx::complex<float>>(c);
   return static_cast<std::complex<float>>(c_sycl_float);
 }
 
-std::complex<sycl::half> sycl_float_to_half(std::complex<float> c) {
-  auto c_sycl_half = static_cast<sycl::ext::cplx::complex<sycl::half>>(c);
-  return static_cast<std::complex<sycl::half>>(c_sycl_half);
-}
-
-std::complex<float> trunc_float(std::complex<float> c) {
+inline std::complex<float> trunc_float(std::complex<float> c) {
   auto c_sycl_half = static_cast<sycl::ext::cplx::complex<sycl::half>>(c);
   return sycl_half_to_float(c_sycl_half);
 }
@@ -106,12 +135,12 @@ std::complex<float> trunc_float(std::complex<float> c) {
 // Helper for initializing std::complex values for tests only needed because
 // sycl::half cases are emulated with float for std::complex class
 
-template <typename T_in> auto constexpr init_std_complex(T_in re, T_in im) {
-  return std::complex<T_in>(re, im);
+template <typename T_in> auto constexpr init_std_complex(cmplx<T_in> c) {
+  return std::complex<T_in>(c.re, c.im);
 }
 
-template <> auto constexpr init_std_complex(sycl::half re, sycl::half im) {
-  return trunc_float(std::complex<float>(re, im));
+template <> auto constexpr init_std_complex(cmplx<sycl::half> c) {
+  return trunc_float(std::complex<float>(c.re, c.im));
 }
 
 template <typename T_in> auto constexpr init_deci(T_in re) { return re; }
@@ -123,30 +152,12 @@ template <> auto constexpr init_deci(sycl::half re) {
 // Helpers for comparing SyclCPLX and standard c++ results
 
 template <typename T>
-bool check_results(sycl::ext::cplx::complex<T> output,
-                   std::complex<T> reference, bool is_device,
-                   int tol_multiplier = 1) {
-  if (!almost_equal(output, reference, tol_multiplier * SYCL_CPLX_TOL_ULP)) {
-    std::cerr << std::setprecision(std::numeric_limits<T>::max_digits10)
-              << "Test failed with complex_type: " << get_typename<T>()
-              << " Computed on " << (is_device ? "device" : "host")
-              << " Output: " << output << " Reference: " << reference
-              << std::endl;
-    return false;
-  }
-  return true;
+void check_results(sycl::ext::cplx::complex<T> output,
+                   std::complex<T> reference, int tol_multiplier = 1) {
+  CHECK(almost_equal(output, reference, tol_multiplier * SYCL_CPLX_TOL_ULP));
 }
 
 template <typename T>
-bool check_results(T output, T reference, bool is_device,
-                   int tol_multiplier = 1) {
-  if (!almost_equal(output, reference, tol_multiplier * SYCL_CPLX_TOL_ULP)) {
-    std::cerr << std::setprecision(std::numeric_limits<T>::max_digits10)
-              << "Test failed with complex_type: " << get_typename<T>()
-              << " Computed on " << (is_device ? "device" : "host")
-              << " Output: " << output << " Reference: " << reference
-              << std::endl;
-    return false;
-  }
-  return true;
+void check_results(T output, T reference, int tol_multiplier = 1) {
+  CHECK(almost_equal(output, reference, tol_multiplier * SYCL_CPLX_TOL_ULP));
 }
