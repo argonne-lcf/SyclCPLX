@@ -46,7 +46,7 @@ int main() {
 
 Testing is implemented with Catch2 and CMake. Catch2 is added as a git submodule inside the `vendor` directory.
 
-Instructions to build and run tests for DPCPP are below: 
+Instructions to build and run tests for DPCPP are below:
 ```
 mkdir build
 
