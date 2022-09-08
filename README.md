@@ -49,12 +49,8 @@ Testing is implemented with Catch2 and CMake. Catch2 is added as a git submodule
 Instructions to build and run tests for DPCPP are below:
 ```
 mkdir build
-
 cd build
-
-cmake -G Ninja -DCMAKE_CXX_COMPILER=$PATH_TO_LLVM/bin/clang++ -DCMAKE_CXX_FLAGS=-fsycl ..
-
-ninja
-
+cmake -DCMAKE_CXX_COMPILER=$CXX_PATH -DCMAKE_CXX_FLAGS=-fsycl ..
+make -j 8
 ctest
 ```
