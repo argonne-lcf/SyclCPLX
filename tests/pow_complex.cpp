@@ -1,13 +1,31 @@
 #include "test_helper.hpp"
 
-template <typename T>
-bool test_pow_cplx_cplx(sycl::queue &Q, T init_re, T init_im) {
-  bool pass = true;
+TEMPLATE_TEST_CASE("Test complex pow cplx-cplx overload", "[pow]", double,
+                   float, sycl::half) {
+  using T = TestType;
 
-  auto std_in1 = init_std_complex(init_re, init_im);
-  auto std_in2 = init_std_complex(init_re, init_im);
-  sycl::ext::cplx::complex<T> cplx_input1{init_re, init_im};
-  sycl::ext::cplx::complex<T> cplx_input2{init_re, init_im};
+  sycl::queue Q;
+
+  // Test cases
+  // Values are generated as cross product of input1 and input2's GENERATE list
+  cmplx<T> input1 = GENERATE(
+      cmplx<T>{4.42, 2.02}, cmplx<T>{inf_val<T>, 2.02},
+      cmplx<T>{4.42, inf_val<T>}, cmplx<T>{inf_val<T>, inf_val<T>},
+      cmplx<T>{nan_val<T>, 2.02}, cmplx<T>{4.42, nan_val<T>},
+      cmplx<T>{nan_val<T>, nan_val<T>}, cmplx<T>{nan_val<T>, inf_val<T>},
+      cmplx<T>{inf_val<T>, nan_val<T>});
+
+  cmplx<T> input2 = GENERATE(
+      cmplx<T>{4.42, 2.02}, cmplx<T>{inf_val<T>, 2.02},
+      cmplx<T>{4.42, inf_val<T>}, cmplx<T>{inf_val<T>, inf_val<T>},
+      cmplx<T>{nan_val<T>, 2.02}, cmplx<T>{4.42, nan_val<T>},
+      cmplx<T>{nan_val<T>, nan_val<T>}, cmplx<T>{nan_val<T>, inf_val<T>},
+      cmplx<T>{inf_val<T>, nan_val<T>});
+
+  auto std_in1 = init_std_complex(input1);
+  auto std_in2 = init_std_complex(input2);
+  sycl::ext::cplx::complex<T> cplx_input1{input1.re, input1.im};
+  sycl::ext::cplx::complex<T> cplx_input2{input2.re, input2.im};
 
   std::complex<T> std_out{};
   auto *cplx_out = sycl::malloc_shared<sycl::ext::cplx::complex<T>>(1, Q);
@@ -16,30 +34,42 @@ bool test_pow_cplx_cplx(sycl::queue &Q, T init_re, T init_im) {
   std_out = std::pow(std_in1, std_in2);
 
   // Check cplx::complex output from device
-  Q.single_task([=]() {
-     cplx_out[0] = sycl::ext::cplx::pow<T>(cplx_input1, cplx_input2);
-   }).wait();
+  if (is_type_supported<T>(Q)) {
+    Q.single_task([=]() {
+       cplx_out[0] = sycl::ext::cplx::pow<T>(cplx_input1, cplx_input2);
+     }).wait();
 
-  pass &= check_results(cplx_out[0], std_out, /*is_device*/ true);
+    check_results(cplx_out[0], std_out);
+  }
 
   // Check cplx::complex output from host
   cplx_out[0] = sycl::ext::cplx::pow<T>(cplx_input1, cplx_input2);
 
-  pass &= check_results(cplx_out[0], std_out, /*is_device*/ false);
+  check_results(cplx_out[0], std_out);
 
   sycl::free(cplx_out, Q);
-
-  return pass;
 }
 
-template <typename T>
-bool test_pow_cplx_deci(sycl::queue &Q, T init_re, T init_im) {
-  bool pass = true;
+TEMPLATE_TEST_CASE("Test complex pow cplx-deci overload", "[pow]", double,
+                   float, sycl::half) {
+  using T = TestType;
 
-  auto std_in = init_std_complex(init_re, init_im);
-  auto std_deci_in = init_deci(init_re);
-  sycl::ext::cplx::complex<T> cplx_input{init_re, init_im};
-  T deci_input = init_re;
+  sycl::queue Q;
+
+  // Test cases
+  // Values are generated as cross product of input1 and input2's GENERATE list
+  cmplx<T> input1 = GENERATE(
+      cmplx<T>{4.42, 2.02}, cmplx<T>{inf_val<T>, 2.02},
+      cmplx<T>{4.42, inf_val<T>}, cmplx<T>{inf_val<T>, inf_val<T>},
+      cmplx<T>{nan_val<T>, 2.02}, cmplx<T>{4.42, nan_val<T>},
+      cmplx<T>{nan_val<T>, nan_val<T>}, cmplx<T>{nan_val<T>, inf_val<T>},
+      cmplx<T>{inf_val<T>, nan_val<T>});
+  T input2 = GENERATE(4.42, inf_val<T>, nan_val<T>);
+
+  auto std_in = init_std_complex(input1);
+  auto std_deci_in = init_deci(input2);
+  sycl::ext::cplx::complex<T> cplx_input{input1.re, input1.im};
+  T deci_input = input2;
 
   std::complex<T> std_out{};
   auto *cplx_out = sycl::malloc_shared<sycl::ext::cplx::complex<T>>(1, Q);
@@ -48,28 +78,42 @@ bool test_pow_cplx_deci(sycl::queue &Q, T init_re, T init_im) {
   std_out = std::pow(std_in, std_deci_in);
 
   // Check cplx::complex output from device
-  Q.single_task([=]() {
-     cplx_out[0] = sycl::ext::cplx::pow(cplx_input, deci_input);
-   }).wait();
+  if (is_type_supported<T>(Q)) {
+    Q.single_task([=]() {
+       cplx_out[0] = sycl::ext::cplx::pow<T>(cplx_input, deci_input);
+     }).wait();
 
-  pass &= check_results(cplx_out[0], std_out, /*is_device*/ true);
+    check_results(cplx_out[0], std_out);
+  }
 
   // Check cplx::complex output from host
-  cplx_out[0] = sycl::ext::cplx::pow(cplx_input, deci_input);
+  cplx_out[0] = sycl::ext::cplx::pow<T>(cplx_input, deci_input);
 
-  pass &= check_results(cplx_out[0], std_out, /*is_device*/ false);
+  check_results(cplx_out[0], std_out);
 
-  return pass;
+  sycl::free(cplx_out, Q);
 }
 
-template <typename T>
-bool test_pow_deci_cplx(sycl::queue &Q, T init_re, T init_im) {
-  bool pass = true;
+TEMPLATE_TEST_CASE("Test complex pow deci-cplx overload", "[pow]", double,
+                   float, sycl::half) {
+  using T = TestType;
 
-  auto std_in = init_std_complex(init_re, init_im);
-  auto std_deci_in = init_deci(init_re);
-  sycl::ext::cplx::complex<T> cplx_input{init_re, init_im};
-  T deci_input = init_re;
+  sycl::queue Q;
+
+  // Test cases
+  // Values are generated as cross product of input1 and input2's GENERATE list
+  cmplx<T> input1 = GENERATE(
+      cmplx<T>{4.42, 2.02}, cmplx<T>{inf_val<T>, 2.02},
+      cmplx<T>{4.42, inf_val<T>}, cmplx<T>{inf_val<T>, inf_val<T>},
+      cmplx<T>{nan_val<T>, 2.02}, cmplx<T>{4.42, nan_val<T>},
+      cmplx<T>{nan_val<T>, nan_val<T>}, cmplx<T>{nan_val<T>, inf_val<T>},
+      cmplx<T>{inf_val<T>, nan_val<T>});
+  T input2 = GENERATE(4.42, inf_val<T>, nan_val<T>);
+
+  auto std_in = init_std_complex(input1);
+  auto std_deci_in = init_deci(input2);
+  sycl::ext::cplx::complex<T> cplx_input{input1.re, input1.im};
+  T deci_input = input2;
 
   std::complex<T> std_out{};
   auto *cplx_out = sycl::malloc_shared<sycl::ext::cplx::complex<T>>(1, Q);
@@ -78,51 +122,18 @@ bool test_pow_deci_cplx(sycl::queue &Q, T init_re, T init_im) {
   std_out = std::pow(std_deci_in, std_in);
 
   // Check cplx::complex output from device
-  Q.single_task([=]() {
-     cplx_out[0] = sycl::ext::cplx::pow(deci_input, cplx_input);
-   }).wait();
+  if (is_type_supported<T>(Q)) {
+    Q.single_task([=]() {
+       cplx_out[0] = sycl::ext::cplx::pow<T>(deci_input, cplx_input);
+     }).wait();
 
-  pass &= check_results(cplx_out[0], std_out, /*is_device*/ true);
+    check_results(cplx_out[0], std_out);
+  }
 
   // Check cplx::complex output from host
-  cplx_out[0] = sycl::ext::cplx::pow(deci_input, cplx_input);
+  cplx_out[0] = sycl::ext::cplx::pow<T>(deci_input, cplx_input);
 
-  pass &= check_results(cplx_out[0], std_out, /*is_device*/ false);
+  check_results(cplx_out[0], std_out);
 
-  return pass;
-}
-
-template <typename T> struct test_pow {
-  bool operator()(sycl::queue &Q, T init_re, T init_im) {
-    bool pass = true;
-    pass &= test_pow_cplx_cplx(Q, init_re, init_im);
-    pass &= test_pow_cplx_deci(Q, init_re, init_im);
-    pass &= test_pow_deci_cplx(Q, init_re, init_im);
-    return pass;
-  }
-};
-
-int main() {
-  sycl::queue Q;
-
-  bool test_passes = true;
-  test_passes &= test_valid_types<test_pow>(Q, 4.42, 2.02);
-
-  test_passes &= test_valid_types<test_pow>(Q, INFINITY, 2.02);
-  test_passes &= test_valid_types<test_pow>(Q, 4.42, INFINITY);
-  test_passes &= test_valid_types<test_pow>(Q, INFINITY, INFINITY);
-
-  test_passes &= test_valid_types<test_pow>(Q, NAN, 2.02);
-  test_passes &= test_valid_types<test_pow>(Q, 4.42, NAN);
-  test_passes &= test_valid_types<test_pow>(Q, NAN, NAN);
-
-  test_passes &= test_valid_types<test_pow>(Q, NAN, INFINITY);
-  test_passes &= test_valid_types<test_pow>(Q, INFINITY, NAN);
-  test_passes &= test_valid_types<test_pow>(Q, NAN, INFINITY);
-  test_passes &= test_valid_types<test_pow>(Q, INFINITY, NAN);
-
-  if (!test_passes)
-    std::cerr << "pow complex test fails\n";
-
-  return !test_passes;
+  sycl::free(cplx_out, Q);
 }

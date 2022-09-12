@@ -44,4 +44,13 @@ int main() {
 
 ## Tests
 
-Crude tests for all C++ complex math functions are provided in `/tests/`. Just defined a correct `CXX` and then `make` , `make run` 
+Testing is implemented with Catch2 and CMake. Catch2 is added as a git submodule inside the `vendor` directory.
+
+Instructions to build and run tests for DPCPP are below:
+```
+mkdir build
+cd build
+cmake -DCMAKE_CXX_COMPILER=$CXX_PATH -DCMAKE_CXX_FLAGS=-fsycl ..
+make -j 8
+ctest
+```

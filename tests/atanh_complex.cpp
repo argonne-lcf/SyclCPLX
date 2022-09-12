@@ -1,21 +1,37 @@
 #include "test_helper.hpp"
 
-template <typename T> struct test_atanh {
-  bool operator()(sycl::queue &Q, T init_re, T init_im,
-                  bool is_error_checking = false) {
-    bool pass = true;
+TEMPLATE_TEST_CASE("Test complex atanh", "[atanh]", double, float, sycl::half) {
+  using T = TestType;
+  using std::make_tuple;
 
-    auto std_in = init_std_complex(init_re, init_im);
-    sycl::ext::cplx::complex<T> cplx_input{init_re, init_im};
+  sycl::queue Q;
 
-    std::complex<T> std_out{init_re, init_im};
-    auto *cplx_out = sycl::malloc_shared<sycl::ext::cplx::complex<T>>(1, Q);
+  cmplx<T> input;
+  bool is_error_checking;
 
-    // Get std::complex output
-    if (is_error_checking)
-      std_out = std::atanh(std_in);
+  std::tie(input, is_error_checking) = GENERATE(table<cmplx<T>, bool>(
+      {make_tuple(cmplx<T>{4.42, 2.02}, false),
+       make_tuple(cmplx<T>{inf_val<T>, 2.02}, true),
+       make_tuple(cmplx<T>{4.42, inf_val<T>}, true),
+       make_tuple(cmplx<T>{inf_val<T>, inf_val<T>}, true),
+       make_tuple(cmplx<T>{nan_val<T>, 2.02}, true),
+       make_tuple(cmplx<T>{4.42, nan_val<T>}, true),
+       make_tuple(cmplx<T>{nan_val<T>, nan_val<T>}, true),
+       make_tuple(cmplx<T>{nan_val<T>, inf_val<T>}, true),
+       make_tuple(cmplx<T>{inf_val<T>, nan_val<T>}, true)}));
 
-    // Check cplx::complex output from device
+  auto std_in = init_std_complex(input);
+  sycl::ext::cplx::complex<T> cplx_input{input.re, input.im};
+
+  std::complex<T> std_out{input.re, input.im};
+  auto *cplx_out = sycl::malloc_shared<sycl::ext::cplx::complex<T>>(1, Q);
+
+  // Get std::complex output
+  if (is_error_checking)
+    std_out = std::atanh(std_in);
+
+  // Check cplx::complex output from device
+  if (is_type_supported<T>(Q)) {
     if (is_error_checking) {
       Q.single_task(
           [=]() { cplx_out[0] = sycl::ext::cplx::atanh<T>(cplx_input); });
@@ -26,47 +42,18 @@ template <typename T> struct test_atanh {
       });
     }
     Q.wait();
-
-    pass &= check_results(cplx_out[0], std_out, /*is_device*/ true,
-                          /*tol_multiplier*/ 2);
-
-    // Check cplx::complex output from host
-    if (is_error_checking)
-      cplx_out[0] = sycl::ext::cplx::atanh<T>(cplx_input);
-    else
-      cplx_out[0] =
-          sycl::ext::cplx::tanh<T>(sycl::ext::cplx::atanh<T>(cplx_input));
-
-    pass &= check_results(cplx_out[0], std_out, /*is_device*/ false,
-                          /*tol_multiplier*/ 2);
-
-    sycl::free(cplx_out, Q);
-
-    return pass;
   }
-};
 
-int main() {
-  sycl::queue Q;
+  check_results(cplx_out[0], std_out, /*tol_multiplier*/ 2);
 
-  bool test_passes = true;
-  test_passes &= test_valid_types<test_atanh>(Q, 0.42, 2.02);
+  // Check cplx::complex output from host
+  if (is_error_checking)
+    cplx_out[0] = sycl::ext::cplx::atanh<T>(cplx_input);
+  else
+    cplx_out[0] =
+        sycl::ext::cplx::tanh<T>(sycl::ext::cplx::atanh<T>(cplx_input));
 
-  test_passes &= test_valid_types<test_atanh>(Q, INFINITY, 2.02, true);
-  test_passes &= test_valid_types<test_atanh>(Q, 4.42, INFINITY, true);
-  test_passes &= test_valid_types<test_atanh>(Q, INFINITY, INFINITY, true);
+  check_results(cplx_out[0], std_out, /*tol_multiplier*/ 2);
 
-  test_passes &= test_valid_types<test_atanh>(Q, NAN, 2.02, true);
-  test_passes &= test_valid_types<test_atanh>(Q, 4.42, NAN, true);
-  test_passes &= test_valid_types<test_atanh>(Q, NAN, NAN, true);
-
-  test_passes &= test_valid_types<test_atanh>(Q, NAN, INFINITY, true);
-  test_passes &= test_valid_types<test_atanh>(Q, INFINITY, NAN, true);
-  test_passes &= test_valid_types<test_atanh>(Q, NAN, INFINITY, true);
-  test_passes &= test_valid_types<test_atanh>(Q, INFINITY, NAN, true);
-
-  if (!test_passes)
-    std::cerr << "atanh complex test fails\n";
-
-  return !test_passes;
+  sycl::free(cplx_out, Q);
 }

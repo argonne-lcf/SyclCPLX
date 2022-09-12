@@ -1,57 +1,40 @@
 #include "test_helper.hpp"
 
-template <typename T> struct test_abs {
-  bool operator()(sycl::queue &Q, T init_re, T init_im) {
-    bool pass = true;
+TEMPLATE_TEST_CASE("Test complex abs", "[abs]", double, float, sycl::half) {
+  using T = TestType;
 
-    auto std_in = init_std_complex(init_re, init_im);
-    sycl::ext::cplx::complex<T> cplx_input{init_re, init_im};
+  sycl::queue Q;
 
-    T std_out{};
-    auto *cplx_out = sycl::malloc_shared<T>(1, Q);
+  // Test cases
+  cmplx<T> input = GENERATE(
+      cmplx<T>{4.42, 2.02}, cmplx<T>{inf_val<T>, 2.02},
+      cmplx<T>{4.42, inf_val<T>}, cmplx<T>{inf_val<T>, inf_val<T>},
+      cmplx<T>{nan_val<T>, 2.02}, cmplx<T>{4.42, nan_val<T>},
+      cmplx<T>{nan_val<T>, nan_val<T>}, cmplx<T>{nan_val<T>, inf_val<T>},
+      cmplx<T>{inf_val<T>, nan_val<T>});
 
-    // Get std::complex output
-    std_out = std::abs(std_in);
+  auto std_in = init_std_complex(input);
+  sycl::ext::cplx::complex<T> cplx_input{input.re, input.im};
 
-    // Check cplx::complex output from device
+  T std_out{};
+  auto *cplx_out = sycl::malloc_shared<T>(1, Q);
+
+  // Get std::complex output
+  std_out = std::abs(std_in);
+
+  // Check cplx::complex output from device
+  if (is_type_supported<T>(Q)) {
     Q.single_task([=]() {
        cplx_out[0] = sycl::ext::cplx::abs<T>(cplx_input);
      }).wait();
 
-    pass &= check_results(cplx_out[0], std_out, /*is_device*/ true);
-
-    // Check cplx::complex output from host
-    cplx_out[0] = sycl::ext::cplx::abs<T>(cplx_input);
-
-    pass &= check_results(cplx_out[0], std_out, /*is_device*/ false);
-
-    sycl::free(cplx_out, Q);
-
-    return pass;
+    check_results(cplx_out[0], std_out);
   }
-};
 
-int main() {
-  sycl::queue Q;
+  // Check cplx::complex output from host
+  cplx_out[0] = sycl::ext::cplx::abs<T>(cplx_input);
 
-  bool test_passes = true;
-  test_passes &= test_valid_types<test_abs>(Q, 4.42, 2.02);
+  check_results(cplx_out[0], std_out);
 
-  test_passes &= test_valid_types<test_abs>(Q, INFINITY, 2.02);
-  test_passes &= test_valid_types<test_abs>(Q, 4.42, INFINITY);
-  test_passes &= test_valid_types<test_abs>(Q, INFINITY, INFINITY);
-
-  test_passes &= test_valid_types<test_abs>(Q, NAN, 2.02);
-  test_passes &= test_valid_types<test_abs>(Q, 4.42, NAN);
-  test_passes &= test_valid_types<test_abs>(Q, NAN, NAN);
-
-  test_passes &= test_valid_types<test_abs>(Q, NAN, INFINITY);
-  test_passes &= test_valid_types<test_abs>(Q, INFINITY, NAN);
-  test_passes &= test_valid_types<test_abs>(Q, NAN, INFINITY);
-  test_passes &= test_valid_types<test_abs>(Q, INFINITY, NAN);
-
-  if (!test_passes)
-    std::cerr << "acos complex test fails\n";
-
-  return !test_passes;
+  sycl::free(cplx_out, Q);
 }
