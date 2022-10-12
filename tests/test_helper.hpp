@@ -73,7 +73,7 @@ bool test_valid_types(argsT... args) {
 // Helpers for comparison
 
 // Do not define for DPCPP as it already defines this struct
-#ifndef __INTEL_LLVM_COMPILER
+#ifndef __SYCL_COMPILER_VERSION
 namespace std {
 
 // Specialization of std::numeric<sycl::half> for almost_equal
