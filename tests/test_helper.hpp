@@ -72,8 +72,10 @@ bool test_valid_types(argsT... args) {
 
 // Helpers for comparison
 
-// Do not define for DPCPP as it already defines this struct
-#ifndef __INTEL_LLVM_COMPILER
+// Do not define for public `intel/llvm` and oneAPI
+// oneAPI define `__INTEL_LLVM_COMPILER` but `intel/llvm` doesn't.
+// So we use the intel-implementation-only macro `__SYCL_COMPILER_VERSION` as an ID
+#ifndef __SYCL_COMPILER_VERSION
 namespace std {
 
 // Specialization of std::numeric<sycl::half> for almost_equal
