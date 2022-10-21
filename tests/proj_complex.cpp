@@ -1,183 +1,162 @@
 #include "test_helper.hpp"
 
-template <typename T> struct test_proj {
-  bool test_cplx(sycl::queue &Q, T init_re, T init_im) {
-    bool pass = true;
+////////////////////////////////////////////////////////////////////////////////
+// COMPLEX TESTS
+////////////////////////////////////////////////////////////////////////////////
 
-    auto std_in = init_std_complex(init_re, init_im);
-    sycl::ext::cplx::complex<T> cplx_input{init_re, init_im};
+TEMPLATE_TEST_CASE("Test complex proj cplx overload", "[proj]", double, float,
+                   sycl::half) {
+  using T = TestType;
 
-    std::complex<T> std_out{};
-    auto *cplx_out = sycl::malloc_shared<sycl::ext::cplx::complex<T>>(1, Q);
+  sycl::queue Q;
 
-    // Get std::complex output
-    std_out = std::proj(std_in);
+  cmplx<T> input = GENERATE(
+      cmplx<T>{4.42, 2.02}, cmplx<T>{inf_val<T>, 2.02},
+      cmplx<T>{4.42, inf_val<T>}, cmplx<T>{inf_val<T>, inf_val<T>},
+      cmplx<T>{nan_val<T>, 2.02}, cmplx<T>{4.42, nan_val<T>},
+      cmplx<T>{nan_val<T>, nan_val<T>}, cmplx<T>{nan_val<T>, inf_val<T>},
+      cmplx<T>{inf_val<T>, nan_val<T>});
 
-    // Check cplx::complex output from device
+  auto std_in = init_std_complex(input);
+  sycl::ext::cplx::complex<T> cplx_input{input.re, input.im};
+
+  std::complex<T> std_out{};
+  auto *cplx_out = sycl::malloc_shared<sycl::ext::cplx::complex<T>>(1, Q);
+
+  // Get std::complex output
+  std_out = std::proj(std_in);
+
+  // Check cplx::complex output from device
+  if (is_type_supported<T>(Q)) {
     Q.single_task([=]() {
        cplx_out[0] = sycl::ext::cplx::proj<T>(cplx_input);
      }).wait();
-
-    pass &= check_results(cplx_out[0], std_out, /*is_device*/ true);
-
-    // Check cplx::complex output from host
-    cplx_out[0] = sycl::ext::cplx::proj<T>(cplx_input);
-
-    pass &= check_results(cplx_out[0], std_out, /*is_device*/ false);
-
-    sycl::free(cplx_out, Q);
-
-    return pass;
   }
 
-  bool test_deci(sycl::queue &Q, T init_re) {
-    bool pass = true;
+  check_results(cplx_out[0], std_out);
 
-    auto std_in = init_deci(init_re);
+  // Check cplx::complex output from host
+  cplx_out[0] = sycl::ext::cplx::proj<T>(cplx_input);
 
-    std::complex<T> std_out{};
-    auto *cplx_out = sycl::malloc_shared<sycl::ext::cplx::complex<T>>(1, Q);
+  check_results(cplx_out[0], std_out);
 
-    // Get std::complex output
-    std_out = std::proj(std_in);
+  sycl::free(cplx_out, Q);
+}
 
-    // Check cplx::complex output from device
+TEMPLATE_TEST_CASE("Test complex proj deci overload", "[proj]", double, float,
+                   sycl::half) {
+  using T = TestType;
+
+  sycl::queue Q;
+
+  T input = GENERATE(4.42, inf_val<T>, 4.42, inf_val<T>, nan_val<T>, 4.42,
+                     nan_val<T>, nan_val<T>, inf_val<T>);
+
+  auto std_in = init_deci(input);
+
+  std::complex<T> std_out{};
+  auto *cplx_out = sycl::malloc_shared<sycl::ext::cplx::complex<T>>(1, Q);
+
+  // Get std::complex output
+  std_out = std::proj(std_in);
+
+  // Check cplx::complex output from device
+  if (is_type_supported<T>(Q)) {
     Q.single_task([=]() {
-       cplx_out[0] = sycl::ext::cplx::proj<T>(init_re);
+       cplx_out[0] = sycl::ext::cplx::proj<T>(input);
      }).wait();
-
-    pass &= check_results(cplx_out[0], std_out, /*is_device*/ true);
-
-    // Check cplx::complex output from host
-    cplx_out[0] = sycl::ext::cplx::proj<T>(init_re);
-
-    pass &= check_results(cplx_out[0], std_out, /*is_device*/ false);
-
-    sycl::free(cplx_out, Q);
-
-    return pass;
   }
-  bool operator()(sycl::queue &Q, T init_re, T init_im) {
-    bool pass = true;
 
-    pass &= test_cplx(Q, init_re, init_im);
-    pass &= test_deci(Q, init_re);
+  check_results(cplx_out[0], std_out);
 
-    return pass;
-  }
-};
+  // Check cplx::complex output from host
+  cplx_out[0] = sycl::ext::cplx::proj<T>(input);
 
-template <typename T, std::size_t NumElements> struct test_proj_marray {
-  bool test_cplx(sycl::queue &Q, test_marray<T, NumElements> init_re,
-                 test_marray<T, NumElements> init_im) {
-    bool pass = true;
+  check_results(cplx_out[0], std_out);
 
-    auto std_in = init_std_complex(init_re.get(), init_im.get());
-    sycl::marray<sycl::ext::cplx::complex<T>, NumElements> cplx_input =
-        sycl::ext::cplx::make_complex_marray(init_re.get(), init_im.get());
+  sycl::free(cplx_out, Q);
+}
 
-    sycl::marray<std::complex<T>, NumElements> std_out{};
-    auto *cplx_out = sycl::malloc_shared<
-        sycl::marray<sycl::ext::cplx::complex<T>, NumElements>>(1, Q);
+////////////////////////////////////////////////////////////////////////////////
+// MARRAY<COMPLEX> TESTS
+////////////////////////////////////////////////////////////////////////////////
 
-    // Get std::complex output
-    for (std::size_t i = 0; i < NumElements; ++i)
-      std_out[i] = std::proj(std_in[i]);
+TEMPLATE_TEST_CASE_SIG("Test marray complex proj cplx overload", "[proj]",
+                       ((typename T, std::size_t NumElements), T, NumElements),
+                       (double, 14), (float, 14), (sycl::half, 14)) {
+  sycl::queue Q;
 
-    // Check cplx::complex output from device
+  // Test cases
+  auto init_re = GENERATE(test_marray<T, NumElements>{
+      1.0, 4.42, -3, 4.0, 2.02, inf_val<T>, inf_val<T>, 2.02, nan_val<T>,
+      nan_val<T>, inf_val<T>, nan_val<T>, inf_val<T>, nan_val<T>});
+  auto init_im = GENERATE(test_marray<T, NumElements>{
+      1.0, 2.02, 3.5, -4.0, inf_val<T>, 4.42, nan_val<T>, 4.42, nan_val<T>,
+      nan_val<T>, inf_val<T>, nan_val<T>, inf_val<T>, nan_val<T>});
+
+  auto std_in = init_std_complex(init_re.get(), init_im.get());
+  sycl::marray<sycl::ext::cplx::complex<T>, NumElements> cplx_input =
+      sycl::ext::cplx::make_complex_marray(init_re.get(), init_im.get());
+
+  sycl::marray<std::complex<T>, NumElements> std_out{};
+  auto *cplx_out = sycl::malloc_shared<
+      sycl::marray<sycl::ext::cplx::complex<T>, NumElements>>(1, Q);
+
+  // Get std::complex output
+  for (std::size_t i = 0; i < NumElements; ++i)
+    std_out[i] = std::proj(std_in[i]);
+
+  // Check cplx::complex output from device
+  if (is_type_supported<T>(Q)) {
     Q.single_task([=]() {
        *cplx_out = sycl::ext::cplx::proj<T>(cplx_input);
      }).wait();
-
-    pass &= check_results(*cplx_out, std_out, /*is_device*/ true);
-
-    // Check cplx::complex output from host
-    *cplx_out = sycl::ext::cplx::proj<T>(cplx_input);
-
-    pass &= check_results(*cplx_out, std_out, /*is_device*/ false);
-
-    sycl::free(cplx_out, Q);
-
-    return pass;
   }
 
-  bool test_deci(sycl::queue &Q, test_marray<T, NumElements> init_re) {
-    bool pass = true;
+  check_results(*cplx_out, std_out);
 
-    auto std_in = init_deci(init_re.get());
-    sycl::marray<T, NumElements> cplx_input = init_re.get();
+  // Check cplx::complex output from host
+  *cplx_out = sycl::ext::cplx::proj<T>(cplx_input);
 
-    sycl::marray<std::complex<T>, NumElements> std_out{};
-    auto *cplx_out = sycl::malloc_shared<
-        sycl::marray<sycl::ext::cplx::complex<T>, NumElements>>(1, Q);
+  check_results(*cplx_out, std_out);
 
-    // Get std::complex output
-    for (std::size_t i = 0; i < NumElements; ++i)
-      std_out[i] = std::proj(std_in[i]);
+  sycl::free(cplx_out, Q);
+}
 
-    // Check cplx::complex output from device
+TEMPLATE_TEST_CASE_SIG("Test marray complex proj deci overload", "[proj]",
+                       ((typename T, std::size_t NumElements), T, NumElements),
+                       (double, 14), (float, 14), (sycl::half, 14)) {
+  sycl::queue Q;
+
+  // Test cases
+  auto input = GENERATE(test_marray<T, NumElements>{
+      1.0, 4.42, -3, 4.0, 2.02, inf_val<T>, inf_val<T>, 2.02, nan_val<T>,
+      nan_val<T>, inf_val<T>, nan_val<T>, inf_val<T>, nan_val<T>});
+
+  auto std_in = init_deci(input.get());
+  sycl::marray<T, NumElements> cplx_input = input.get();
+
+  sycl::marray<std::complex<T>, NumElements> std_out{};
+  auto *cplx_out = sycl::malloc_shared<
+      sycl::marray<sycl::ext::cplx::complex<T>, NumElements>>(1, Q);
+
+  // Get std::complex output
+  for (std::size_t i = 0; i < NumElements; ++i)
+    std_out[i] = std::proj(std_in[i]);
+
+  // Check cplx::complex output from device
+  if (is_type_supported<T>(Q)) {
     Q.single_task([=]() {
        *cplx_out = sycl::ext::cplx::proj(cplx_input);
      }).wait();
-
-    pass &= check_results(*cplx_out, std_out, /*is_device*/ true);
-
-    // Check cplx::complex output from host
-    *cplx_out = sycl::ext::cplx::proj(cplx_input);
-
-    pass &= check_results(*cplx_out, std_out, /*is_device*/ false);
-
-    sycl::free(cplx_out, Q);
-
-    return pass;
   }
 
-  bool operator()(sycl::queue &Q, test_marray<T, NumElements> init_re,
-                  test_marray<T, NumElements> init_im) {
-    bool pass = true;
+  check_results(*cplx_out, std_out);
 
-    pass &= test_cplx(Q, init_re, init_im);
-    pass &= test_deci(Q, init_re);
+  // Check cplx::complex output from host
+  *cplx_out = sycl::ext::cplx::proj(cplx_input);
 
-    return pass;
-  }
-};
+  check_results(*cplx_out, std_out);
 
-int main() {
-  sycl::queue Q;
-
-  bool test_passes = true;
-  {
-    test_passes &= test_valid_types<test_proj>(Q, 4.42, 2.02);
-
-    test_passes &= test_valid_types<test_proj>(Q, INFINITY, 2.02);
-    test_passes &= test_valid_types<test_proj>(Q, 4.42, INFINITY);
-    test_passes &= test_valid_types<test_proj>(Q, INFINITY, INFINITY);
-
-    test_passes &= test_valid_types<test_proj>(Q, NAN, 2.02);
-    test_passes &= test_valid_types<test_proj>(Q, 4.42, NAN);
-    test_passes &= test_valid_types<test_proj>(Q, NAN, NAN);
-
-    test_passes &= test_valid_types<test_proj>(Q, NAN, INFINITY);
-    test_passes &= test_valid_types<test_proj>(Q, INFINITY, NAN);
-    test_passes &= test_valid_types<test_proj>(Q, NAN, INFINITY);
-    test_passes &= test_valid_types<test_proj>(Q, INFINITY, NAN);
-  }
-
-  // marray tests
-  {
-    constexpr size_t m_size = 14;
-    test_marray<double, m_size> re = {
-        1.0,  4.42, -3,   4.0,       2.02, INFINITYd, INFINITYd,
-        2.02, NANd, NANd, INFINITYd, NANd, INFINITYd, NANd};
-    test_marray<double, m_size> im = {
-        1.0,  2.02, 3.5,  -4.0,      INFINITYd, 4.42,      NANd,
-        4.42, NANd, NANd, INFINITYd, NANd,      INFINITYd, NANd};
-    test_passes &= test_valid_types<test_proj_marray, m_size>(Q, re, im);
-  }
-
-  if (!test_passes)
-    std::cerr << "proj complex test fails\n";
-
-  return !test_passes;
+  sycl::free(cplx_out, Q);
 }

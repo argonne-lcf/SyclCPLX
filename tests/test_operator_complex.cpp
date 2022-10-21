@@ -1,5 +1,9 @@
 #include "test_helper.hpp"
 
+////////////////////////////////////////////////////////////////////////////////
+// COMPLEX TESTS
+////////////////////////////////////////////////////////////////////////////////
+
 #define test_op(test_name, label, op)                                          \
   TEMPLATE_TEST_CASE(test_name, label, double, float, sycl::half) {            \
     using T = TestType;                                                        \
