@@ -1,21 +1,41 @@
 #include "test_helper.hpp"
 
-template <typename T> struct test_acosh {
-  bool operator()(sycl::queue &Q, T init_re, T init_im,
-                  bool is_error_checking = false) {
-    bool pass = true;
+////////////////////////////////////////////////////////////////////////////////
+// COMPLEX TESTS
+////////////////////////////////////////////////////////////////////////////////
 
-    auto std_in = init_std_complex(init_re, init_im);
-    sycl::ext::cplx::complex<T> cplx_input{init_re, init_im};
+TEMPLATE_TEST_CASE("Test complex acosh", "[acosh]", double, float, sycl::half) {
+  using T = TestType;
+  using std::make_tuple;
 
-    std::complex<T> std_out{init_re, init_im};
-    auto *cplx_out = sycl::malloc_shared<sycl::ext::cplx::complex<T>>(1, Q);
+  sycl::queue Q;
 
-    // Get std::complex output
-    if (is_error_checking)
-      std_out = std::acosh(std_in);
+  cmplx<T> input;
+  bool is_error_checking;
 
-    // Check cplx::complex output from device
+  std::tie(input, is_error_checking) = GENERATE(table<cmplx<T>, bool>(
+      {make_tuple(cmplx<T>{4.42, 2.02}, false),
+       make_tuple(cmplx<T>{inf_val<T>, 2.02}, true),
+       make_tuple(cmplx<T>{4.42, inf_val<T>}, true),
+       make_tuple(cmplx<T>{inf_val<T>, inf_val<T>}, true),
+       make_tuple(cmplx<T>{nan_val<T>, 2.02}, true),
+       make_tuple(cmplx<T>{4.42, nan_val<T>}, true),
+       make_tuple(cmplx<T>{nan_val<T>, nan_val<T>}, true),
+       make_tuple(cmplx<T>{nan_val<T>, inf_val<T>}, true),
+       make_tuple(cmplx<T>{inf_val<T>, nan_val<T>}, true)}));
+
+  auto std_in = init_std_complex(input);
+  sycl::ext::cplx::complex<T> cplx_input{input.re, input.im};
+
+  std::complex<T> std_out{input.re, input.im};
+  auto *cplx_out = sycl::malloc_shared<sycl::ext::cplx::complex<T>>(1, Q);
+
+  // Get std::complex output
+  if (is_error_checking)
+    std_out = std::acosh(std_in);
+
+  // Check cplx::complex output from device
+  if (is_type_supported<T>(Q)) {
     if (is_error_checking) {
       Q.single_task(
           [=]() { cplx_out[0] = sycl::ext::cplx::acosh<T>(cplx_input); });
@@ -26,52 +46,50 @@ template <typename T> struct test_acosh {
       });
     }
     Q.wait();
-
-    pass &= check_results(cplx_out[0], std_out, /*is_device*/ true,
-                          /*tol_multiplier*/ 2);
-
-    // Check cplx::complex output from host
-    if (is_error_checking)
-      cplx_out[0] = sycl::ext::cplx::acosh<T>(cplx_input);
-    else
-      cplx_out[0] =
-          sycl::ext::cplx::cosh<T>(sycl::ext::cplx::acosh<T>(cplx_input));
-
-    pass &= check_results(cplx_out[0], std_out, /*is_device*/ false,
-                          /*tol_multiplier*/ 2);
-
-    sycl::free(cplx_out, Q);
-
-    return pass;
   }
-};
 
-template <typename T, std::size_t NumElements> struct test_acosh_marray {
-  bool operator()(sycl::queue &Q, test_marray<T, NumElements> init_re,
-                  test_marray<T, NumElements> init_im,
-                  bool is_error_checking = false) {
-    bool pass = true;
+  check_results(cplx_out[0], std_out, /*tol_multiplier*/ 2);
 
-    auto std_in = init_std_complex(init_re.get(), init_im.get());
-    sycl::marray<sycl::ext::cplx::complex<T>, NumElements> cplx_input =
-        sycl::ext::cplx::make_complex_marray(init_re.get(), init_im.get());
+  // Check cplx::complex output from host
+  if (is_error_checking)
+    cplx_out[0] = sycl::ext::cplx::acosh<T>(cplx_input);
+  else
+    cplx_out[0] =
+        sycl::ext::cplx::cosh<T>(sycl::ext::cplx::acosh<T>(cplx_input));
 
-    sycl::marray<std::complex<T>, NumElements> std_out{};
-    auto *cplx_out = sycl::malloc_shared<
-        sycl::marray<sycl::ext::cplx::complex<T>, NumElements>>(1, Q);
+  check_results(cplx_out[0], std_out, /*tol_multiplier*/ 2);
 
-    // Get std::complex output
-    if (is_error_checking) {
-      for (std::size_t i = 0; i < NumElements; ++i)
-        std_out[i] = std::acosh(std_in[i]);
-    } else {
-      // Need to manually copy to handle as for for halfs, std_in is of value
-      // type float and std_out is of value type half
-      for (std::size_t i = 0; i < NumElements; ++i)
-        std_out[i] = std_in[i];
-    }
+  sycl::free(cplx_out, Q);
+}
 
-    // Check cplx::complex output from device
+////////////////////////////////////////////////////////////////////////////////
+// MARRAY<COMPLEX> TESTS'S UTILITIES
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T, std::size_t NumElements>
+auto test(sycl::queue &Q, test_marray<T, NumElements> init_re,
+          test_marray<T, NumElements> init_im, bool is_error_checking) {
+  auto std_in = init_std_complex(init_re.get(), init_im.get());
+  sycl::marray<sycl::ext::cplx::complex<T>, NumElements> cplx_input =
+      sycl::ext::cplx::make_complex_marray(init_re.get(), init_im.get());
+
+  sycl::marray<std::complex<T>, NumElements> std_out{};
+  auto *cplx_out = sycl::malloc_shared<
+      sycl::marray<sycl::ext::cplx::complex<T>, NumElements>>(1, Q);
+
+  // Get std::complex output
+  if (is_error_checking) {
+    for (std::size_t i = 0; i < NumElements; ++i)
+      std_out[i] = std::acosh(std_in[i]);
+  } else {
+    // Need to manually copy to handle as for for halfs, std_in is of value
+    // type float and std_out is of value type half
+    for (std::size_t i = 0; i < NumElements; ++i)
+      std_out[i] = std_in[i];
+  }
+
+  // Check cplx::complex output from device
+  if (is_type_supported<T>(Q)) {
     if (is_error_checking) {
       Q.single_task([=]() {
          *cplx_out = sycl::ext::cplx::acosh<T>(cplx_input);
@@ -82,72 +100,52 @@ template <typename T, std::size_t NumElements> struct test_acosh_marray {
              sycl::ext::cplx::cosh<T>(sycl::ext::cplx::acosh<T>(cplx_input));
        }).wait();
     }
-
-    pass &= check_results(*cplx_out, std_out, /*is_device*/ true,
-                          /*tol_multiplier*/ 2);
-
-    // Check cplx::complex output from host
-    if (is_error_checking) {
-      *cplx_out = sycl::ext::cplx::acosh<T>(cplx_input);
-    } else {
-      *cplx_out =
-          sycl::ext::cplx::cosh<T>(sycl::ext::cplx::acosh<T>(cplx_input));
-    }
-
-    pass &= check_results(*cplx_out, std_out, /*is_device*/ false,
-                          /*tol_multiplier*/ 2);
-
-    sycl::free(cplx_out, Q);
-
-    return pass;
   }
-};
 
-int main() {
+  check_results(*cplx_out, std_out, /*tol_multiplier*/ 2);
+
+  // Check cplx::complex output from host
+  if (is_error_checking) {
+    *cplx_out = sycl::ext::cplx::acosh<T>(cplx_input);
+  } else {
+    *cplx_out = sycl::ext::cplx::cosh<T>(sycl::ext::cplx::acosh<T>(cplx_input));
+  }
+
+  check_results(*cplx_out, std_out, /*tol_multiplier*/ 2);
+
+  sycl::free(cplx_out, Q);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// MARRAY<COMPLEX> TESTS
+////////////////////////////////////////////////////////////////////////////////
+
+TEMPLATE_TEST_CASE_SIG("Test marray complex acosh (check error: false)",
+                       "[acosh]",
+                       ((typename T, std::size_t NumElements), T, NumElements),
+                       (double, 4), (float, 4), (sycl::half, 4)) {
   sycl::queue Q;
 
-  bool test_passes = true;
-  {
-    test_passes &= test_valid_types<test_acosh>(Q, 4.42, 2.02);
+  // Test cases
+  auto init_re = GENERATE(test_marray<T, NumElements>{1.0, 4.42, -3, 4.0});
+  auto init_im = GENERATE(test_marray<T, NumElements>{1.0, 2.02, 3.5, -4.0});
 
-    test_passes &= test_valid_types<test_acosh>(Q, INFINITY, 2.02, true);
-    test_passes &= test_valid_types<test_acosh>(Q, 4.42, INFINITY, true);
-    test_passes &= test_valid_types<test_acosh>(Q, INFINITY, INFINITY, true);
+  test(Q, init_re, init_im, false);
+}
 
-    test_passes &= test_valid_types<test_acosh>(Q, NAN, 2.02, true);
-    test_passes &= test_valid_types<test_acosh>(Q, 4.42, NAN, true);
-    test_passes &= test_valid_types<test_acosh>(Q, NAN, NAN, true);
+TEMPLATE_TEST_CASE_SIG("Test marray complex acosh (check error: true)",
+                       "[acosh]",
+                       ((typename T, std::size_t NumElements), T, NumElements),
+                       (double, 10), (float, 10), (sycl::half, 10)) {
+  sycl::queue Q;
 
-    test_passes &= test_valid_types<test_acosh>(Q, NAN, INFINITY, true);
-    test_passes &= test_valid_types<test_acosh>(Q, INFINITY, NAN, true);
-    test_passes &= test_valid_types<test_acosh>(Q, NAN, INFINITY, true);
-    test_passes &= test_valid_types<test_acosh>(Q, INFINITY, NAN, true);
-  }
+  // Test cases
+  auto init_re = GENERATE(test_marray<T, NumElements>{
+      2.02, inf_val<T>, inf_val<T>, 2.02, nan_val<T>, nan_val<T>, inf_val<T>,
+      nan_val<T>, inf_val<T>, nan_val<T>});
+  auto init_im = GENERATE(test_marray<T, NumElements>{
+      inf_val<T>, 4.42, nan_val<T>, 4.42, nan_val<T>, nan_val<T>, inf_val<T>,
+      nan_val<T>, inf_val<T>, nan_val<T>});
 
-  // marray tests
-  {
-    // Check output values
-    constexpr size_t value_m_size = 4;
-    test_marray<double, value_m_size> re = {1.0, 4.42, -3, 4.0};
-    test_marray<double, value_m_size> im = {1.0, 2.02, 3.5, -4.0};
-
-    test_passes &= test_valid_types<test_acosh_marray, value_m_size>(Q, re, im);
-
-    // Check error codes
-    constexpr size_t error_m_size = 10;
-    test_marray<double, error_m_size> error_re = {
-        2.02, INFINITYd, INFINITYd, 2.02,      NANd,
-        NANd, INFINITYd, NANd,      INFINITYd, NANd};
-    test_marray<double, error_m_size> error_im = {
-        INFINITYd, 4.42,      NANd, 4.42,      NANd,
-        NANd,      INFINITYd, NANd, INFINITYd, NANd};
-
-    test_passes &= test_valid_types<test_acosh_marray, error_m_size>(
-        Q, error_re, error_im, /* is_error_checking */ true);
-  }
-
-  if (!test_passes)
-    std::cerr << "acosh complex test fails\n";
-
-  return !test_passes;
+  test(Q, init_re, init_im, true);
 }
