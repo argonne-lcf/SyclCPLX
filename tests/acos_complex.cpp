@@ -101,7 +101,7 @@ auto test(sycl::queue &Q, test_marray<T, NumElements> init_re,
     }
   }
 
-  check_results(*cplx_out, std_out, /*tol_multiplier*/ 2);
+  check_results(*cplx_out, std_out, /*tol_multiplier*/ 4);
 
   // Check cplx::complex output from host
   if (is_error_checking) {

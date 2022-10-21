@@ -48,7 +48,7 @@ TEMPLATE_TEST_CASE("Test complex asinh", "[asinh]", double, float, sycl::half) {
     Q.wait();
   }
 
-  check_results(cplx_out[0], std_out, /*tol_multiplier*/ 2);
+  check_results(cplx_out[0], std_out, /*tol_multiplier*/ 4);
 
   // Check cplx::complex output from host
   if (is_error_checking)
@@ -57,7 +57,7 @@ TEMPLATE_TEST_CASE("Test complex asinh", "[asinh]", double, float, sycl::half) {
     cplx_out[0] =
         sycl::ext::cplx::sinh<T>(sycl::ext::cplx::asinh<T>(cplx_input));
 
-  check_results(cplx_out[0], std_out, /*tol_multiplier*/ 2);
+  check_results(cplx_out[0], std_out, /*tol_multiplier*/ 3);
 
   sycl::free(cplx_out, Q);
 }
