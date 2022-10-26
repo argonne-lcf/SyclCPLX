@@ -1,10 +1,13 @@
-#include "sycl_ext_complex.hpp"
-#include <sycl/sycl.hpp>
+#include "test_helper.hpp"
 
 using namespace sycl::ext::cplx;
 
+////////////////////////////////////////////////////////////////////////////////
+// COMPLEX TESTS
+////////////////////////////////////////////////////////////////////////////////
+
 // Check is_gencomplex
-void check_is_gencomplex() {
+TEST_CASE("Test is_gencomplex", "[gencomplex]") {
   static_assert(is_gencomplex<complex<double>>::value == true);
   static_assert(is_gencomplex<complex<float>>::value == true);
   static_assert(is_gencomplex<complex<sycl::half>>::value == true);
@@ -18,7 +21,7 @@ void check_is_gencomplex() {
 }
 
 // Check is_genfloat
-void check_is_genfloat() {
+TEST_CASE("Test is_genfloat", "[genfloat]") {
   static_assert(is_genfloat<double>::value == true);
   static_assert(is_genfloat<float>::value == true);
   static_assert(is_genfloat<sycl::half>::value == true);
@@ -29,11 +32,4 @@ void check_is_genfloat() {
   static_assert(is_genfloat<unsigned long long>::value == false);
   static_assert(is_genfloat<unsigned long>::value == false);
   static_assert(is_genfloat<unsigned int>::value == false);
-}
-
-int main() {
-  check_is_gencomplex();
-  check_is_genfloat();
-
-  return 0;
 }

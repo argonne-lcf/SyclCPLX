@@ -1,343 +1,277 @@
 #include "test_helper.hpp"
 
-#define test_op(name, op)                                                      \
-  template <typename T> struct name {                                          \
-    bool operator()(sycl::queue &Q, T init_re1, T init_im1, T init_re2,        \
-                    T init_im2) {                                              \
-      bool pass = true;                                                        \
-                                                                               \
-      auto std_in1 = init_std_complex(init_re1, init_im1);                     \
-      auto std_in2 = init_std_complex(init_re2, init_im2);                     \
-      sycl::ext::cplx::complex<T> cplx_input1{init_re1, init_im1};             \
-      sycl::ext::cplx::complex<T> cplx_input2{init_re2, init_im2};             \
-                                                                               \
-      std::complex<T> std_out{};                                               \
-      auto *cplx_out = sycl::malloc_shared<sycl::ext::cplx::complex<T>>(1, Q); \
-                                                                               \
-      /* Check complex-decimal op */                                           \
-      T dec = init_re2;                                                        \
-      std_out = std_in1 op init_deci(dec);                                     \
-                                                                               \
-      Q.single_task([=]() { cplx_out[0] = cplx_input1 op dec; }).wait();       \
-                                                                               \
-      pass &= check_results(cplx_out[0], std_out, /*is_device*/ true);         \
-                                                                               \
-      cplx_out[0] = cplx_input1 op dec;                                        \
-                                                                               \
-      pass &= check_results(cplx_out[0], std_out, /*is_device*/ false);        \
-                                                                               \
-      /* Check decimal-complex op */                                           \
-      dec = init_re1;                                                          \
-      std_out = init_deci(dec) op std_in2;                                     \
-                                                                               \
-      Q.single_task([=]() { cplx_out[0] = dec op cplx_input2; }).wait();       \
-                                                                               \
-      pass &= check_results(cplx_out[0], std_out, /*is_device*/ true);         \
-                                                                               \
-      cplx_out[0] = dec op cplx_input2;                                        \
-                                                                               \
-      pass &= check_results(cplx_out[0], std_out, /*is_device*/ false);        \
-                                                                               \
-      sycl::free(cplx_out, Q);                                                 \
-                                                                               \
-      return pass;                                                             \
-    }                                                                          \
-  };
+////////////////////////////////////////////////////////////////////////////////
+// COMPLEX TESTS
+////////////////////////////////////////////////////////////////////////////////
 
-test_op(test_add, +);
-test_op(test_sub, -);
-test_op(test_mul, *);
-test_op(test_div, /);
+#define test_op(test_name, label, op)                                          \
+  TEMPLATE_TEST_CASE(test_name, label, double, float, sycl::half) {            \
+    using T = TestType;                                                        \
+    using std::make_tuple;                                                     \
+                                                                               \
+    sycl::queue Q;                                                             \
+                                                                               \
+    cmplx<T> input1 = GENERATE(                                                \
+        cmplx<T>{4.42, 2.02}, cmplx<T>{inf_val<T>, 2.02},                      \
+        cmplx<T>{4.42, inf_val<T>}, cmplx<T>{inf_val<T>, inf_val<T>},          \
+        cmplx<T>{nan_val<T>, 2.02}, cmplx<T>{4.42, nan_val<T>},                \
+        cmplx<T>{nan_val<T>, nan_val<T>}, cmplx<T>{nan_val<T>, inf_val<T>},    \
+        cmplx<T>{inf_val<T>, nan_val<T>});                                     \
+                                                                               \
+    cmplx<T> input2 = GENERATE(cmplx<T>{4.42, 2.02});                          \
+                                                                               \
+    auto std_in1 = init_std_complex(input1);                                   \
+    auto std_in2 = init_std_complex(input2);                                   \
+    sycl::ext::cplx::complex<T> cplx_input1{input1.re, input1.im};             \
+    sycl::ext::cplx::complex<T> cplx_input2{input2.re, input2.im};             \
+                                                                               \
+    std::complex<T> std_out{};                                                 \
+    auto *cplx_out = sycl::malloc_shared<sycl::ext::cplx::complex<T>>(1, Q);   \
+                                                                               \
+    /* Check complex-complex op */                                             \
+    std_out = std_in1 op std_in2;                                              \
+                                                                               \
+    Q.single_task([=]() { cplx_out[0] = cplx_input1 op cplx_input2; }).wait(); \
+                                                                               \
+    check_results(cplx_out[0], std_out);                                       \
+                                                                               \
+    cplx_out[0] = cplx_input1 op cplx_input2;                                  \
+                                                                               \
+    check_results(cplx_out[0], std_out);                                       \
+                                                                               \
+    sycl::free(cplx_out, Q);                                                   \
+  }
+
+test_op("Test complex addition cplx-cplx overload", "[add]", +);
+test_op("Test complex subtraction cplx-cplx overload", "[sub]", +);
+test_op("Test complex multiplication cplx-cplx overload", "[mul]", +);
+test_op("Test complex division cplx-cplx overload", "[div]", +);
 
 #undef test_op
 
-#define test_op_assign(name, op_assign)                                        \
-  template <typename T> struct name {                                          \
-    bool operator()(sycl::queue &Q, T init_re1, T init_im1, T init_re2,        \
-                    T init_im2) {                                              \
-      bool pass = true;                                                        \
+#define test_op(test_name, label, op)                                          \
+  TEMPLATE_TEST_CASE(test_name, label, double, float, sycl::half) {            \
+    using T = TestType;                                                        \
+    using std::make_tuple;                                                     \
                                                                                \
-      auto std_in = init_std_complex(init_re1, init_im1);                      \
-      sycl::ext::cplx::complex<T> cplx_input{init_re1, init_im1};              \
-      auto *cplx_inout =                                                       \
-          sycl::malloc_shared<sycl::ext::cplx::complex<T>>(1, Q);              \
-      /* Check complex-decimal op */                                           \
-      auto std_inout = init_std_complex(init_re2, init_im2);                   \
-      cplx_inout[0].real(init_re2);                                            \
-      cplx_inout[0].imag(init_im2);                                            \
+    sycl::queue Q;                                                             \
                                                                                \
-      std_inout op_assign std_in;                                              \
+    cmplx<T> input1 = GENERATE(                                                \
+        cmplx<T>{4.42, 2.02}, cmplx<T>{inf_val<T>, 2.02},                      \
+        cmplx<T>{4.42, inf_val<T>}, cmplx<T>{inf_val<T>, inf_val<T>},          \
+        cmplx<T>{nan_val<T>, 2.02}, cmplx<T>{4.42, nan_val<T>},                \
+        cmplx<T>{nan_val<T>, nan_val<T>}, cmplx<T>{nan_val<T>, inf_val<T>},    \
+        cmplx<T>{inf_val<T>, nan_val<T>});                                     \
                                                                                \
-      Q.single_task([=]() { cplx_inout[0] op_assign cplx_input; }).wait();     \
+    T input2 = GENERATE(4.42, 2.02);                                           \
                                                                                \
-      pass &= check_results(                                                   \
-          cplx_inout[0], std::complex<T>(std_inout.real(), std_inout.imag()),  \
-          /*is_device*/ true);                                                 \
+    auto std_in = init_std_complex(input1);                                    \
+    auto std_deci_in = init_deci(input2);                                      \
+    sycl::ext::cplx::complex<T> cplx_input{input1.re, input1.im};              \
+    T deci_input = input2;                                                     \
                                                                                \
-      cplx_inout[0].real(init_re2);                                            \
-      cplx_inout[0].imag(init_im2);                                            \
+    std::complex<T> std_out{};                                                 \
+    auto *cplx_out = sycl::malloc_shared<sycl::ext::cplx::complex<T>>(1, Q);   \
                                                                                \
+    /* Check complex-decimal op */                                             \
+    std_out = std_in op std_deci_in;                                           \
+                                                                               \
+    Q.single_task([=]() { cplx_out[0] = cplx_input op deci_input; }).wait();   \
+                                                                               \
+    check_results(cplx_out[0], std_out);                                       \
+                                                                               \
+    cplx_out[0] = cplx_input op deci_input;                                    \
+                                                                               \
+    check_results(cplx_out[0], std_out);                                       \
+                                                                               \
+    sycl::free(cplx_out, Q);                                                   \
+  }
+
+test_op("Test complex addition cplx-deci overload", "[add]", +);
+test_op("Test complex subtraction cplx-deci overload", "[sub]", -);
+test_op("Test complex multiplication cplx-deci overload", "[mul]", *);
+test_op("Test complex division cplx-deci overload", "[div]", /);
+
+#undef test_op
+
+#define test_op(test_name, label, op)                                          \
+  TEMPLATE_TEST_CASE(test_name, label, double, float, sycl::half) {            \
+    using T = TestType;                                                        \
+    using std::make_tuple;                                                     \
+                                                                               \
+    sycl::queue Q;                                                             \
+                                                                               \
+    cmplx<T> input1 = GENERATE(                                                \
+        cmplx<T>{4.42, 2.02}, cmplx<T>{inf_val<T>, 2.02},                      \
+        cmplx<T>{4.42, inf_val<T>}, cmplx<T>{inf_val<T>, inf_val<T>},          \
+        cmplx<T>{nan_val<T>, 2.02}, cmplx<T>{4.42, nan_val<T>},                \
+        cmplx<T>{nan_val<T>, nan_val<T>}, cmplx<T>{nan_val<T>, inf_val<T>},    \
+        cmplx<T>{inf_val<T>, nan_val<T>});                                     \
+                                                                               \
+    T input2 = GENERATE(4.42, 2.02);                                           \
+                                                                               \
+    auto std_in = init_std_complex(input1);                                    \
+    auto std_deci_in = init_deci(input2);                                      \
+    sycl::ext::cplx::complex<T> cplx_input{input1.re, input1.im};              \
+    T deci_input = input2;                                                     \
+                                                                               \
+    std::complex<T> std_out{};                                                 \
+    auto *cplx_out = sycl::malloc_shared<sycl::ext::cplx::complex<T>>(1, Q);   \
+                                                                               \
+    /* Check complex-decimal op */                                             \
+    std_out = std_deci_in op std_in;                                           \
+                                                                               \
+    if (is_type_supported<T>(Q)) {                                             \
+      Q.single_task([=]() { cplx_out[0] = deci_input op cplx_input; }).wait(); \
+                                                                               \
+      check_results(cplx_out[0], std_out);                                     \
+    }                                                                          \
+                                                                               \
+    cplx_out[0] = deci_input op cplx_input;                                    \
+                                                                               \
+    check_results(cplx_out[0], std_out);                                       \
+                                                                               \
+    sycl::free(cplx_out, Q);                                                   \
+  }
+
+test_op("Test complex addition deci-cplx overload", "[add]", +);
+test_op("Test complex subtraction deci-cplx overload", "[sub]", -);
+test_op("Test complex multiplication deci-cplx overload", "[mul]", *);
+test_op("Test complex division deci-cplx overload", "[div]", /);
+
+#undef test_op
+
+// OP assign tests are checked for the all possible type combinations as op
+// assign supports different types being used.
+
+#define test_op_assign(test_name, label, op_assign)                            \
+  TEMPLATE_TEST_CASE(                                                          \
+      test_name, label, (std::tuple<double, double>),                          \
+      (std::tuple<double, float>), (std::tuple<double, sycl::half>),           \
+      (std::tuple<float, double>), (std::tuple<float, float>),                 \
+      (std::tuple<float, sycl::half>), (std::tuple<sycl::half, double>),       \
+      (std::tuple<sycl::half, float>), (std::tuple<sycl::half, sycl::half>)) { \
+    using T1 = typename std::tuple_element<0, TestType>::type;                 \
+    using T2 = typename std::tuple_element<0, TestType>::type;                 \
+    using std::make_tuple;                                                     \
+                                                                               \
+    sycl::queue Q;                                                             \
+                                                                               \
+    cmplx<T1> input1 = GENERATE(                                               \
+        cmplx<T1>{4.42, 2.02}, cmplx<T1>{inf_val<T1>, 2.02},                   \
+        cmplx<T1>{4.42, inf_val<T1>}, cmplx<T1>{inf_val<T1>, inf_val<T1>},     \
+        cmplx<T1>{nan_val<T1>, 2.02}, cmplx<T1>{4.42, nan_val<T1>},            \
+        cmplx<T1>{nan_val<T1>, nan_val<T1>},                                   \
+        cmplx<T1>{nan_val<T1>, inf_val<T1>},                                   \
+        cmplx<T1>{inf_val<T1>, nan_val<T1>});                                  \
+                                                                               \
+    cmplx<T2> input2 = GENERATE(                                               \
+        cmplx<T2>{4.42, 2.02}, cmplx<T2>{inf_val<T2>, 2.02},                   \
+        cmplx<T2>{4.42, inf_val<T2>}, cmplx<T2>{inf_val<T2>, inf_val<T2>},     \
+        cmplx<T2>{nan_val<T2>, 2.02}, cmplx<T2>{4.42, nan_val<T2>},            \
+        cmplx<T2>{nan_val<T2>, nan_val<T2>},                                   \
+        cmplx<T2>{nan_val<T2>, inf_val<T2>},                                   \
+        cmplx<T2>{inf_val<T2>, nan_val<T2>});                                  \
+                                                                               \
+    auto std_in = init_std_complex(input1);                                    \
+    sycl::ext::cplx::complex<T1> cplx_input{input1.re, input1.im};             \
+                                                                               \
+    auto *cplx_inout =                                                         \
+        sycl::malloc_shared<sycl::ext::cplx::complex<T2>>(1, Q);               \
+                                                                               \
+    auto std_inout = init_std_complex(input2);                                 \
+    cplx_inout[0].real(input2.re);                                             \
+    cplx_inout[0].imag(input2.im);                                             \
+                                                                               \
+    std_inout op_assign std_in;                                                \
+                                                                               \
+    SECTION("DEVICE") {                                                        \
+      if (is_type_supported<T1>(Q) && is_type_supported<T2>(Q)) {              \
+        Q.single_task([=]() { cplx_inout[0] op_assign cplx_input; }).wait();   \
+                                                                               \
+        check_results(cplx_inout[0],                                           \
+                      std::complex<T2>(std_inout.real(), std_inout.imag()));   \
+      }                                                                        \
+    }                                                                          \
+                                                                               \
+    SECTION("HOST") {                                                          \
       cplx_inout[0] op_assign cplx_input;                                      \
                                                                                \
-      pass &= check_results(                                                   \
-          cplx_inout[0], std::complex<T>(std_inout.real(), std_inout.imag()),  \
-          /*is_device*/ false);                                                \
-                                                                               \
-      /* Check complex-decimal op */                                           \
-      std_inout = init_std_complex(init_re2, init_im2);                        \
-      cplx_inout[0].real(init_re2);                                            \
-      cplx_inout[0].imag(init_im2);                                            \
-                                                                               \
-      T dec = init_re1;                                                        \
-      std_inout op_assign init_deci(dec);                                      \
-                                                                               \
-      Q.single_task([=]() { cplx_inout[0] op_assign dec; }).wait();            \
-                                                                               \
-      pass &= check_results(                                                   \
-          cplx_inout[0], std::complex<T>(std_inout.real(), std_inout.imag()),  \
-          /*is_device*/ true);                                                 \
-                                                                               \
-      cplx_inout[0].real(init_re2);                                            \
-      cplx_inout[0].imag(init_im2);                                            \
-                                                                               \
-      cplx_inout[0] op_assign dec;                                             \
-                                                                               \
-      pass &= check_results(                                                   \
-          cplx_inout[0], std::complex<T>(std_inout.real(), std_inout.imag()),  \
-          /*is_device*/ false);                                                \
-                                                                               \
-      sycl::free(cplx_inout, Q);                                               \
-      return pass;                                                             \
+      check_results(cplx_inout[0],                                             \
+                    std::complex<T2>(std_inout.real(), std_inout.imag()));     \
     }                                                                          \
-  };
+                                                                               \
+    sycl::free(cplx_inout, Q);                                                 \
+  }
 
-test_op_assign(test_add_assign, +=);
-test_op_assign(test_sub_assign, -=);
-test_op_assign(test_mul_assign, *=);
-test_op_assign(test_div_assign, /=);
+test_op_assign("Test complex assign addition cplx-cplx overload", "[add]", +=);
+test_op_assign("Test complex assign subtraction cplx-cplx overload", "[sub]",
+               -=);
+test_op_assign("Test complex assign multiplication cplx-cplx overload", "[mul]",
+               *=);
+test_op_assign("Test complex assign division cplx-cplx overload", "[div]", /=);
 
 #undef test_op_assign
 
-int main() {
-  sycl::queue Q;
-
-  bool test_failed = false;
-
-  {
-    bool test_passes = true;
-    test_passes &= test_valid_types<test_add>(Q, 4.42, 2.02, -1.5, 3.2);
-
-    test_passes &=
-        test_valid_types<test_add>(Q, INFINITY, 2.02, INFINITY, 2.02);
-    test_passes &=
-        test_valid_types<test_add>(Q, 4.42, INFINITY, 4.42, INFINITY);
-    test_passes &=
-        test_valid_types<test_add>(Q, INFINITY, INFINITY, INFINITY, INFINITY);
-
-    test_passes &= test_valid_types<test_add>(Q, NAN, 2.02, NAN, 2.02);
-    test_passes &= test_valid_types<test_add>(Q, 4.42, NAN, 4.42, NAN);
-    test_passes &= test_valid_types<test_add>(Q, NAN, NAN, NAN, NAN);
-
-    test_passes &= test_valid_types<test_add>(Q, NAN, INFINITY, NAN, INFINITY);
-    test_passes &= test_valid_types<test_add>(Q, INFINITY, NAN, INFINITY, NAN);
-    test_passes &= test_valid_types<test_add>(Q, NAN, INFINITY, NAN, INFINITY);
-    test_passes &= test_valid_types<test_add>(Q, INFINITY, NAN, INFINITY, NAN);
-    if (!test_passes) {
-      std::cerr << "Addition operator complex test fails\n";
-      test_failed = true;
-    }
+#define test_op_assign(test_name, label, op_assign)                            \
+  TEMPLATE_TEST_CASE(                                                          \
+      test_name, label, (std::tuple<double, double>),                          \
+      (std::tuple<double, float>), (std::tuple<double, sycl::half>),           \
+      (std::tuple<float, double>), (std::tuple<float, float>),                 \
+      (std::tuple<float, sycl::half>), (std::tuple<sycl::half, double>),       \
+      (std::tuple<sycl::half, float>), (std::tuple<sycl::half, sycl::half>)) { \
+    using T1 = typename std::tuple_element<0, TestType>::type;                 \
+    using T2 = typename std::tuple_element<0, TestType>::type;                 \
+    using std::make_tuple;                                                     \
+                                                                               \
+    sycl::queue Q;                                                             \
+                                                                               \
+    T1 input1 = GENERATE(4.42, 2.02, inf_val<T2>, nan_val<T2>);                \
+                                                                               \
+    cmplx<T2> input2 = GENERATE(                                               \
+        cmplx<T2>{4.42, 2.02}, cmplx<T2>{inf_val<T2>, 2.02},                   \
+        cmplx<T2>{4.42, inf_val<T2>}, cmplx<T2>{inf_val<T2>, inf_val<T2>},     \
+        cmplx<T2>{nan_val<T2>, 2.02}, cmplx<T2>{4.42, nan_val<T2>},            \
+        cmplx<T2>{nan_val<T2>, nan_val<T2>},                                   \
+        cmplx<T2>{nan_val<T2>, inf_val<T2>},                                   \
+        cmplx<T2>{inf_val<T2>, nan_val<T2>});                                  \
+                                                                               \
+    auto std_deci_in = init_deci(input1);                                      \
+    T1 deci_input = input1;                                                    \
+                                                                               \
+    auto *cplx_inout =                                                         \
+        sycl::malloc_shared<sycl::ext::cplx::complex<T2>>(1, Q);               \
+                                                                               \
+    auto std_inout = init_std_complex(input2);                                 \
+    cplx_inout[0].real(input2.re);                                             \
+    cplx_inout[0].imag(input2.im);                                             \
+                                                                               \
+    std_inout op_assign std_deci_in;                                           \
+                                                                               \
+    SECTION("DEVICE") {                                                        \
+      if (is_type_supported<T1>(Q) && is_type_supported<T2>(Q)) {              \
+        Q.single_task([=]() { cplx_inout[0] op_assign deci_input; }).wait();   \
+                                                                               \
+        check_results(cplx_inout[0],                                           \
+                      std::complex<T2>(std_inout.real(), std_inout.imag()));   \
+      }                                                                        \
+    }                                                                          \
+                                                                               \
+    SECTION("HOST") {                                                          \
+      cplx_inout[0] op_assign deci_input;                                      \
+                                                                               \
+      check_results(cplx_inout[0],                                             \
+                    std::complex<T2>(std_inout.real(), std_inout.imag()));     \
+    }                                                                          \
+                                                                               \
+    sycl::free(cplx_inout, Q);                                                 \
   }
 
-  {
-    bool test_passes = true;
-    test_passes &= test_valid_types<test_sub>(Q, 4.42, 2.02, -1.5, 3.2);
+test_op_assign("Test complex assign addition cplx-deci overload", "[add]", +=);
+test_op_assign("Test complex assign subtraction cplx-deci overload", "[sub]",
+               -=);
+test_op_assign("Test complex assign multiplication cplx-deci overload", "[mul]",
+               *=);
+test_op_assign("Test complex assign division cplx-deci overload", "[div]", /=);
 
-    test_passes &=
-        test_valid_types<test_sub>(Q, INFINITY, 2.02, INFINITY, 2.02);
-    test_passes &=
-        test_valid_types<test_sub>(Q, 4.42, INFINITY, 4.42, INFINITY);
-    test_passes &=
-        test_valid_types<test_sub>(Q, INFINITY, INFINITY, INFINITY, INFINITY);
-
-    test_passes &= test_valid_types<test_sub>(Q, NAN, 2.02, NAN, 2.02);
-    test_passes &= test_valid_types<test_sub>(Q, 4.42, NAN, 4.42, NAN);
-    test_passes &= test_valid_types<test_sub>(Q, NAN, NAN, NAN, NAN);
-
-    test_passes &= test_valid_types<test_sub>(Q, NAN, INFINITY, NAN, INFINITY);
-    test_passes &= test_valid_types<test_sub>(Q, INFINITY, NAN, INFINITY, NAN);
-    test_passes &= test_valid_types<test_sub>(Q, NAN, INFINITY, NAN, INFINITY);
-    test_passes &= test_valid_types<test_sub>(Q, INFINITY, NAN, INFINITY, NAN);
-    if (!test_passes) {
-      std::cerr << "Subtraction operator complex test fails\n";
-      test_failed = true;
-    }
-  }
-
-  {
-    bool test_passes = true;
-    test_passes &= test_valid_types<test_mul>(Q, 4.42, 2.02, -1.5, 3.2);
-
-    test_passes &=
-        test_valid_types<test_mul>(Q, INFINITY, 2.02, INFINITY, 2.02);
-    test_passes &=
-        test_valid_types<test_mul>(Q, 4.42, INFINITY, 4.42, INFINITY);
-    test_passes &=
-        test_valid_types<test_mul>(Q, INFINITY, INFINITY, INFINITY, INFINITY);
-
-    test_passes &= test_valid_types<test_mul>(Q, NAN, 2.02, NAN, 2.02);
-    test_passes &= test_valid_types<test_mul>(Q, 4.42, NAN, 4.42, NAN);
-    test_passes &= test_valid_types<test_mul>(Q, NAN, NAN, NAN, NAN);
-
-    test_passes &= test_valid_types<test_mul>(Q, NAN, INFINITY, NAN, INFINITY);
-    test_passes &= test_valid_types<test_mul>(Q, INFINITY, NAN, INFINITY, NAN);
-    test_passes &= test_valid_types<test_mul>(Q, NAN, INFINITY, NAN, INFINITY);
-    test_passes &= test_valid_types<test_mul>(Q, INFINITY, NAN, INFINITY, NAN);
-    if (!test_passes) {
-      std::cerr << "Multiplication operator complex test fails\n";
-      test_failed = true;
-    }
-  }
-
-  {
-    bool test_passes = true;
-    test_passes &= test_valid_types<test_div>(Q, 4.42, 2.02, -1.5, 3.2);
-
-    test_passes &=
-        test_valid_types<test_div>(Q, INFINITY, 2.02, INFINITY, 2.02);
-    test_passes &=
-        test_valid_types<test_div>(Q, 4.42, INFINITY, 4.42, INFINITY);
-    test_passes &=
-        test_valid_types<test_div>(Q, INFINITY, INFINITY, INFINITY, INFINITY);
-
-    test_passes &= test_valid_types<test_div>(Q, NAN, 2.02, NAN, 2.02);
-    test_passes &= test_valid_types<test_div>(Q, 4.42, NAN, 4.42, NAN);
-    test_passes &= test_valid_types<test_div>(Q, NAN, NAN, NAN, NAN);
-
-    test_passes &= test_valid_types<test_div>(Q, NAN, INFINITY, NAN, INFINITY);
-    test_passes &= test_valid_types<test_div>(Q, INFINITY, NAN, INFINITY, NAN);
-    test_passes &= test_valid_types<test_div>(Q, NAN, INFINITY, NAN, INFINITY);
-    test_passes &= test_valid_types<test_div>(Q, INFINITY, NAN, INFINITY, NAN);
-    if (!test_passes) {
-      std::cerr << "Division operator complex test fails\n";
-      test_failed = true;
-    }
-  }
-
-  {
-    bool test_passes = true;
-    test_passes &= test_valid_types<test_add_assign>(Q, 4.42, 2.02, -1.5, 3.2);
-
-    test_passes &=
-        test_valid_types<test_add_assign>(Q, INFINITY, 2.02, INFINITY, 2.02);
-    test_passes &=
-        test_valid_types<test_add_assign>(Q, 4.42, INFINITY, 4.42, INFINITY);
-    test_passes &= test_valid_types<test_add_assign>(Q, INFINITY, INFINITY,
-                                                     INFINITY, INFINITY);
-
-    test_passes &= test_valid_types<test_add_assign>(Q, NAN, 2.02, NAN, 2.02);
-    test_passes &= test_valid_types<test_add_assign>(Q, 4.42, NAN, 4.42, NAN);
-    test_passes &= test_valid_types<test_add_assign>(Q, NAN, NAN, NAN, NAN);
-
-    test_passes &=
-        test_valid_types<test_add_assign>(Q, NAN, INFINITY, NAN, INFINITY);
-    test_passes &=
-        test_valid_types<test_add_assign>(Q, INFINITY, NAN, INFINITY, NAN);
-    test_passes &=
-        test_valid_types<test_add_assign>(Q, NAN, INFINITY, NAN, INFINITY);
-    test_passes &=
-        test_valid_types<test_add_assign>(Q, INFINITY, NAN, INFINITY, NAN);
-    if (!test_passes) {
-      std::cerr << "Addition assign operator complex test fails\n";
-      test_failed = true;
-    }
-  }
-
-  {
-    bool test_passes = true;
-    test_passes &= test_valid_types<test_sub_assign>(Q, 4.42, 2.02, -1.5, 3.2);
-
-    test_passes &=
-        test_valid_types<test_sub_assign>(Q, INFINITY, 2.02, INFINITY, 2.02);
-    test_passes &=
-        test_valid_types<test_sub_assign>(Q, 4.42, INFINITY, 4.42, INFINITY);
-    test_passes &= test_valid_types<test_sub_assign>(Q, INFINITY, INFINITY,
-                                                     INFINITY, INFINITY);
-
-    test_passes &= test_valid_types<test_sub_assign>(Q, NAN, 2.02, NAN, 2.02);
-    test_passes &= test_valid_types<test_sub_assign>(Q, 4.42, NAN, 4.42, NAN);
-    test_passes &= test_valid_types<test_sub_assign>(Q, NAN, NAN, NAN, NAN);
-
-    test_passes &=
-        test_valid_types<test_sub_assign>(Q, NAN, INFINITY, NAN, INFINITY);
-    test_passes &=
-        test_valid_types<test_sub_assign>(Q, INFINITY, NAN, INFINITY, NAN);
-    test_passes &=
-        test_valid_types<test_sub_assign>(Q, NAN, INFINITY, NAN, INFINITY);
-    test_passes &=
-        test_valid_types<test_sub_assign>(Q, INFINITY, NAN, INFINITY, NAN);
-    if (!test_passes) {
-      std::cerr << "Subtraction assign operator complex test fails\n";
-      test_failed = true;
-    }
-  }
-
-  {
-    bool test_passes = true;
-    test_passes &= test_valid_types<test_mul_assign>(Q, 4.42, 2.02, -1.5, 3.2);
-
-    test_passes &=
-        test_valid_types<test_mul_assign>(Q, INFINITY, 2.02, INFINITY, 2.02);
-    test_passes &=
-        test_valid_types<test_mul_assign>(Q, 4.42, INFINITY, 4.42, INFINITY);
-    test_passes &= test_valid_types<test_mul_assign>(Q, INFINITY, INFINITY,
-                                                     INFINITY, INFINITY);
-
-    test_passes &= test_valid_types<test_mul_assign>(Q, NAN, 2.02, NAN, 2.02);
-    test_passes &= test_valid_types<test_mul_assign>(Q, 4.42, NAN, 4.42, NAN);
-    test_passes &= test_valid_types<test_mul_assign>(Q, NAN, NAN, NAN, NAN);
-
-    test_passes &=
-        test_valid_types<test_mul_assign>(Q, NAN, INFINITY, NAN, INFINITY);
-    test_passes &=
-        test_valid_types<test_mul_assign>(Q, INFINITY, NAN, INFINITY, NAN);
-    test_passes &=
-        test_valid_types<test_mul_assign>(Q, NAN, INFINITY, NAN, INFINITY);
-    test_passes &=
-        test_valid_types<test_mul_assign>(Q, INFINITY, NAN, INFINITY, NAN);
-    if (!test_passes) {
-      std::cerr << "Multiplication assign operator complex test fails\n";
-      test_failed = true;
-    }
-  }
-
-  {
-    bool test_passes = true;
-    test_passes &= test_valid_types<test_div_assign>(Q, 4.42, 2.02, -1.5, 3.2);
-
-    test_passes &=
-        test_valid_types<test_div_assign>(Q, INFINITY, 2.02, INFINITY, 2.02);
-    test_passes &=
-        test_valid_types<test_div_assign>(Q, 4.42, INFINITY, 4.42, INFINITY);
-    test_passes &= test_valid_types<test_div_assign>(Q, INFINITY, INFINITY,
-                                                     INFINITY, INFINITY);
-
-    test_passes &= test_valid_types<test_div_assign>(Q, NAN, 2.02, NAN, 2.02);
-    test_passes &= test_valid_types<test_div_assign>(Q, 4.42, NAN, 4.42, NAN);
-    test_passes &= test_valid_types<test_div_assign>(Q, NAN, NAN, NAN, NAN);
-
-    test_passes &=
-        test_valid_types<test_div_assign>(Q, NAN, INFINITY, NAN, INFINITY);
-    test_passes &=
-        test_valid_types<test_div_assign>(Q, INFINITY, NAN, INFINITY, NAN);
-    test_passes &=
-        test_valid_types<test_div_assign>(Q, NAN, INFINITY, NAN, INFINITY);
-    test_passes &=
-        test_valid_types<test_div_assign>(Q, INFINITY, NAN, INFINITY, NAN);
-    if (!test_passes) {
-      std::cerr << "Division assign operator complex test fails\n";
-      test_failed = true;
-    }
-  }
-
-  return test_failed;
-}
+#undef test_op_assign

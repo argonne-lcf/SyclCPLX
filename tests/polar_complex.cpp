@@ -1,87 +1,82 @@
 #include "test_helper.hpp"
 
-template <typename T> struct test_polar {
-  bool operator()(sycl::queue &Q, T init_rho, T init_theta) {
-    bool pass = true;
+////////////////////////////////////////////////////////////////////////////////
+// COMPLEX TESTS
+////////////////////////////////////////////////////////////////////////////////
 
-    auto *cplx_out = sycl::malloc_shared<sycl::ext::cplx::complex<T>>(1, Q);
+TEMPLATE_TEST_CASE("Test complex polar", "[polar]", double, float, sycl::half) {
+  using T = TestType;
+  using std::make_tuple;
 
-    // Get std::complex output
-    std::complex<T> std_out = std::polar(init_rho, init_theta);
+  sycl::queue Q;
 
-    // Check cplx::complex output from device
+  // Test cases
+  // Note: Output is undefined if rho is negative or Nan, or theta is Inf
+  T rho, theta;
+  std::tie(rho, theta) = GENERATE(table<T, T>(
+      {make_tuple(4.42, 2.02), make_tuple(1, 3.14), make_tuple(1, -3.14)}));
+
+  std::complex<T> std_out{};
+  auto *cplx_out = sycl::malloc_shared<sycl::ext::cplx::complex<T>>(1, Q);
+
+  // Get std::complex output
+  std_out = std::polar(rho, theta);
+
+  // Check cplx::complex output from device
+  if (is_type_supported<T>(Q)) {
     Q.single_task([=]() {
-       cplx_out[0] = sycl::ext::cplx::polar<T>(init_rho, init_theta);
+       cplx_out[0] = sycl::ext::cplx::polar<T>(rho, theta);
      }).wait();
 
-    pass &= check_results(cplx_out[0], std_out, /*is_device*/ true);
-
-    // Check cplx::complex output from host
-    cplx_out[0] = sycl::ext::cplx::polar<T>(init_rho, init_theta);
-
-    pass &= check_results(cplx_out[0], std_out, /*is_device*/ false);
-
-    sycl::free(cplx_out, Q);
-
-    return pass;
+    check_results(cplx_out[0], std_out);
   }
-};
 
-template <typename T, std::size_t NumElements> struct test_polar_marray {
-  bool operator()(sycl::queue &Q, test_marray<T, NumElements> init_rho,
-                  test_marray<T, NumElements> init_theta) {
-    bool pass = true;
+  // Check cplx::complex output from host
+  cplx_out[0] = sycl::ext::cplx::polar<T>(rho, theta);
 
-    sycl::marray<std::complex<T>, NumElements> std_out{};
-    auto *cplx_out = sycl::malloc_shared<
-        sycl::marray<sycl::ext::cplx::complex<T>, NumElements>>(1, Q);
+  check_results(cplx_out[0], std_out);
 
-    sycl::marray<T, NumElements> rho = init_rho.get();
-    sycl::marray<T, NumElements> theta = init_theta.get();
+  sycl::free(cplx_out, Q);
+}
 
-    // Get std::complex output
-    for (std::size_t i = 0; i < NumElements; ++i)
-      std_out[i] = std::polar(rho[i], theta[i]);
+////////////////////////////////////////////////////////////////////////////////
+// MARRAY<COMPLEX> TESTS
+////////////////////////////////////////////////////////////////////////////////
 
-    // Check cplx::complex output from device
+TEMPLATE_TEST_CASE_SIG("Test marray complex polar", "[polar]",
+                       ((typename T, std::size_t NumElements), T, NumElements),
+                       (double, 4), (float, 4), (sycl::half, 4)) {
+  sycl::queue Q;
+
+  // Test cases
+  auto init_rho = GENERATE(test_marray<T, NumElements>{1.0, 4.42, 3, 3.14});
+  auto init_theta =
+      GENERATE(test_marray<T, NumElements>{1.0, 2.02, 3.5, -3.14});
+
+  sycl::marray<std::complex<T>, NumElements> std_out{};
+  auto *cplx_out = sycl::malloc_shared<
+      sycl::marray<sycl::ext::cplx::complex<T>, NumElements>>(1, Q);
+
+  sycl::marray<T, NumElements> rho = init_rho.get();
+  sycl::marray<T, NumElements> theta = init_theta.get();
+
+  // Get std::complex output
+  for (std::size_t i = 0; i < NumElements; ++i)
+    std_out[i] = std::polar(rho[i], theta[i]);
+
+  // Check cplx::complex output from device
+  if (is_type_supported<T>(Q)) {
     Q.single_task([=]() {
        *cplx_out = sycl::ext::cplx::polar<T>(rho, theta);
      }).wait();
-
-    pass &= check_results(*cplx_out, std_out, /*is_device*/ true);
-
-    // Check cplx::complex output from host
-    *cplx_out = sycl::ext::cplx::polar<T>(rho, theta);
-
-    pass &= check_results(*cplx_out, std_out, /*is_device*/ false);
-
-    sycl::free(cplx_out, Q);
-
-    return pass;
-  }
-};
-
-// Note: Output is undefined if rho is negative or Nan, or theta is Inf
-int main() {
-  sycl::queue Q;
-
-  bool test_passes = true;
-  {
-    test_passes &= test_valid_types<test_polar>(Q, 4.42, 2.02);
-    test_passes &= test_valid_types<test_polar>(Q, 1, 3.14);
-    test_passes &= test_valid_types<test_polar>(Q, 1, -3.14);
   }
 
-  // marray tests
-  {
-    constexpr size_t m_size = 4;
-    test_marray<double, m_size> rho = {1.0, 4.42, 3, 3.14};
-    test_marray<double, m_size> theta = {1.0, 2.02, 3.5, -3.14};
-    test_passes &= test_valid_types<test_polar_marray, m_size>(Q, rho, theta);
-  }
+  check_results(*cplx_out, std_out);
 
-  if (!test_passes)
-    std::cerr << "acos complex test fails\n";
+  // Check cplx::complex output from host
+  *cplx_out = sycl::ext::cplx::polar<T>(rho, theta);
 
-  return !test_passes;
+  check_results(*cplx_out, std_out);
+
+  sycl::free(cplx_out, Q);
 }

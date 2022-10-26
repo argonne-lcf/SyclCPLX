@@ -1,22 +1,52 @@
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
 #include <cmath>
 #include <iomanip>
 #include <sycl/sycl.hpp>
 
 #include "sycl_ext_complex.hpp"
-#include "test_valid_types.hpp"
 
 #define SYCL_CPLX_TOL_ULP 5
 
-// Definitions of INFINITY and NAN for double type
-constexpr double INFINITYd(std::numeric_limits<double>::infinity());
-constexpr double NANd(std::numeric_limits<double>::quiet_NaN());
+// Helpers for check if type is supported
+template <typename T> inline bool is_type_supported(sycl::queue &Q) {
+  return false;
+}
 
-// Helpers for displaying results
+template <> inline bool is_type_supported<double>(sycl::queue &Q) {
+  return Q.get_device().has(sycl::aspect::fp64);
+}
 
-template <typename T> const char *get_typename() { return "Unknown type"; }
-template <> const char *get_typename<double>() { return "double"; }
-template <> const char *get_typename<float>() { return "float"; }
-template <> const char *get_typename<sycl::half>() { return "sycl::half"; }
+template <> inline bool is_type_supported<float>(sycl::queue &Q) {
+  return true;
+}
+
+template <> inline bool is_type_supported<sycl::half>(sycl::queue &Q) {
+  return Q.get_device().has(sycl::aspect::fp16);
+}
+
+// Helper for passing infinity and nan values
+template <typename T>
+inline constexpr T inf_val = std::numeric_limits<T>::infinity();
+
+template <typename T>
+inline constexpr T nan_val = std::numeric_limits<T>::quiet_NaN();
+
+// Helper class for passing complex arguments
+
+template <typename T> struct cmplx {
+  constexpr cmplx() : re(0), im(0) {}
+  constexpr cmplx(T real, T imag) : re(real), im(imag) {}
+
+  template <typename X> cmplx(cmplx<X> c) {
+    re = c.re;
+    im = c.im;
+  }
+
+  T re;
+  T im;
+};
 
 // Helper classes to handle implicit conversion for passing marray types
 
@@ -41,8 +71,11 @@ public:
 
 // Helpers for comparison
 
-// Do not define for DPCPP as it already defines this struct
-#ifndef __INTEL_LLVM_COMPILER
+// Do not define for public `intel/llvm` and oneAPI
+// oneAPI define `__INTEL_LLVM_COMPILER` but `intel/llvm` doesn't.
+// So we use the intel-implementation-only macro `__SYCL_COMPILER_VERSION` as an
+// ID
+#ifndef __SYCL_COMPILER_VERSION
 namespace std {
 
 // Specialization of std::numeric<sycl::half> for almost_equal
@@ -90,17 +123,13 @@ bool almost_equal(T1<T> x, T2<T> y, int ulp) {
 }
 // Helpers for testing half
 
-std::complex<float> sycl_half_to_float(sycl::ext::cplx::complex<sycl::half> c) {
+inline std::complex<float>
+sycl_half_to_float(sycl::ext::cplx::complex<sycl::half> c) {
   auto c_sycl_float = static_cast<sycl::ext::cplx::complex<float>>(c);
   return static_cast<std::complex<float>>(c_sycl_float);
 }
 
-std::complex<sycl::half> sycl_float_to_half(std::complex<float> c) {
-  auto c_sycl_half = static_cast<sycl::ext::cplx::complex<sycl::half>>(c);
-  return static_cast<std::complex<sycl::half>>(c_sycl_half);
-}
-
-std::complex<float> trunc_float(std::complex<float> c) {
+inline std::complex<float> trunc_float(std::complex<float> c) {
   auto c_sycl_half = static_cast<sycl::ext::cplx::complex<sycl::half>>(c);
   return sycl_half_to_float(c_sycl_half);
 }
@@ -108,12 +137,11 @@ std::complex<float> trunc_float(std::complex<float> c) {
 // Helper for initializing std::complex values for tests only needed because
 // sycl::half cases are emulated with float for std::complex class
 
-template <typename T_in> auto constexpr init_std_complex(T_in re, T_in im) {
-  return std::complex<T_in>(re, im);
+template <typename T_in> auto constexpr init_std_complex(cmplx<T_in> c) {
+  return std::complex<T_in>(c.re, c.im);
 }
-
-template <> auto constexpr init_std_complex(sycl::half re, sycl::half im) {
-  return trunc_float(std::complex<float>(re, im));
+template <> auto constexpr init_std_complex(cmplx<sycl::half> c) {
+  return trunc_float(std::complex<float>(c.re, c.im));
 }
 
 template <typename T_in, std::size_t NumElements>
@@ -126,7 +154,6 @@ auto constexpr init_std_complex(sycl::marray<T_in, NumElements> re,
 
   return rtn;
 }
-
 template <std::size_t NumElements>
 auto constexpr init_std_complex(sycl::marray<sycl::half, NumElements> re,
                                 sycl::marray<sycl::half, NumElements> im) {
@@ -157,7 +184,7 @@ auto constexpr init_deci(sycl::marray<sycl::half, NumElements> re) {
   return rtn;
 }
 
-// Helper to change marray of std::complex value type
+// // Helper to change marray of std::complex value type
 
 template <typename Tout, typename Tin, std::size_t NumElements>
 auto constexpr convert_marray(sycl::marray<std::complex<Tin>, NumElements> c) {
@@ -172,63 +199,39 @@ auto constexpr convert_marray(sycl::marray<std::complex<Tin>, NumElements> c) {
 // Helpers for comparing SyclCPLX and standard c++ results
 
 template <typename T>
-bool check_results(sycl::ext::cplx::complex<T> output,
-                   std::complex<T> reference, bool is_device,
-                   int tol_multiplier = 1) {
-  if (!almost_equal(output, reference, tol_multiplier * SYCL_CPLX_TOL_ULP)) {
-    std::cerr << std::setprecision(std::numeric_limits<T>::max_digits10)
-              << "Test failed with complex_type: " << get_typename<T>()
-              << " Computed on " << (is_device ? "device" : "host")
-              << " Output: " << output << " Reference: " << reference
-              << std::endl;
-    return false;
-  }
-  return true;
+void check_results(sycl::ext::cplx::complex<T> output,
+                   std::complex<T> reference, int tol_multiplier = 1) {
+  CHECK(almost_equal(output, reference, tol_multiplier * SYCL_CPLX_TOL_ULP));
 }
 
 template <typename T>
-bool check_results(T output, T reference, bool is_device,
-                   int tol_multiplier = 1) {
-  if (!almost_equal(output, reference, tol_multiplier * SYCL_CPLX_TOL_ULP)) {
-    std::cerr << std::setprecision(std::numeric_limits<T>::max_digits10)
-              << "Test failed with complex_type: " << get_typename<T>()
-              << " Computed on " << (is_device ? "device" : "host")
-              << " Output: " << output << " Reference: " << reference
-              << std::endl;
-    return false;
-  }
-  return true;
+void check_results(T output, T reference, int tol_multiplier = 1) {
+  CHECK(almost_equal(output, reference, tol_multiplier * SYCL_CPLX_TOL_ULP));
 }
 
 template <typename T, std::size_t NumElements>
-bool check_results(
+void check_results(
     sycl::marray<sycl::ext::cplx::complex<T>, NumElements> output,
-    sycl::marray<std::complex<T>, NumElements> reference, bool is_device,
+    sycl::marray<std::complex<T>, NumElements> reference,
     int tol_multiplier = 1) {
-  bool test_passes = true;
-  for (std::size_t i = 0; i < NumElements; ++i)
-    test_passes &= check_results(output[i], reference[i], is_device);
-
-  return test_passes;
+  for (std::size_t i = 0; i < NumElements; ++i) {
+    check_results(output[i], reference[i], tol_multiplier);
+  }
 }
 
 template <typename T, std::size_t NumElements>
-bool check_results(sycl::marray<T, NumElements> output,
-                   sycl::marray<T, NumElements> reference, bool is_device,
+void check_results(sycl::marray<T, NumElements> output,
+                   sycl::marray<T, NumElements> reference,
                    int tol_multiplier = 1) {
-  bool test_passes = true;
-  for (std::size_t i = 0; i < NumElements; ++i)
-    test_passes &= check_results<T>(output[i], reference[i], is_device);
-
-  return test_passes;
+  for (std::size_t i = 0; i < NumElements; ++i) {
+    check_results<T>(output[i], reference[i], tol_multiplier);
+  }
 }
 
 template <typename T, std::size_t NumElements>
-bool check_results(sycl::marray<T, NumElements> output, T reference,
-                   bool is_device, int tol_multiplier = 1) {
-  bool test_passes = true;
-  for (std::size_t i = 0; i < NumElements; ++i)
-    test_passes &= check_results<T>(output[i], reference, is_device);
-
-  return test_passes;
+void check_results(sycl::marray<T, NumElements> output, T reference,
+                   int tol_multiplier = 1) {
+  for (std::size_t i = 0; i < NumElements; ++i) {
+    check_results<T>(output[i], reference, tol_multiplier);
+  }
 }
