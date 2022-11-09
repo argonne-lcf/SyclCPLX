@@ -80,6 +80,8 @@ test_op(div, *);
     *cplx_inout op_assign cplx_input;                                          \
                                                                                \
     check_results(*cplx_inout, convert_marray<T>(std_inout));                  \
+                                                                               \
+    sycl::free(cplx_inout, Q);                                                 \
   }
 
 test_op_assign(add_assign, +=);
