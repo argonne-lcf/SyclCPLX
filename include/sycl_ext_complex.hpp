@@ -246,8 +246,26 @@ template<class T> complex<T> tanh (const complex<T>&);
 
 #define _SYCL_EXT_CPLX_BEGIN_NAMESPACE_STD namespace sycl::ext::cplx {
 #define _SYCL_EXT_CPLX_END_NAMESPACE_STD }
+
+#ifdef __HIPSYCL__
+
+#define _SYCL_EXT_CPLX_INLINE_VISIBILITY inline
+#define SYCL_EXTERNAL
+#include <cmath>
+
+namespace sycl {
+using std::isinf;
+using std::isfinite;
+using std::ldexp;
+using std::signbit;
+} // namespace sycl
+
+#else // INTEL or other implementation
+
 #define _SYCL_EXT_CPLX_INLINE_VISIBILITY                                       \
   inline __attribute__((__visibility__("hidden"), __always_inline__))
+
+#endif
 
 #include <complex>
 #include <sstream> // for std::basic_ostringstream
