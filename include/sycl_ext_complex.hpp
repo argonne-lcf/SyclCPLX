@@ -255,11 +255,18 @@ template<class T> complex<T> tanh (const complex<T>&);
 #define _SYCL_EXT_CPLX_BEGIN_NAMESPACE_STD namespace _SYCL_CPLX_NAMESPACE {
 #define _SYCL_EXT_CPLX_END_NAMESPACE_STD }
 #define _SYCL_EXT_CPLX_INLINE_VISIBILITY                                       \
-  inline __attribute__((__visibility__("hidden"), __always_inline__))
+  [[gnu::always_inline]] [[clang::always_inline]] inline
 
 #include <complex>
 #include <sstream> // for std::basic_ostringstream
+#if __has_include(<sycl/sycl.hpp>)
 #include <sycl/sycl.hpp>
+#elif __has_include(<CL/sycl.hpp>)
+// support oneAPI 2022.X and earlier
+#include <CL/sycl.hpp>
+#else
+#error "SYCL header not found"
+#endif
 #include <type_traits>
 
 _SYCL_EXT_CPLX_BEGIN_NAMESPACE_STD
