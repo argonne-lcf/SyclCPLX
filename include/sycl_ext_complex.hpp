@@ -244,7 +244,15 @@ template<class T> complex<T> tanh (const complex<T>&);
 
 // clang-format on
 
-#define _SYCL_EXT_CPLX_BEGIN_NAMESPACE_STD namespace sycl::ext::cplx {
+#ifndef _SYCL_CPLX_NAMESPACE
+#ifdef __HIPSYCL__
+#define _SYCL_CPLX_NAMESPACE hipsycl::sycl::ext::cplx
+#else
+#define _SYCL_CPLX_NAMESPACE sycl::ext::cplx
+#endif
+#endif
+
+#define _SYCL_EXT_CPLX_BEGIN_NAMESPACE_STD namespace _SYCL_CPLX_NAMESPACE {
 #define _SYCL_EXT_CPLX_END_NAMESPACE_STD }
 #define _SYCL_EXT_CPLX_INLINE_VISIBILITY                                       \
   inline __attribute__((__visibility__("hidden"), __always_inline__))
