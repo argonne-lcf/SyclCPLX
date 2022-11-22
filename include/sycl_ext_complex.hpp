@@ -1209,7 +1209,7 @@ template <class _Tp, class _Up,
 _SYCL_EXT_CPLX_INLINE_VISIBILITY complex<typename __promote<_Tp, _Up>::type>
 pow(const complex<_Tp> &__x, const complex<_Up> &__y) {
   typedef complex<typename __promote<_Tp, _Up>::type> result_type;
-  return sycl::ext::cplx::pow(result_type(__x), result_type(__y));
+  return pow(result_type(__x), result_type(__y));
 }
 
 template <class _Tp, class _Up,
@@ -1219,7 +1219,7 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY
                             complex<typename __promote<_Tp, _Up>::type>>::type
     pow(const complex<_Tp> &__x, const _Up &__y) {
   typedef complex<typename __promote<_Tp, _Up>::type> result_type;
-  return sycl::ext::cplx::pow(result_type(__x), result_type(__y));
+  return pow(result_type(__x), result_type(__y));
 }
 
 template <class _Tp, class _Up,
@@ -1229,7 +1229,7 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY
                             complex<typename __promote<_Tp, _Up>::type>>::type
     pow(const _Tp &__x, const complex<_Up> &__y) {
   typedef complex<typename __promote<_Tp, _Up>::type> result_type;
-  return sycl::ext::cplx::pow(result_type(__x), result_type(__y));
+  return pow(result_type(__x), result_type(__y));
 }
 
 // __sqr, computes pow(x, 2)
