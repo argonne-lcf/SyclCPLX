@@ -54,3 +54,20 @@ cmake -DCMAKE_CXX_COMPILER=$CXX_PATH -DCMAKE_CXX_FLAGS=-fsycl ..
 make -j 8
 ctest
 ```
+
+## Conversions
+
+The implicit conversion to and from `std::complex` works well for values, but
+does not work for references and pointers (typically used for arrays in linear
+algebra libraries), and it often does not work with template argument
+deduction. It is therefore necessary to use `reinterpret_cast` in some cases.
+See [hello_mkl.cpp](hello_mkl.cpp) for an example of using the oneMKL library
+with `sycl::ext::cplx::complex`.
+
+To simplify usage within an application, it is recommended to use the sycl type
+everywhere when possible, even for host data. For cross-vendor applications, a
+complex type alias can be defined in an application specific namespace. For
+example, `myapp::complex<T>` can be a templated alias for
+`sycl::ext::cplx::complex<T>` when running with a SYCL backend, and
+`thrust::complex` for CUDA or HIP backends. For an example of this, see the
+complex implementation in [gtensor](https://github.com/wdmapp/gtensor).
