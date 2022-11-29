@@ -29,7 +29,7 @@ bool almost_equal(std::complex<double> x, std::complex<double> y, int ulp) {
 
 int main() {
 
-  sycl::queue Q(sycl::gpu_selector{});
+  sycl::queue Q(sycl::gpu_selector_v);
   std::cout << "Running on "
             << Q.get_device().get_info<sycl::info::device::name>() << "\n";
 
