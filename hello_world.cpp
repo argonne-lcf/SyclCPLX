@@ -17,7 +17,7 @@ int main() {
       << std::is_trivially_copyable<sycl::ext::cplx::complex<double>>::value
       << '\n';
 
-  sycl::queue Q(sycl::gpu_selector{});
+  sycl::queue Q(sycl::gpu_selector_t);
   std::cout << "Running on "
             << Q.get_device().get_info<sycl::info::device::name>() << "\n";
 
