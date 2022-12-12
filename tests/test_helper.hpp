@@ -46,30 +46,6 @@ template <typename T> struct cmplx {
   T im;
 };
 
-// Helper for testing each decimal type
-
-template <template <typename> typename action, typename... argsT>
-bool test_valid_types(argsT... args) {
-  bool test_passes = true;
-
-  {
-    action<double> test;
-    test_passes &= test(args...);
-  }
-
-  {
-    action<float> test;
-    test_passes &= test(args...);
-  }
-
-  {
-    action<sycl::half> test;
-    test_passes &= test(args...);
-  }
-
-  return test_passes;
-}
-
 // Helpers for comparison
 
 // Do not define for public `intel/llvm` and oneAPI
@@ -95,32 +71,27 @@ template <typename T, typename U> inline bool is_nan_or_inf(T x, U y) {
          (std::isinf(x.imag()) && std::isinf(y.imag()));
 }
 
-template <typename T> bool almost_equal(T x, T y, int ulp) {
+namespace detail {
+template <typename T>
+bool almost_equal(T x, T y, int ulp) {
   if (std::isnan(x) && std::isnan(y))
     return true;
   else if (std::isinf(x) && std::isinf(y))
     return true;
 
   return std::abs(x - y) <=
-             std::numeric_limits<T>::epsilon() * std::abs(x + y) * ulp ||
-         std::abs(x - y) < std::numeric_limits<T>::min();
+    std::numeric_limits<T>::epsilon() * std::abs(x + y) * ulp ||
+    std::abs(x - y) < std::numeric_limits<T>::min();
 }
 
-template <typename T, template <typename> typename T1,
-          template <typename> typename T2>
-bool almost_equal(T1<T> x, T2<T> y, int ulp) {
-  static_assert((std::is_same<T1<T>, std::complex<T>>::value ||
-                 std::is_same<T1<T>, sycl::ext::cplx::complex<T>>::value),
-                "almost_equal should be used to compare complex number");
-  static_assert((std::is_same<T2<T>, std::complex<T>>::value ||
-                 std::is_same<T2<T>, sycl::ext::cplx::complex<T>>::value),
-                "almost_equal should be used to compare complex number");
-  // Somebody should be smart enough to refactor to use `enable_if`...
-  auto diff = std::abs((T2<T>)x - y);
+template <typename T>
+bool almost_equal(sycl::ext::cplx::complex<T> x, std::complex<T> y, int ulp) {
+  auto diff = std::abs((std::complex<T>)x - y);
   return diff <=
-             std::numeric_limits<T>::epsilon() * std::abs((T2<T>)x + y) * ulp ||
-         diff < std::numeric_limits<T>::min() || is_nan_or_inf(x, y);
+    std::numeric_limits<T>::epsilon() * std::abs((std::complex<T>)x + y) * ulp ||
+    diff < std::numeric_limits<T>::min() || is_nan_or_inf(x, y);
 }
+
 // Helpers for testing half
 
 inline std::complex<float>
@@ -133,6 +104,7 @@ inline std::complex<float> trunc_float(std::complex<float> c) {
   auto c_sycl_half = static_cast<sycl::ext::cplx::complex<sycl::half>>(c);
   return sycl_half_to_float(c_sycl_half);
 }
+}
 
 // Helper for initializing std::complex values for tests only needed because
 // sycl::half cases are emulated with float for std::complex class
@@ -142,7 +114,7 @@ template <typename T_in> auto constexpr init_std_complex(cmplx<T_in> c) {
 }
 
 template <> auto constexpr init_std_complex(cmplx<sycl::half> c) {
-  return trunc_float(std::complex<float>(c.re, c.im));
+  return detail::trunc_float(std::complex<float>(c.re, c.im));
 }
 
 template <typename T_in> auto constexpr init_deci(T_in re) { return re; }
@@ -156,10 +128,10 @@ template <> auto constexpr init_deci(sycl::half re) {
 template <typename T>
 void check_results(sycl::ext::cplx::complex<T> output,
                    std::complex<T> reference, int tol_multiplier = 1) {
-  CHECK(almost_equal(output, reference, tol_multiplier * SYCL_CPLX_TOL_ULP));
+  CHECK(detail::almost_equal(output, reference, tol_multiplier * SYCL_CPLX_TOL_ULP));
 }
 
 template <typename T>
 void check_results(T output, T reference, int tol_multiplier = 1) {
-  CHECK(almost_equal(output, reference, tol_multiplier * SYCL_CPLX_TOL_ULP));
+  CHECK(detail::almost_equal(output, reference, tol_multiplier * SYCL_CPLX_TOL_ULP));
 }
