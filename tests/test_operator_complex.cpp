@@ -148,7 +148,7 @@ test_op("Test complex division deci-cplx overload", "[div]", /);
       (std::tuple<float, sycl::half>), (std::tuple<sycl::half, double>),       \
       (std::tuple<sycl::half, float>), (std::tuple<sycl::half, sycl::half>)) { \
     using T1 = typename std::tuple_element<0, TestType>::type;                 \
-    using T2 = typename std::tuple_element<0, TestType>::type;                 \
+    using T2 = typename std::tuple_element<1, TestType>::type;                 \
     using std::make_tuple;                                                     \
                                                                                \
     sycl::queue Q;                                                             \
@@ -162,7 +162,7 @@ test_op("Test complex division deci-cplx overload", "[div]", /);
         cmplx<T1>{inf_val<T1>, nan_val<T1>});                                  \
                                                                                \
     cmplx<T2> input2 = GENERATE(                                               \
-        cmplx<T2>{4.42, 2.02}, cmplx<T2>{inf_val<T2>, 2.02},                   \
+        cmplx<T2>{2.02, 4.42}, cmplx<T2>{inf_val<T2>, 2.02},                   \
         cmplx<T2>{4.42, inf_val<T2>}, cmplx<T2>{inf_val<T2>, inf_val<T2>},     \
         cmplx<T2>{nan_val<T2>, 2.02}, cmplx<T2>{4.42, nan_val<T2>},            \
         cmplx<T2>{nan_val<T2>, nan_val<T2>},                                   \
@@ -217,7 +217,7 @@ test_op_assign("Test complex assign division cplx-cplx overload", "[div]", /=);
       (std::tuple<float, sycl::half>), (std::tuple<sycl::half, double>),       \
       (std::tuple<sycl::half, float>), (std::tuple<sycl::half, sycl::half>)) { \
     using T1 = typename std::tuple_element<0, TestType>::type;                 \
-    using T2 = typename std::tuple_element<0, TestType>::type;                 \
+    using T2 = typename std::tuple_element<1, TestType>::type;                 \
     using std::make_tuple;                                                     \
                                                                                \
     sycl::queue Q;                                                             \
@@ -271,3 +271,44 @@ test_op_assign("Test complex assign multiplication cplx-deci overload", "[mul]",
 test_op_assign("Test complex assign division cplx-deci overload", "[div]", /=);
 
 #undef test_op_assign
+
+#define test_unary_op(test_name, label, op)                                    \
+  TEMPLATE_TEST_CASE(test_name, label, double, float, sycl::half) {            \
+    using T = TestType;                                                        \
+    using std::make_tuple;                                                     \
+                                                                               \
+    sycl::queue Q;                                                             \
+                                                                               \
+    cmplx<T> input = GENERATE(                                                 \
+        cmplx<T>{4.42, 2.02}, cmplx<T>{inf_val<T>, 2.02},                      \
+        cmplx<T>{4.42, inf_val<T>}, cmplx<T>{inf_val<T>, inf_val<T>},          \
+        cmplx<T>{nan_val<T>, 2.02}, cmplx<T>{4.42, nan_val<T>},                \
+        cmplx<T>{nan_val<T>, nan_val<T>}, cmplx<T>{nan_val<T>, inf_val<T>},    \
+        cmplx<T>{inf_val<T>, nan_val<T>});                                     \
+                                                                               \
+    auto std_in = init_std_complex(input);                                     \
+    sycl::ext::cplx::complex<T> cplx_input{input.re, input.im};                \
+                                                                               \
+    std::complex<T> std_out{};                                                 \
+    auto *cplx_out = sycl::malloc_shared<sycl::ext::cplx::complex<T>>(1, Q);   \
+                                                                               \
+    /* Check complex-decimal op */                                             \
+    std_out = op std_in;                                                       \
+                                                                               \
+    if (is_type_supported<T>(Q)) {                                             \
+      Q.single_task([=]() { cplx_out[0] = op cplx_input; }).wait();            \
+                                                                               \
+      check_results(cplx_out[0], std_out);                                     \
+    }                                                                          \
+                                                                               \
+    cplx_out[0] = op cplx_input;                                               \
+                                                                               \
+    check_results(cplx_out[0], std_out);                                       \
+                                                                               \
+    sycl::free(cplx_out, Q);                                                   \
+  }
+
+test_unary_op("Test complex addition unary operator", "[add]", +);
+test_unary_op("Test complex subtraction unary operator", "[sub]", -);
+
+#undef test_unary_op
