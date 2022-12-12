@@ -88,7 +88,7 @@ TEMPLATE_TEST_CASE("Test complex pow cplx<T>-cplx<U> overload", "[pow]",
   std_out = std::pow(std_in1, std_in2);
 
   // Check cplx::complex output from device
-  if (is_type_supported<T>(Q)) {
+  if (is_type_supported<T>(Q) && is_type_supported<X>(Q)) {
     Q.single_task([=]() {
        cplx_out[0] = sycl::ext::cplx::pow<T>(cplx_input1, cplx_input2);
      }).wait();

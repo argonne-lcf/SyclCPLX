@@ -63,7 +63,7 @@ TEMPLATE_TEST_CASE("Test complex norm deci", "[norm]",
   std_out = std::norm(std_in);
 
   // Check cplx::complex output from device
-  if (is_type_supported<X>(Q)) {
+  if (is_type_supported<T>(Q) && is_type_supported<X>(Q)) {
     Q.single_task([=]() {
        cplx_out[0] = sycl::ext::cplx::norm<X>(std_in);
      }).wait();

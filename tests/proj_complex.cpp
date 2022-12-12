@@ -64,7 +64,7 @@ TEMPLATE_TEST_CASE("Test complex proj deci", "[proj]",
   std_out = std::proj(std_in);
 
   // Check cplx::complex output from device
-  if (is_type_supported<X>(Q)) {
+  if (is_type_supported<T>(Q) && is_type_supported<X>(Q)) {
     Q.single_task([=]() {
        cplx_out[0] = sycl::ext::cplx::proj<X>(std_in);
      }).wait();
