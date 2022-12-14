@@ -271,6 +271,7 @@ template<class T> complex<T> tanh (const complex<T>&);
 
 _SYCL_EXT_CPLX_BEGIN_NAMESPACE_STD
 
+namespace detail {
 template <class _Tp> struct __numeric_type {
   static void __test(...);
   static sycl::half __test(sycl::half);
@@ -328,6 +329,7 @@ public:
 
 template <class _A1, class _A2 = void, class _A3 = void>
 class __promote : public __promote_imp<_A1, _A2, _A3> {};
+}
 
 template <class _Tp, class _Enable = void> class complex;
 
@@ -386,13 +388,6 @@ public:
     __im_ = value_type();
     return *this;
   }
-  template <class _Xp>
-  _SYCL_EXT_CPLX_INLINE_VISIBILITY complex &operator=(const complex<_Xp> &__c) {
-    __re_ = __c.real();
-    __im_ = __c.imag();
-    return *this;
-  }
-
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex
   &operator+=(complex<value_type> &__c, value_type __re) {
     __c.__re_ += __re;
@@ -416,6 +411,12 @@ public:
     return __c;
   }
 
+  template <class _Xp>
+  _SYCL_EXT_CPLX_INLINE_VISIBILITY complex &operator=(const complex<_Xp> &__c) {
+    __re_ = __c.real();
+    __im_ = __c.imag();
+    return *this;
+  }
   template <class _Xp>
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex
   &operator+=(complex<value_type> &__x, const complex<_Xp> &__y) {
@@ -450,13 +451,13 @@ public:
     return __t;
   }
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex<value_type>
-  operator+(const complex<value_type> &__x, const value_type &__y) {
+  operator+(const complex<value_type> &__x, value_type __y) {
     complex<value_type> __t(__x);
     __t += __y;
     return __t;
   }
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex<value_type>
-  operator+(const value_type &__x, const complex<value_type> &__y) {
+  operator+(value_type __x, const complex<value_type> &__y) {
     complex<value_type> __t(__y);
     __t += __x;
     return __t;
@@ -473,13 +474,13 @@ public:
     return __t;
   }
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex<value_type>
-  operator-(const complex<value_type> &__x, const value_type &__y) {
+  operator-(const complex<value_type> &__x, value_type __y) {
     complex<value_type> __t(__x);
     __t -= __y;
     return __t;
   }
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex<value_type>
-  operator-(const value_type &__x, const complex<value_type> &__y) {
+  operator-(value_type __x, const complex<value_type> &__y) {
     complex<value_type> __t(-__y);
     __t += __x;
     return __t;
@@ -541,13 +542,13 @@ public:
     return complex<value_type>(__x, __y);
   }
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex<value_type>
-  operator*(const complex<value_type> &__x, const value_type &__y) {
+  operator*(const complex<value_type> &__x, value_type __y) {
     complex<value_type> __t(__x);
     __t *= __y;
     return __t;
   }
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex<value_type>
-  operator*(const value_type &__x, const complex<value_type> &__y) {
+  operator*(value_type __x, const complex<value_type> &__y) {
     complex<value_type> __t(__y);
     __t *= __x;
     return __t;
@@ -590,11 +591,11 @@ public:
     return complex<value_type>(__x, __y);
   }
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex<value_type>
-  operator/(const complex<value_type> &__x, const value_type &__y) {
+  operator/(const complex<value_type> &__x, value_type __y) {
     return complex<value_type>(__x.real() / __y, __x.imag() / __y);
   }
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex<value_type>
-  operator/(const value_type &__x, const complex<value_type> &__y) {
+  operator/(value_type __x, const complex<value_type> &__y) {
     complex<value_type> __t(__x);
     __t /= __y;
     return __t;
@@ -605,11 +606,11 @@ public:
     return __x.real() == __y.real() && __x.imag() == __y.imag();
   }
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend constexpr bool
-  operator==(const complex<value_type> &__x, const value_type &__y) {
+  operator==(const complex<value_type> &__x, value_type __y) {
     return __x.real() == __y && __x.imag() == 0;
   }
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend constexpr bool
-  operator==(const value_type &__x, const complex<value_type> &__y) {
+  operator==(value_type __x, const complex<value_type> &__y) {
     return __x == __y.real() && 0 == __y.imag();
   }
 
@@ -618,11 +619,11 @@ public:
     return !(__x == __y);
   }
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend constexpr bool
-  operator!=(const complex<value_type> &__x, const value_type &__y) {
+  operator!=(const complex<value_type> &__x, value_type __y) {
     return !(__x == __y);
   }
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend constexpr bool
-  operator!=(const value_type &__x, const complex<value_type> &__y) {
+  operator!=(value_type __x, const complex<value_type> &__y) {
     return !(__x == __y);
   }
 
@@ -689,6 +690,7 @@ public:
   }
 };
 
+namespace detail {
 template <class _Tp, bool = std::is_integral<_Tp>::value,
           bool = is_genfloat<_Tp>::value>
 struct __libcpp_complex_overload_traits {};
@@ -704,59 +706,60 @@ template <class _Tp> struct __libcpp_complex_overload_traits<_Tp, false, true> {
   typedef _Tp _ValueType;
   typedef complex<_Tp> _ComplexType;
 };
+}
 
 // real
 
-template <class _Tp>
+template <class _Tp, class = std::enable_if<is_gencomplex<_Tp>::value>>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr _Tp real(const complex<_Tp> &__c) {
   return __c.real();
 }
 
 template <class _Tp>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr
-    typename __libcpp_complex_overload_traits<_Tp>::_ValueType
+    typename detail::__libcpp_complex_overload_traits<_Tp>::_ValueType
     real(_Tp __re) {
   return __re;
 }
 
 // imag
 
-template <class _Tp>
+template <class _Tp, class = std::enable_if<is_gencomplex<_Tp>::value>>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr _Tp imag(const complex<_Tp> &__c) {
   return __c.imag();
 }
 
 template <class _Tp>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr
-    typename __libcpp_complex_overload_traits<_Tp>::_ValueType
+    typename detail::__libcpp_complex_overload_traits<_Tp>::_ValueType
     imag(_Tp) {
   return 0;
 }
 
 // abs
 
-template <class _Tp>
+template <class _Tp, class = std::enable_if<is_gencomplex<_Tp>::value>>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY _Tp abs(const complex<_Tp> &__c) {
   return sycl::hypot(__c.real(), __c.imag());
 }
 
 // arg
 
-template <class _Tp>
+template <class _Tp, class = std::enable_if<is_gencomplex<_Tp>::value>>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY _Tp arg(const complex<_Tp> &__c) {
   return sycl::atan2(__c.imag(), __c.real());
 }
 
 template <class _Tp>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY
-typename __libcpp_complex_overload_traits<_Tp>::_ValueType arg(_Tp __re) {
-  typedef typename __libcpp_complex_overload_traits<_Tp>::_ValueType _ValueType;
+typename detail::__libcpp_complex_overload_traits<_Tp>::_ValueType arg(_Tp __re) {
+  typedef typename detail::__libcpp_complex_overload_traits<_Tp>::_ValueType _ValueType;
   return sycl::atan2<_ValueType>(0, __re);
 }
 
 // norm
 
-template <class _Tp>
+template <class _Tp, class = std::enable_if<is_gencomplex<_Tp>::value>>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY _Tp norm(const complex<_Tp> &__c) {
   if (sycl::isinf(__c.real()))
     return sycl::fabs(__c.real());
@@ -767,31 +770,31 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY _Tp norm(const complex<_Tp> &__c) {
 
 template <class _Tp>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY
-    typename __libcpp_complex_overload_traits<_Tp>::_ValueType
+    typename detail::__libcpp_complex_overload_traits<_Tp>::_ValueType
     norm(_Tp __re) {
-  typedef typename __libcpp_complex_overload_traits<_Tp>::_ValueType _ValueType;
+  typedef typename detail::__libcpp_complex_overload_traits<_Tp>::_ValueType _ValueType;
   return static_cast<_ValueType>(__re) * __re;
 }
 
 // conj
 
-template <class _Tp>
+template <class _Tp, class = std::enable_if<is_gencomplex<_Tp>::value>>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY complex<_Tp> conj(const complex<_Tp> &__c) {
   return complex<_Tp>(__c.real(), -__c.imag());
 }
 
 template <class _Tp>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY
-    typename __libcpp_complex_overload_traits<_Tp>::_ComplexType
+    typename detail::__libcpp_complex_overload_traits<_Tp>::_ComplexType
     conj(_Tp __re) {
   typedef
-      typename __libcpp_complex_overload_traits<_Tp>::_ComplexType _ComplexType;
+      typename detail::__libcpp_complex_overload_traits<_Tp>::_ComplexType _ComplexType;
   return _ComplexType(__re);
 }
 
 // proj
 
-template <class _Tp>
+template <class _Tp, class = std::enable_if<is_gencomplex<_Tp>::value>>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY complex<_Tp> proj(const complex<_Tp> &__c) {
   complex<_Tp> __r = __c;
   if (sycl::isinf(__c.real()) || sycl::isinf(__c.imag()))
@@ -801,9 +804,9 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY complex<_Tp> proj(const complex<_Tp> &__c) {
 
 template <class _Tp>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY
-  typename __libcpp_complex_overload_traits<_Tp>::_ComplexType
+  typename detail::__libcpp_complex_overload_traits<_Tp>::_ComplexType
   proj(_Tp __re) {
-  typedef typename __libcpp_complex_overload_traits<_Tp>::_ComplexType _ComplexType;
+  typedef typename detail::__libcpp_complex_overload_traits<_Tp>::_ComplexType _ComplexType;
 
   if constexpr(!std::is_integral_v<_Tp>) {
     if (sycl::isinf(__re))
@@ -902,9 +905,9 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY complex<_Tp> pow(const complex<_Tp> &__x,
 
 template <class _Tp, class _Up,
           class = std::enable_if<is_gencomplex<_Tp>::value>>
-_SYCL_EXT_CPLX_INLINE_VISIBILITY complex<typename __promote<_Tp, _Up>::type>
+_SYCL_EXT_CPLX_INLINE_VISIBILITY complex<typename detail::__promote<_Tp, _Up>::type>
 pow(const complex<_Tp> &__x, const complex<_Up> &__y) {
-  typedef complex<typename __promote<_Tp, _Up>::type> result_type;
+  typedef complex<typename detail::__promote<_Tp, _Up>::type> result_type;
   return pow(result_type(__x), result_type(__y));
 }
 
@@ -912,9 +915,9 @@ template <class _Tp, class _Up,
           class = std::enable_if<is_gencomplex<_Tp>::value>>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY
     typename std::enable_if<is_genfloat<_Up>::value,
-                            complex<typename __promote<_Tp, _Up>::type>>::type
+                            complex<typename detail::__promote<_Tp, _Up>::type>>::type
     pow(const complex<_Tp> &__x, const _Up &__y) {
-  typedef complex<typename __promote<_Tp, _Up>::type> result_type;
+  typedef complex<typename detail::__promote<_Tp, _Up>::type> result_type;
   return pow(result_type(__x), result_type(__y));
 }
 
@@ -922,9 +925,9 @@ template <class _Tp, class _Up,
           class = std::enable_if<is_gencomplex<_Tp>::value>>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY
     typename std::enable_if<is_genfloat<_Up>::value,
-                            complex<typename __promote<_Tp, _Up>::type>>::type
+                            complex<typename detail::__promote<_Tp, _Up>::type>>::type
     pow(const _Tp &__x, const complex<_Up> &__y) {
-  typedef complex<typename __promote<_Tp, _Up>::type> result_type;
+  typedef complex<typename detail::__promote<_Tp, _Up>::type> result_type;
   return pow(result_type(__x), result_type(__y));
 }
 
