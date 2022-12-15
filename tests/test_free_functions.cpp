@@ -16,8 +16,8 @@ TEMPLATE_TEST_CASE(test_name, label, double, float, sycl::half) { \
   auto std_in = init_std_complex(input); \
   sycl::ext::cplx::complex<T> cplx_input{input.re, input.im}; \
  \
-  std::complex<T> std_out{}; \
-  auto *cplx_out = sycl::malloc_shared<sycl::ext::cplx::complex<T>>(1, Q); \
+  T std_out{}; \
+  auto *cplx_out = sycl::malloc_shared<T>(1, Q); \
  \
   std_out = std::func(std_in); \
  \
@@ -59,20 +59,20 @@ TEMPLATE_TEST_CASE(test_name, label, \
  \
   auto std_in = init_deci(input); \
  \
-  std::complex<T> std_out{}; \
-  auto *cplx_out = sycl::malloc_shared<sycl::ext::cplx::complex<T>>(1, Q); \
+  T std_out{}; \
+  auto *cplx_out = sycl::malloc_shared<T>(1, Q); \
  \
   std_out = std::func(std_in); \
  \
   if (is_type_supported<T>(Q) && is_type_supported<X>(Q)) { \
     Q.single_task([=]() { \
-       cplx_out[0] = sycl::ext::cplx::func<X>(std_in); \
+       cplx_out[0] = sycl::ext::cplx::func<X>(input); \
      }).wait(); \
  \
     check_results(cplx_out[0], std_out); \
   } \
  \
-  cplx_out[0] = sycl::ext::cplx::func<X>(std_in); \
+  cplx_out[0] = sycl::ext::cplx::func<X>(input); \
  \
   check_results(cplx_out[0], std_out); \
  \

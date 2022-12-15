@@ -271,7 +271,7 @@ template<class T> complex<T> tanh (const complex<T>&);
 
 _SYCL_EXT_CPLX_BEGIN_NAMESPACE_STD
 
-namespace detail {
+namespace cplex::detail {
 template <class _Tp> struct __numeric_type {
   static void __test(...);
   static sycl::half __test(sycl::half);
@@ -690,7 +690,7 @@ public:
   }
 };
 
-namespace detail {
+namespace cplex::detail {
 template <class _Tp, bool = std::is_integral<_Tp>::value,
           bool = is_genfloat<_Tp>::value>
 struct __libcpp_complex_overload_traits {};
@@ -717,7 +717,7 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr _Tp real(const complex<_Tp> &__c) {
 
 template <class _Tp>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr
-    typename detail::__libcpp_complex_overload_traits<_Tp>::_ValueType
+    typename cplex::detail::__libcpp_complex_overload_traits<_Tp>::_ValueType
     real(_Tp __re) {
   return __re;
 }
@@ -731,7 +731,7 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr _Tp imag(const complex<_Tp> &__c) {
 
 template <class _Tp>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr
-    typename detail::__libcpp_complex_overload_traits<_Tp>::_ValueType
+    typename cplex::detail::__libcpp_complex_overload_traits<_Tp>::_ValueType
     imag(_Tp) {
   return 0;
 }
@@ -752,8 +752,8 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY _Tp arg(const complex<_Tp> &__c) {
 
 template <class _Tp>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY
-typename detail::__libcpp_complex_overload_traits<_Tp>::_ValueType arg(_Tp __re) {
-  typedef typename detail::__libcpp_complex_overload_traits<_Tp>::_ValueType _ValueType;
+typename cplex::detail::__libcpp_complex_overload_traits<_Tp>::_ValueType arg(_Tp __re) {
+  typedef typename cplex::detail::__libcpp_complex_overload_traits<_Tp>::_ValueType _ValueType;
   return sycl::atan2<_ValueType>(0, __re);
 }
 
@@ -770,9 +770,9 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY _Tp norm(const complex<_Tp> &__c) {
 
 template <class _Tp>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY
-    typename detail::__libcpp_complex_overload_traits<_Tp>::_ValueType
+    typename cplex::detail::__libcpp_complex_overload_traits<_Tp>::_ValueType
     norm(_Tp __re) {
-  typedef typename detail::__libcpp_complex_overload_traits<_Tp>::_ValueType _ValueType;
+  typedef typename cplex::detail::__libcpp_complex_overload_traits<_Tp>::_ValueType _ValueType;
   return static_cast<_ValueType>(__re) * __re;
 }
 
@@ -785,10 +785,10 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY complex<_Tp> conj(const complex<_Tp> &__c) {
 
 template <class _Tp>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY
-    typename detail::__libcpp_complex_overload_traits<_Tp>::_ComplexType
+    typename cplex::detail::__libcpp_complex_overload_traits<_Tp>::_ComplexType
     conj(_Tp __re) {
   typedef
-      typename detail::__libcpp_complex_overload_traits<_Tp>::_ComplexType _ComplexType;
+      typename cplex::detail::__libcpp_complex_overload_traits<_Tp>::_ComplexType _ComplexType;
   return _ComplexType(__re);
 }
 
@@ -804,9 +804,9 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY complex<_Tp> proj(const complex<_Tp> &__c) {
 
 template <class _Tp>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY
-  typename detail::__libcpp_complex_overload_traits<_Tp>::_ComplexType
+  typename cplex::detail::__libcpp_complex_overload_traits<_Tp>::_ComplexType
   proj(_Tp __re) {
-  typedef typename detail::__libcpp_complex_overload_traits<_Tp>::_ComplexType _ComplexType;
+  typedef typename cplex::detail::__libcpp_complex_overload_traits<_Tp>::_ComplexType _ComplexType;
 
   if constexpr(!std::is_integral_v<_Tp>) {
     if (sycl::isinf(__re))
@@ -905,9 +905,9 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY complex<_Tp> pow(const complex<_Tp> &__x,
 
 template <class _Tp, class _Up,
           class = std::enable_if<is_gencomplex<_Tp>::value>>
-_SYCL_EXT_CPLX_INLINE_VISIBILITY complex<typename detail::__promote<_Tp, _Up>::type>
+_SYCL_EXT_CPLX_INLINE_VISIBILITY complex<typename cplex::detail::__promote<_Tp, _Up>::type>
 pow(const complex<_Tp> &__x, const complex<_Up> &__y) {
-  typedef complex<typename detail::__promote<_Tp, _Up>::type> result_type;
+  typedef complex<typename cplex::detail::__promote<_Tp, _Up>::type> result_type;
   return pow(result_type(__x), result_type(__y));
 }
 
@@ -915,9 +915,9 @@ template <class _Tp, class _Up,
           class = std::enable_if<is_gencomplex<_Tp>::value>>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY
     typename std::enable_if<is_genfloat<_Up>::value,
-                            complex<typename detail::__promote<_Tp, _Up>::type>>::type
+                            complex<typename cplex::detail::__promote<_Tp, _Up>::type>>::type
     pow(const complex<_Tp> &__x, const _Up &__y) {
-  typedef complex<typename detail::__promote<_Tp, _Up>::type> result_type;
+  typedef complex<typename cplex::detail::__promote<_Tp, _Up>::type> result_type;
   return pow(result_type(__x), result_type(__y));
 }
 
@@ -925,13 +925,13 @@ template <class _Tp, class _Up,
           class = std::enable_if<is_gencomplex<_Tp>::value>>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY
     typename std::enable_if<is_genfloat<_Up>::value,
-                            complex<typename detail::__promote<_Tp, _Up>::type>>::type
+                            complex<typename cplex::detail::__promote<_Tp, _Up>::type>>::type
     pow(const _Tp &__x, const complex<_Up> &__y) {
-  typedef complex<typename detail::__promote<_Tp, _Up>::type> result_type;
+  typedef complex<typename cplex::detail::__promote<_Tp, _Up>::type> result_type;
   return pow(result_type(__x), result_type(__y));
 }
 
-namespace detail {
+namespace cplex::detail {
 // __sqr, computes pow(x, 2)
 
 template <class _Tp, class = std::enable_if<is_gencomplex<_Tp>::value>>
@@ -964,7 +964,7 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY complex<_Tp> asinh(const complex<_Tp> &__x) {
   if (sycl::isinf(__x.imag()))
     return complex<_Tp>(sycl::copysign(__x.imag(), __x.real()),
                         sycl::copysign(__pi / _Tp(2), __x.imag()));
-  complex<_Tp> __z = log(__x + sqrt(detail::__sqr(__x) + _Tp(1)));
+  complex<_Tp> __z = log(__x + sqrt(cplex::detail::__sqr(__x) + _Tp(1)));
   return complex<_Tp>(sycl::copysign(__z.real(), __x.real()),
                       sycl::copysign(__z.imag(), __x.imag()));
 }
@@ -997,7 +997,7 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY complex<_Tp> acosh(const complex<_Tp> &__x) {
   if (sycl::isinf(__x.imag()))
     return complex<_Tp>(sycl::fabs(__x.imag()),
                         sycl::copysign(__pi / _Tp(2), __x.imag()));
-  complex<_Tp> __z = log(__x + sqrt(detail::__sqr(__x) - _Tp(1)));
+  complex<_Tp> __z = log(__x + sqrt(cplex::detail::__sqr(__x) - _Tp(1)));
   return complex<_Tp>(sycl::copysign(__z.real(), _Tp(0)),
                       sycl::copysign(__z.imag(), __x.imag()));
 }
@@ -1120,7 +1120,7 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY complex<_Tp> acos(const complex<_Tp> &__x) {
     return complex<_Tp>(__pi / _Tp(2), -__x.imag());
   if (__x.real() == 0 && (__x.imag() == 0 || isnan(__x.imag())))
     return complex<_Tp>(__pi / _Tp(2), -__x.imag());
-  complex<_Tp> __z = log(__x + sqrt(detail::__sqr(__x) - _Tp(1)));
+  complex<_Tp> __z = log(__x + sqrt(cplex::detail::__sqr(__x) - _Tp(1)));
   if (sycl::signbit(__x.imag()))
     return complex<_Tp>(sycl::fabs(__z.imag()), sycl::fabs(__z.real()));
   return complex<_Tp>(sycl::fabs(__z.imag()), -sycl::fabs(__z.real()));

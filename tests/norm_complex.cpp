@@ -65,14 +65,14 @@ TEMPLATE_TEST_CASE("Test complex norm deci", "[norm]",
   // Check cplx::complex output from device
   if (is_type_supported<T>(Q) && is_type_supported<X>(Q)) {
     Q.single_task([=]() {
-       cplx_out[0] = sycl::ext::cplx::norm<X>(std_in);
+       cplx_out[0] = sycl::ext::cplx::norm<X>(input);
      }).wait();
 
     check_results(cplx_out[0], std_out);
   }
 
   // Check cplx::complex output from host
-  cplx_out[0] = sycl::ext::cplx::norm<X>(std_in);
+  cplx_out[0] = sycl::ext::cplx::norm<X>(input);
 
   check_results(cplx_out[0], std_out);
 
