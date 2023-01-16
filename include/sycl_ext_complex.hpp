@@ -487,15 +487,15 @@ public:
   }
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex<value_type>
   operator-(const complex<value_type> &__x) {
-    return complex<value_type>(-__x.real(), -__x.imag());
+    return complex<value_type>(-__x.__re_, -__x.__im_);
   }
 
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex<value_type>
   operator*(const complex<value_type> &__z, const complex<value_type> &__w) {
-    value_type __a = __z.real();
-    value_type __b = __z.imag();
-    value_type __c = __w.real();
-    value_type __d = __w.imag();
+    value_type __a = __z.__re_;
+    value_type __b = __z.__im_;
+    value_type __c = __w.__re_;
+    value_type __d = __w.__im_;
     value_type __ac = __a * __c;
     value_type __bd = __b * __d;
     value_type __ad = __a * __d;
@@ -557,10 +557,10 @@ public:
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex<value_type>
   operator/(const complex<value_type> &__z, const complex<value_type> &__w) {
     int __ilogbw = 0;
-    value_type __a = __z.real();
-    value_type __b = __z.imag();
-    value_type __c = __w.real();
-    value_type __d = __w.imag();
+    value_type __a = __z.__re_;
+    value_type __b = __z.__im_;
+    value_type __c = __w.__re_;
+    value_type __d = __w.__im_;
     value_type __logbw = sycl::logb(sycl::fmax(sycl::fabs(__c), sycl::fabs(__d)));
     if (sycl::isfinite(__logbw)) {
       __ilogbw = static_cast<int>(__logbw);
@@ -592,7 +592,7 @@ public:
   }
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex<value_type>
   operator/(const complex<value_type> &__x, value_type __y) {
-    return complex<value_type>(__x.real() / __y, __x.imag() / __y);
+    return complex<value_type>(__x.__re_ / __y, __x.__im_ / __y);
   }
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex<value_type>
   operator/(value_type __x, const complex<value_type> &__y) {
@@ -603,15 +603,15 @@ public:
 
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend constexpr bool
   operator==(const complex<value_type> &__x, const complex<value_type> &__y) {
-    return __x.real() == __y.real() && __x.imag() == __y.imag();
+    return __x.__re_ == __y.__re_ && __x.__im_ == __y.__im_;
   }
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend constexpr bool
   operator==(const complex<value_type> &__x, value_type __y) {
-    return __x.real() == __y && __x.imag() == 0;
+    return __x.__re_ == __y && __x.__im_ == 0;
   }
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend constexpr bool
   operator==(value_type __x, const complex<value_type> &__y) {
-    return __x == __y.real() && 0 == __y.imag();
+    return __x == __y.__re_ && 0 == __y.__im_;
   }
 
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend constexpr bool
@@ -680,13 +680,13 @@ public:
     __s.flags(__os.flags());
     __s.imbue(__os.getloc());
     __s.precision(__os.precision());
-    __s << '(' << __x.real() << ',' << __x.imag() << ')';
+    __s << '(' << __x.__re_ << ',' << __x.__im_ << ')';
     return __os << __s.str();
   }
 
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend const sycl::stream
   &operator<<(const sycl::stream &__ss, const complex<value_type> &_x) {
-    return __ss << "(" << _x.real() << "," << _x.imag() << ")";
+    return __ss << "(" << _x.__re_ << "," << _x.__im_ << ")";
   }
 };
 
