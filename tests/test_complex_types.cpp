@@ -71,10 +71,11 @@ TEMPLATE_TEST_CASE("Test complex pow types", "[pow]", double, float,
 }
 
 // Test F(Complex<T>) -> T
-#define TEST_FUNC_TYPE(test_name, label, func) \
-TEMPLATE_TEST_CASE(test_name, label, double, float, sycl::half) { \
-  static_assert(std::is_same_v<TestType, decltype(func(complex<TestType>()))>); \
-}
+#define TEST_FUNC_TYPE(test_name, label, func)                                 \
+  TEMPLATE_TEST_CASE(test_name, label, double, float, sycl::half) {            \
+    static_assert(                                                             \
+        std::is_same_v<TestType, decltype(func(complex<TestType>()))>);        \
+  }
 
 TEST_FUNC_TYPE("Test complex abs deci - cplx types", "[abs]", abs)
 TEST_FUNC_TYPE("Test complex real deci - cplx types", "[real]", real)
@@ -82,19 +83,16 @@ TEST_FUNC_TYPE("Test complex imag deci - cplx  types", "[imag]", imag)
 #undef TEST_FUNC_TYPE
 
 // Test F(T) -> T
-#define TEST_FUNC_TYPE(test_name, label, func) \
-TEMPLATE_TEST_CASE(test_name, label, \
-(std::pair<double, bool>), \
-(std::pair<double, char>), \
-(std::pair<double, int>), \
-(std::pair<sycl::half, sycl::half>), \
-(std::pair<double, double>), \
-(std::pair<float, float>)) { \
-  using T = typename TestType::first_type; \
-  using X = typename TestType::second_type; \
- \
-  static_assert(std::is_same_v<T, decltype(func(X()))>); \
-}
+#define TEST_FUNC_TYPE(test_name, label, func)                                 \
+  TEMPLATE_TEST_CASE(test_name, label, (std::pair<double, bool>),              \
+                     (std::pair<double, char>), (std::pair<double, int>),      \
+                     (std::pair<sycl::half, sycl::half>),                      \
+                     (std::pair<double, double>), (std::pair<float, float>)) { \
+    using T = typename TestType::first_type;                                   \
+    using X = typename TestType::second_type;                                  \
+                                                                               \
+    static_assert(std::is_same_v<T, decltype(func(X()))>);                     \
+  }
 
 TEST_FUNC_TYPE("Test complex arg deci - deci types", "[arg]", arg)
 TEST_FUNC_TYPE("Test complex norm deci - deci types", "[norm]", norm)
@@ -103,19 +101,16 @@ TEST_FUNC_TYPE("Test complex imag deci - deci types", "[imag]", imag)
 #undef TEST_FUNC_TYPE
 
 // Test F(T) -> complex<T>
-#define TEST_FUNC_TYPE(test_name, label, func) \
-TEMPLATE_TEST_CASE(test_name, label, \
-(std::pair<double, bool>), \
-(std::pair<double, char>), \
-(std::pair<double, int>), \
-(std::pair<sycl::half, sycl::half>), \
-(std::pair<double, double>), \
-(std::pair<float, float>)) { \
-  using T = typename TestType::first_type; \
-  using X = typename TestType::second_type; \
- \
-  static_assert(std::is_same_v<complex<T>, decltype(func(X()))>); \
-}
+#define TEST_FUNC_TYPE(test_name, label, func)                                 \
+  TEMPLATE_TEST_CASE(test_name, label, (std::pair<double, bool>),              \
+                     (std::pair<double, char>), (std::pair<double, int>),      \
+                     (std::pair<sycl::half, sycl::half>),                      \
+                     (std::pair<double, double>), (std::pair<float, float>)) { \
+    using T = typename TestType::first_type;                                   \
+    using X = typename TestType::second_type;                                  \
+                                                                               \
+    static_assert(std::is_same_v<complex<T>, decltype(func(X()))>);            \
+  }
 
 TEST_FUNC_TYPE("Test complex conj cplx - deci types", "[conj]", conj)
 TEST_FUNC_TYPE("Test complex proj cplx - deci types", "[proj]", proj)

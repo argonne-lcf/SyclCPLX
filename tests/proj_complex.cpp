@@ -1,6 +1,7 @@
 #include "test_helper.hpp"
 
-TEMPLATE_TEST_CASE("Test complex proj cmplx", "[proj]", double, float, sycl::half) {
+TEMPLATE_TEST_CASE("Test complex proj cmplx", "[proj]", double, float,
+                   sycl::half) {
   using T = TestType;
 
   sycl::queue Q;
@@ -40,12 +41,10 @@ TEMPLATE_TEST_CASE("Test complex proj cmplx", "[proj]", double, float, sycl::hal
 }
 
 TEMPLATE_TEST_CASE("Test complex proj deci", "[proj]",
-(std::pair<double, bool>),
-(std::pair<double, char>),
-(std::pair<double, int>),
-(std::pair<sycl::half, sycl::half>),
-(std::pair<float, float>),
-(std::pair<double, double>)) {
+                   (std::pair<double, bool>), (std::pair<double, char>),
+                   (std::pair<double, int>),
+                   (std::pair<sycl::half, sycl::half>),
+                   (std::pair<float, float>), (std::pair<double, double>)) {
 
   using T = typename TestType::first_type;
   using X = typename TestType::second_type;

@@ -51,9 +51,8 @@ TEMPLATE_TEST_CASE("Test complex pow cplx-cplx overload", "[pow]", double,
 }
 
 TEMPLATE_TEST_CASE("Test complex pow cplx<T>-cplx<U> overload", "[pow]",
-(std::pair<double, float>),
-(std::pair<float, sycl::half>),
-(std::pair<sycl::half, double>)) {
+                   (std::pair<double, float>), (std::pair<float, sycl::half>),
+                   (std::pair<sycl::half, double>)) {
 
   using T = typename TestType::first_type;
   using X = typename TestType::second_type;
