@@ -10,7 +10,9 @@
 #define SYCL_CPLX_TOL_ULP 5
 
 // Helpers for check if type is supported
-template <typename T> inline bool is_type_supported(sycl::queue &Q) { return false; }
+template <typename T> inline bool is_type_supported(sycl::queue &Q) {
+  return false;
+}
 
 template <> inline bool is_type_supported<double>(sycl::queue &Q) {
   return Q.get_device().has(sycl::aspect::fp64);
@@ -50,7 +52,8 @@ template <typename T> struct cmplx {
 
 // Do not define for public `intel/llvm` and oneAPI
 // oneAPI define `__INTEL_LLVM_COMPILER` but `intel/llvm` doesn't.
-// So we use the intel-implementation-only macro `__SYCL_COMPILER_VERSION` as an ID
+// So we use the intel-implementation-only macro `__SYCL_COMPILER_VERSION` as an
+// ID
 #ifndef __SYCL_COMPILER_VERSION
 namespace std {
 
@@ -72,24 +75,23 @@ template <typename T, typename U> inline bool is_nan_or_inf(T x, U y) {
 }
 
 namespace detail {
-template <typename T>
-bool almost_equal(T x, T y, int ulp) {
+template <typename T> bool almost_equal(T x, T y, int ulp) {
   if (std::isnan(x) && std::isnan(y))
     return true;
   else if (std::isinf(x) && std::isinf(y))
     return true;
 
   return std::abs(x - y) <=
-    std::numeric_limits<T>::epsilon() * std::abs(x + y) * ulp ||
-    std::abs(x - y) < std::numeric_limits<T>::min();
+             std::numeric_limits<T>::epsilon() * std::abs(x + y) * ulp ||
+         std::abs(x - y) < std::numeric_limits<T>::min();
 }
 
 template <typename T>
 bool almost_equal(sycl::ext::cplx::complex<T> x, std::complex<T> y, int ulp) {
   auto diff = std::abs((std::complex<T>)x - y);
-  return diff <=
-    std::numeric_limits<T>::epsilon() * std::abs((std::complex<T>)x + y) * ulp ||
-    diff < std::numeric_limits<T>::min() || is_nan_or_inf(x, y);
+  return diff <= std::numeric_limits<T>::epsilon() *
+                     std::abs((std::complex<T>)x + y) * ulp ||
+         diff < std::numeric_limits<T>::min() || is_nan_or_inf(x, y);
 }
 
 // Helpers for testing half
@@ -104,7 +106,7 @@ inline std::complex<float> trunc_float(std::complex<float> c) {
   auto c_sycl_half = static_cast<sycl::ext::cplx::complex<sycl::half>>(c);
   return sycl_half_to_float(c_sycl_half);
 }
-}
+} // namespace detail
 
 // Helper for initializing std::complex values for tests only needed because
 // sycl::half cases are emulated with float for std::complex class
@@ -128,10 +130,12 @@ template <> auto constexpr init_deci(sycl::half re) {
 template <typename T>
 void check_results(sycl::ext::cplx::complex<T> output,
                    std::complex<T> reference, int tol_multiplier = 1) {
-  CHECK(detail::almost_equal(output, reference, tol_multiplier * SYCL_CPLX_TOL_ULP));
+  CHECK(detail::almost_equal(output, reference,
+                             tol_multiplier * SYCL_CPLX_TOL_ULP));
 }
 
 template <typename T>
 void check_results(T output, T reference, int tol_multiplier = 1) {
-  CHECK(detail::almost_equal(output, reference, tol_multiplier * SYCL_CPLX_TOL_ULP));
+  CHECK(detail::almost_equal(output, reference,
+                             tol_multiplier * SYCL_CPLX_TOL_ULP));
 }
