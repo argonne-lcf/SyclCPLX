@@ -111,32 +111,75 @@ struct complex_function<cplx, R, FunctionName::EXP> {
   }
 };
 
+template <typename R> class BenchmarkData {
+public:
+  BenchmarkData(std::size_t max_n)
+      : q_(sycl::default_selector_v), max_n_(max_n) {
+    R *h_random_data = sycl::malloc_host<R>(max_n * 4, q_);
+
+    d_a_ = sycl::malloc_device<R>(max_n * 2, q_);
+    d_b_ = sycl::malloc_device<R>(max_n * 2, q_);
+
+    fill_random(h_random_data, max_n * 4);
+    q_.copy(h_random_data, d_a_, 2 * max_n);
+    q_.copy(h_random_data + 2 * max_n, d_b_, 2 * max_n);
+    q_.wait();
+
+    sycl::free(h_random_data, q_);
+  }
+
+  ~BenchmarkData() {
+    sycl::free(d_a_, q_);
+    sycl::free(d_b_, q_);
+  }
+
+  template <typename T> T *get_device_input(std::size_t n) {
+    assert(n <= max_n_);
+    return reinterpret_cast<T *>(d_a_);
+  }
+
+  template <typename T> T *get_device_output(std::size_t n) {
+    assert(n <= max_n_);
+    return reinterpret_cast<T *>(d_b_);
+  }
+
+  sycl::queue &get_queue() { return q_; }
+
+private:
+  sycl::queue q_;
+  std::size_t max_n_;
+  R *h_random_data_;
+  R *d_a_;
+  R *d_b_;
+};
+
+template <typename R> auto get_benchmark_data(std::size_t max_n) {
+  static BenchmarkData<R> *data = nullptr;
+  if (data == nullptr) {
+    data = new BenchmarkData<R>(max_n);
+  }
+  return data;
+}
+
 template <Cplx cplx, typename R, FunctionName F, std::uint32_t SEED = 777>
 static void BM_function(benchmark::State &state) {
-  sycl::queue Q(sycl::gpu_selector_v);
-
   using T = complex_t<cplx, R>;
 
   int n = state.range(0);
 
   complex_function<cplx, R, F> fn{};
 
-  auto h_a = sycl::malloc_host<T>(n, Q);
-  fill_random(h_a, n);
+  auto bench_data = get_benchmark_data<R>(n);
 
-  auto a = sycl::malloc_device<T>(n, Q);
-  auto b = sycl::malloc_device<T>(n, Q);
+  auto a = bench_data->template get_device_input<T>(n);
+  auto b = bench_data->template get_device_output<T>(n);
 
-  Q.copy(h_a, a, n);
-  Q.wait();
+  sycl::queue &Q = bench_data->get_queue();
 
   for (auto _ : state) {
     Q.parallel_for(sycl::range<1>(n), [=](sycl::id<1> i) { b[i] = fn(a[i]); });
     Q.wait();
   }
-
-  sycl::free(a, Q);
-  sycl::free(b, Q);
 }
 
 // Size of each vector is N * 16 bytes for complex double,
