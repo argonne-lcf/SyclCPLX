@@ -334,6 +334,9 @@ public:
 template <class _A1, class _A2 = void, class _A3 = void>
 class __promote : public __promote_imp<_A1, _A2, _A3> {};
 
+// Define our own fast-math aware wrappers for these routines, because
+// some compilers are not able to perform the appropriate optimization
+// without this extra help.
 template <typename T>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr bool isnan(const T a) {
 #ifdef _SYCL_EXT_CPLX_FAST_MATH
@@ -592,6 +595,20 @@ public:
 
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex<value_type>
   operator/(const complex<value_type> &__z, const complex<value_type> &__w) {
+#if defined(_SYCL_EXT_CPLX_FAST_MATH)
+    // This implementation is around 20% faster for single precision, 5% for
+    // double, at the expense of larger error in some cases, because no scaling
+    // is done.
+    value_type __a = __z.__re_;
+    value_type __b = __z.__im_;
+    value_type __c = __w.__re_;
+    value_type __d = __w.__im_;
+    value_type __r = __a * __c + __b * __d;
+    value_type __n = __b * __b + __d * __d;
+    value_type __x = __r / __n;
+    value_type __y = (__b * __c - __a * __d) / __n;
+    return complex<value_type>(__x, __y);
+#else
     int __ilogbw = 0;
     value_type __a = __z.__re_;
     value_type __b = __z.__im_;
@@ -631,6 +648,7 @@ public:
       }
     }
     return complex<value_type>(__x, __y);
+#endif
   }
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex<value_type>
   operator/(const complex<value_type> &__x, value_type __y) {
