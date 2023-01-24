@@ -252,6 +252,10 @@ template<class T> complex<T> tanh (const complex<T>&);
 #endif
 #endif
 
+#if defined(__FAST_MATH__) || defined(_GLIBCXX_FAST_MATH) || defined(_M_FP_FAST)
+#define _SYCL_EXT_CPLX_FAST_MATH
+#endif
+
 #define _SYCL_EXT_CPLX_BEGIN_NAMESPACE_STD namespace _SYCL_CPLX_NAMESPACE {
 #define _SYCL_EXT_CPLX_END_NAMESPACE_STD }
 #define _SYCL_EXT_CPLX_INLINE_VISIBILITY                                       \
@@ -329,6 +333,36 @@ public:
 
 template <class _A1, class _A2 = void, class _A3 = void>
 class __promote : public __promote_imp<_A1, _A2, _A3> {};
+
+// Define our own fast-math aware wrappers for these routines, because
+// some compilers are not able to perform the appropriate optimization
+// without this extra help.
+template <typename T>
+_SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr bool isnan(const T a) {
+#ifdef _SYCL_EXT_CPLX_FAST_MATH
+  return false;
+#else
+  return sycl::isnan(a);
+#endif
+}
+
+template <typename T>
+_SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr bool isfinite(const T a) {
+#ifdef _SYCL_EXT_CPLX_FAST_MATH
+  return true;
+#else
+  return sycl::isfinite(a);
+#endif
+}
+
+template <typename T>
+_SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr bool isinf(const T a) {
+#ifdef _SYCL_EXT_CPLX_FAST_MATH
+  return false;
+#else
+  return sycl::isinf(a);
+#endif
+}
 } // namespace cplex::detail
 
 template <class _Tp, class _Enable = void> class complex;
@@ -502,39 +536,40 @@ public:
     value_type __bc = __b * __c;
     value_type __x = __ac - __bd;
     value_type __y = __ad + __bc;
-    if (sycl::isnan(__x) && sycl::isnan(__y)) {
+    if (cplex::detail::isnan(__x) && cplex::detail::isnan(__y)) {
       bool __recalc = false;
-      if (sycl::isinf(__a) || sycl::isinf(__b)) {
-        __a = sycl::copysign(sycl::isinf(__a) ? value_type(1) : value_type(0),
-                             __a);
-        __b = sycl::copysign(sycl::isinf(__b) ? value_type(1) : value_type(0),
-                             __b);
-        if (sycl::isnan(__c))
+      if (cplex::detail::isinf(__a) || cplex::detail::isinf(__b)) {
+        __a = sycl::copysign(
+            cplex::detail::isinf(__a) ? value_type(1) : value_type(0), __a);
+        __b = sycl::copysign(
+            cplex::detail::isinf(__b) ? value_type(1) : value_type(0), __b);
+        if (cplex::detail::isnan(__c))
           __c = sycl::copysign(value_type(0), __c);
-        if (sycl::isnan(__d))
+        if (cplex::detail::isnan(__d))
           __d = sycl::copysign(value_type(0), __d);
         __recalc = true;
       }
-      if (sycl::isinf(__c) || sycl::isinf(__d)) {
-        __c = sycl::copysign(sycl::isinf(__c) ? value_type(1) : value_type(0),
-                             __c);
-        __d = sycl::copysign(sycl::isinf(__d) ? value_type(1) : value_type(0),
-                             __d);
-        if (sycl::isnan(__a))
+      if (cplex::detail::isinf(__c) || cplex::detail::isinf(__d)) {
+        __c = sycl::copysign(
+            cplex::detail::isinf(__c) ? value_type(1) : value_type(0), __c);
+        __d = sycl::copysign(
+            cplex::detail::isinf(__d) ? value_type(1) : value_type(0), __d);
+        if (cplex::detail::isnan(__a))
           __a = sycl::copysign(value_type(0), __a);
-        if (sycl::isnan(__b))
+        if (cplex::detail::isnan(__b))
           __b = sycl::copysign(value_type(0), __b);
         __recalc = true;
       }
-      if (!__recalc && (sycl::isinf(__ac) || sycl::isinf(__bd) ||
-                        sycl::isinf(__ad) || sycl::isinf(__bc))) {
-        if (sycl::isnan(__a))
+      if (!__recalc &&
+          (cplex::detail::isinf(__ac) || cplex::detail::isinf(__bd) ||
+           cplex::detail::isinf(__ad) || cplex::detail::isinf(__bc))) {
+        if (cplex::detail::isnan(__a))
           __a = sycl::copysign(value_type(0), __a);
-        if (sycl::isnan(__b))
+        if (cplex::detail::isnan(__b))
           __b = sycl::copysign(value_type(0), __b);
-        if (sycl::isnan(__c))
+        if (cplex::detail::isnan(__c))
           __c = sycl::copysign(value_type(0), __c);
-        if (sycl::isnan(__d))
+        if (cplex::detail::isnan(__d))
           __d = sycl::copysign(value_type(0), __d);
         __recalc = true;
       }
@@ -560,6 +595,20 @@ public:
 
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex<value_type>
   operator/(const complex<value_type> &__z, const complex<value_type> &__w) {
+#if defined(_SYCL_EXT_CPLX_FAST_MATH)
+    // This implementation is around 20% faster for single precision, 5% for
+    // double, at the expense of larger error in some cases, because no scaling
+    // is done.
+    value_type __a = __z.__re_;
+    value_type __b = __z.__im_;
+    value_type __c = __w.__re_;
+    value_type __d = __w.__im_;
+    value_type __r = __a * __c + __b * __d;
+    value_type __n = __b * __b + __d * __d;
+    value_type __x = __r / __n;
+    value_type __y = (__b * __c - __a * __d) / __n;
+    return complex<value_type>(__x, __y);
+#else
     int __ilogbw = 0;
     value_type __a = __z.__re_;
     value_type __b = __z.__im_;
@@ -567,7 +616,7 @@ public:
     value_type __d = __w.__im_;
     value_type __logbw =
         sycl::logb(sycl::fmax(sycl::fabs(__c), sycl::fabs(__d)));
-    if (sycl::isfinite(__logbw)) {
+    if (cplex::detail::isfinite(__logbw)) {
       __ilogbw = static_cast<int>(__logbw);
       __c = sycl::ldexp(__c, -__ilogbw);
       __d = sycl::ldexp(__d, -__ilogbw);
@@ -575,30 +624,31 @@ public:
     value_type __denom = __c * __c + __d * __d;
     value_type __x = sycl::ldexp((__a * __c + __b * __d) / __denom, -__ilogbw);
     value_type __y = sycl::ldexp((__b * __c - __a * __d) / __denom, -__ilogbw);
-    if (sycl::isnan(__x) && sycl::isnan(__y)) {
+    if (cplex::detail::isnan(__x) && cplex::detail::isnan(__y)) {
       if ((__denom == value_type(0)) &&
-          (!sycl::isnan(__a) || !sycl::isnan(__b))) {
+          (!cplex::detail::isnan(__a) || !cplex::detail::isnan(__b))) {
         __x = sycl::copysign(value_type(INFINITY), __c) * __a;
         __y = sycl::copysign(value_type(INFINITY), __c) * __b;
-      } else if ((sycl::isinf(__a) || sycl::isinf(__b)) &&
-                 sycl::isfinite(__c) && sycl::isfinite(__d)) {
-        __a = sycl::copysign(sycl::isinf(__a) ? value_type(1) : value_type(0),
-                             __a);
-        __b = sycl::copysign(sycl::isinf(__b) ? value_type(1) : value_type(0),
-                             __b);
+      } else if ((cplex::detail::isinf(__a) || cplex::detail::isinf(__b)) &&
+                 cplex::detail::isfinite(__c) && cplex::detail::isfinite(__d)) {
+        __a = sycl::copysign(
+            cplex::detail::isinf(__a) ? value_type(1) : value_type(0), __a);
+        __b = sycl::copysign(
+            cplex::detail::isinf(__b) ? value_type(1) : value_type(0), __b);
         __x = value_type(INFINITY) * (__a * __c + __b * __d);
         __y = value_type(INFINITY) * (__b * __c - __a * __d);
-      } else if (sycl::isinf(__logbw) && __logbw > value_type(0) &&
-                 sycl::isfinite(__a) && sycl::isfinite(__b)) {
-        __c = sycl::copysign(sycl::isinf(__c) ? value_type(1) : value_type(0),
-                             __c);
-        __d = sycl::copysign(sycl::isinf(__d) ? value_type(1) : value_type(0),
-                             __d);
+      } else if (cplex::detail::isinf(__logbw) && __logbw > value_type(0) &&
+                 cplex::detail::isfinite(__a) && cplex::detail::isfinite(__b)) {
+        __c = sycl::copysign(
+            cplex::detail::isinf(__c) ? value_type(1) : value_type(0), __c);
+        __d = sycl::copysign(
+            cplex::detail::isinf(__d) ? value_type(1) : value_type(0), __d);
         __x = value_type(0) * (__a * __c + __b * __d);
         __y = value_type(0) * (__b * __c - __a * __d);
       }
     }
     return complex<value_type>(__x, __y);
+#endif
   }
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex<value_type>
   operator/(const complex<value_type> &__x, value_type __y) {
@@ -776,9 +826,9 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY
 
 template <class _Tp, class = std::enable_if<is_gencomplex<_Tp>::value>>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY _Tp norm(const complex<_Tp> &__c) {
-  if (sycl::isinf(__c.real()))
+  if (cplex::detail::isinf(__c.real()))
     return sycl::fabs(__c.real());
-  if (sycl::isinf(__c.imag()))
+  if (cplex::detail::isinf(__c.imag()))
     return sycl::fabs(__c.imag());
   return __c.real() * __c.real() + __c.imag() * __c.imag();
 }
@@ -814,7 +864,7 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY
 template <class _Tp, class = std::enable_if<is_gencomplex<_Tp>::value>>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY complex<_Tp> proj(const complex<_Tp> &__c) {
   complex<_Tp> __r = __c;
-  if (sycl::isinf(__c.real()) || sycl::isinf(__c.imag()))
+  if (cplex::detail::isinf(__c.real()) || cplex::detail::isinf(__c.imag()))
     __r = complex<_Tp>(INFINITY, sycl::copysign(_Tp(0), __c.imag()));
   return __r;
 }
@@ -827,7 +877,7 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY
       _Tp>::_ComplexType _ComplexType;
 
   if constexpr (!std::is_integral_v<_Tp>) {
-    if (sycl::isinf(__re))
+    if (cplex::detail::isinf(__re))
       __re = sycl::fabs(__re);
   }
 
@@ -839,23 +889,23 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY
 template <class _Tp, class = std::enable_if<is_gencomplex<_Tp>::value>>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY complex<_Tp>
 polar(const _Tp &__rho, const _Tp &__theta = _Tp()) {
-  if (sycl::isnan(__rho) || sycl::signbit(__rho))
+  if (cplex::detail::isnan(__rho) || sycl::signbit(__rho))
     return complex<_Tp>(_Tp(NAN), _Tp(NAN));
-  if (sycl::isnan(__theta)) {
-    if (sycl::isinf(__rho))
+  if (cplex::detail::isnan(__theta)) {
+    if (cplex::detail::isinf(__rho))
       return complex<_Tp>(__rho, __theta);
     return complex<_Tp>(__theta, __theta);
   }
-  if (sycl::isinf(__theta)) {
-    if (sycl::isinf(__rho))
+  if (cplex::detail::isinf(__theta)) {
+    if (cplex::detail::isinf(__rho))
       return complex<_Tp>(__rho, _Tp(NAN));
     return complex<_Tp>(_Tp(NAN), _Tp(NAN));
   }
   _Tp __x = __rho * sycl::cos(__theta);
-  if (sycl::isnan(__x))
+  if (cplex::detail::isnan(__x))
     __x = 0;
   _Tp __y = __rho * sycl::sin(__theta);
-  if (sycl::isnan(__y))
+  if (cplex::detail::isnan(__y))
     __y = 0;
   return complex<_Tp>(__x, __y);
 }
@@ -878,14 +928,14 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY complex<_Tp> log10(const complex<_Tp> &__x) {
 
 template <class _Tp, class = std::enable_if<is_gencomplex<_Tp>::value>>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY complex<_Tp> sqrt(const complex<_Tp> &__x) {
-  if (sycl::isinf(__x.imag()))
+  if (cplex::detail::isinf(__x.imag()))
     return complex<_Tp>(_Tp(INFINITY), __x.imag());
-  if (sycl::isinf(__x.real())) {
+  if (cplex::detail::isinf(__x.real())) {
     if (__x.real() > _Tp(0))
-      return complex<_Tp>(__x.real(), sycl::isnan(__x.imag())
+      return complex<_Tp>(__x.real(), cplex::detail::isnan(__x.imag())
                                           ? __x.imag()
                                           : sycl::copysign(_Tp(0), __x.imag()));
-    return complex<_Tp>(sycl::isnan(__x.imag()) ? __x.imag() : _Tp(0),
+    return complex<_Tp>(cplex::detail::isnan(__x.imag()) ? __x.imag() : _Tp(0),
                         sycl::copysign(__x.real(), __x.imag()));
   }
   return polar(sycl::sqrt(abs(__x)), arg(__x) / _Tp(2));
@@ -900,12 +950,12 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY complex<_Tp> exp(const complex<_Tp> &__x) {
     return complex<_Tp>(sycl::exp(__x.real()),
                         sycl::copysign(_Tp(0), __x.imag()));
   }
-  if (sycl::isinf(__x.real())) {
+  if (cplex::detail::isinf(__x.real())) {
     if (__x.real() < _Tp(0)) {
-      if (!sycl::isfinite(__i))
+      if (!cplex::detail::isfinite(__i))
         __i = _Tp(1);
-    } else if (__i == 0 || !sycl::isfinite(__i)) {
-      if (sycl::isinf(__i))
+    } else if (__i == 0 || !cplex::detail::isfinite(__i)) {
+      if (cplex::detail::isinf(__i))
         __i = _Tp(NAN);
       return complex<_Tp>(__x.real(), __i);
     }
@@ -969,22 +1019,22 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY complex<_Tp> __sqr(const complex<_Tp> &__x) {
 template <class _Tp, class = std::enable_if<is_gencomplex<_Tp>::value>>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY complex<_Tp> asinh(const complex<_Tp> &__x) {
   const _Tp __pi(sycl::atan2(+0., -0.));
-  if (sycl::isinf(__x.real())) {
-    if (sycl::isnan(__x.imag()))
+  if (cplex::detail::isinf(__x.real())) {
+    if (cplex::detail::isnan(__x.imag()))
       return __x;
-    if (sycl::isinf(__x.imag()))
+    if (cplex::detail::isinf(__x.imag()))
       return complex<_Tp>(__x.real(),
                           sycl::copysign(__pi * _Tp(0.25), __x.imag()));
     return complex<_Tp>(__x.real(), sycl::copysign(_Tp(0), __x.imag()));
   }
-  if (sycl::isnan(__x.real())) {
-    if (sycl::isinf(__x.imag()))
+  if (cplex::detail::isnan(__x.real())) {
+    if (cplex::detail::isinf(__x.imag()))
       return complex<_Tp>(__x.imag(), __x.real());
     if (__x.imag() == 0)
       return __x;
     return complex<_Tp>(__x.real(), __x.real());
   }
-  if (sycl::isinf(__x.imag()))
+  if (cplex::detail::isinf(__x.imag()))
     return complex<_Tp>(sycl::copysign(__x.imag(), __x.real()),
                         sycl::copysign(__pi / _Tp(2), __x.imag()));
   complex<_Tp> __z = log(__x + sqrt(cplex::detail::__sqr(__x) + _Tp(1)));
@@ -997,10 +1047,10 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY complex<_Tp> asinh(const complex<_Tp> &__x) {
 template <class _Tp, class = std::enable_if<is_gencomplex<_Tp>::value>>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY complex<_Tp> acosh(const complex<_Tp> &__x) {
   const _Tp __pi(sycl::atan2(+0., -0.));
-  if (sycl::isinf(__x.real())) {
-    if (sycl::isnan(__x.imag()))
+  if (cplex::detail::isinf(__x.real())) {
+    if (cplex::detail::isnan(__x.imag()))
       return complex<_Tp>(sycl::fabs(__x.real()), __x.imag());
-    if (sycl::isinf(__x.imag())) {
+    if (cplex::detail::isinf(__x.imag())) {
       if (__x.real() > 0)
         return complex<_Tp>(__x.real(),
                             sycl::copysign(__pi * _Tp(0.25), __x.imag()));
@@ -1012,12 +1062,12 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY complex<_Tp> acosh(const complex<_Tp> &__x) {
       return complex<_Tp>(-__x.real(), sycl::copysign(__pi, __x.imag()));
     return complex<_Tp>(__x.real(), sycl::copysign(_Tp(0), __x.imag()));
   }
-  if (sycl::isnan(__x.real())) {
-    if (sycl::isinf(__x.imag()))
+  if (cplex::detail::isnan(__x.real())) {
+    if (cplex::detail::isinf(__x.imag()))
       return complex<_Tp>(sycl::fabs(__x.imag()), __x.real());
     return complex<_Tp>(__x.real(), __x.real());
   }
-  if (sycl::isinf(__x.imag()))
+  if (cplex::detail::isinf(__x.imag()))
     return complex<_Tp>(sycl::fabs(__x.imag()),
                         sycl::copysign(__pi / _Tp(2), __x.imag()));
   complex<_Tp> __z = log(__x + sqrt(cplex::detail::__sqr(__x) - _Tp(1)));
@@ -1030,19 +1080,19 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY complex<_Tp> acosh(const complex<_Tp> &__x) {
 template <class _Tp, class = std::enable_if<is_gencomplex<_Tp>::value>>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY complex<_Tp> atanh(const complex<_Tp> &__x) {
   const _Tp __pi(sycl::atan2(+0., -0.));
-  if (sycl::isinf(__x.imag())) {
+  if (cplex::detail::isinf(__x.imag())) {
     return complex<_Tp>(sycl::copysign(_Tp(0), __x.real()),
                         sycl::copysign(__pi / _Tp(2), __x.imag()));
   }
-  if (sycl::isnan(__x.imag())) {
-    if (sycl::isinf(__x.real()) || __x.real() == 0)
+  if (cplex::detail::isnan(__x.imag())) {
+    if (cplex::detail::isinf(__x.real()) || __x.real() == 0)
       return complex<_Tp>(sycl::copysign(_Tp(0), __x.real()), __x.imag());
     return complex<_Tp>(__x.imag(), __x.imag());
   }
-  if (sycl::isnan(__x.real())) {
+  if (cplex::detail::isnan(__x.real())) {
     return complex<_Tp>(__x.real(), __x.real());
   }
-  if (sycl::isinf(__x.real())) {
+  if (cplex::detail::isinf(__x.real())) {
     return complex<_Tp>(sycl::copysign(_Tp(0), __x.real()),
                         sycl::copysign(__pi / _Tp(2), __x.imag()));
   }
@@ -1059,11 +1109,11 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY complex<_Tp> atanh(const complex<_Tp> &__x) {
 
 template <class _Tp, class = std::enable_if<is_gencomplex<_Tp>::value>>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY complex<_Tp> sinh(const complex<_Tp> &__x) {
-  if (sycl::isinf(__x.real()) && !sycl::isfinite(__x.imag()))
+  if (cplex::detail::isinf(__x.real()) && !cplex::detail::isfinite(__x.imag()))
     return complex<_Tp>(__x.real(), _Tp(NAN));
-  if (__x.real() == 0 && !sycl::isfinite(__x.imag()))
+  if (__x.real() == 0 && !cplex::detail::isfinite(__x.imag()))
     return complex<_Tp>(__x.real(), _Tp(NAN));
-  if (__x.imag() == 0 && !sycl::isfinite(__x.real()))
+  if (__x.imag() == 0 && !cplex::detail::isfinite(__x.real()))
     return __x;
   return complex<_Tp>(sycl::sinh(__x.real()) * sycl::cos(__x.imag()),
                       sycl::cosh(__x.real()) * sycl::sin(__x.imag()));
@@ -1073,13 +1123,13 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY complex<_Tp> sinh(const complex<_Tp> &__x) {
 
 template <class _Tp, class = std::enable_if<is_gencomplex<_Tp>::value>>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY complex<_Tp> cosh(const complex<_Tp> &__x) {
-  if (sycl::isinf(__x.real()) && !sycl::isfinite(__x.imag()))
+  if (cplex::detail::isinf(__x.real()) && !cplex::detail::isfinite(__x.imag()))
     return complex<_Tp>(sycl::fabs(__x.real()), _Tp(NAN));
-  if (__x.real() == 0 && !sycl::isfinite(__x.imag()))
+  if (__x.real() == 0 && !cplex::detail::isfinite(__x.imag()))
     return complex<_Tp>(_Tp(NAN), __x.real());
   if (__x.real() == 0 && __x.imag() == 0)
     return complex<_Tp>(_Tp(1), __x.imag());
-  if (__x.imag() == 0 && !sycl::isfinite(__x.real()))
+  if (__x.imag() == 0 && !cplex::detail::isfinite(__x.real()))
     return complex<_Tp>(sycl::fabs(__x.real()), __x.imag());
   return complex<_Tp>(sycl::cosh(__x.real()) * sycl::cos(__x.imag()),
                       sycl::sinh(__x.real()) * sycl::sin(__x.imag()));
@@ -1089,19 +1139,19 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY complex<_Tp> cosh(const complex<_Tp> &__x) {
 
 template <class _Tp, class = std::enable_if<is_gencomplex<_Tp>::value>>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY complex<_Tp> tanh(const complex<_Tp> &__x) {
-  if (sycl::isinf(__x.real())) {
-    if (!sycl::isfinite(__x.imag()))
+  if (cplex::detail::isinf(__x.real())) {
+    if (!cplex::detail::isfinite(__x.imag()))
       return complex<_Tp>(sycl::copysign(_Tp(1), __x.real()), _Tp(0));
     return complex<_Tp>(sycl::copysign(_Tp(1), __x.real()),
                         sycl::copysign(_Tp(0), sycl::sin(_Tp(2) * __x.imag())));
   }
-  if (sycl::isnan(__x.real()) && __x.imag() == 0)
+  if (cplex::detail::isnan(__x.real()) && __x.imag() == 0)
     return __x;
   _Tp __2r(_Tp(2) * __x.real());
   _Tp __2i(_Tp(2) * __x.imag());
   _Tp __d(sycl::cosh(__2r) + sycl::cos(__2i));
   _Tp __2rsh(sycl::sinh(__2r));
-  if (sycl::isinf(__2rsh) && sycl::isinf(__d))
+  if (cplex::detail::isinf(__2rsh) && cplex::detail::isinf(__d))
     return complex<_Tp>(__2rsh > _Tp(0) ? _Tp(1) : _Tp(-1),
                         __2i > _Tp(0) ? _Tp(0) : _Tp(-0.));
   return complex<_Tp>(__2rsh / __d, sycl::sin(__2i) / __d);
@@ -1120,10 +1170,10 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY complex<_Tp> asin(const complex<_Tp> &__x) {
 template <class _Tp, class = std::enable_if<is_gencomplex<_Tp>::value>>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY complex<_Tp> acos(const complex<_Tp> &__x) {
   const _Tp __pi(sycl::atan2(+0., -0.));
-  if (sycl::isinf(__x.real())) {
-    if (sycl::isnan(__x.imag()))
+  if (cplex::detail::isinf(__x.real())) {
+    if (cplex::detail::isnan(__x.imag()))
       return complex<_Tp>(__x.imag(), __x.real());
-    if (sycl::isinf(__x.imag())) {
+    if (cplex::detail::isinf(__x.imag())) {
       if (__x.real() < _Tp(0))
         return complex<_Tp>(_Tp(0.75) * __pi, -__x.imag());
       return complex<_Tp>(_Tp(0.25) * __pi, -__x.imag());
@@ -1134,12 +1184,12 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY complex<_Tp> acos(const complex<_Tp> &__x) {
     return complex<_Tp>(_Tp(0),
                         sycl::signbit(__x.imag()) ? __x.real() : -__x.real());
   }
-  if (sycl::isnan(__x.real())) {
-    if (sycl::isinf(__x.imag()))
+  if (cplex::detail::isnan(__x.real())) {
+    if (cplex::detail::isinf(__x.imag()))
       return complex<_Tp>(__x.real(), -__x.imag());
     return complex<_Tp>(__x.real(), __x.real());
   }
-  if (sycl::isinf(__x.imag()))
+  if (cplex::detail::isinf(__x.imag()))
     return complex<_Tp>(__pi / _Tp(2), -__x.imag());
   if (__x.real() == 0 && (__x.imag() == 0 || isnan(__x.imag())))
     return complex<_Tp>(__pi / _Tp(2), -__x.imag());
