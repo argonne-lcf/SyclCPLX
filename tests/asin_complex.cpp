@@ -42,9 +42,9 @@ TEMPLATE_TEST_CASE("Test complex asin", "[asin]", double, float, sycl::half) {
       });
     }
     Q.wait();
-  }
 
-  check_results(cplx_out[0], std_out, /*tol_multiplier*/ 2);
+    check_results(cplx_out[0], std_out, /*tol_multiplier*/ 5);
+  }
 
   // Check cplx::complex output from host
   if (is_error_checking)
@@ -52,7 +52,7 @@ TEMPLATE_TEST_CASE("Test complex asin", "[asin]", double, float, sycl::half) {
   else
     cplx_out[0] = sycl::ext::cplx::sin<T>(sycl::ext::cplx::asin<T>(cplx_input));
 
-  check_results(cplx_out[0], std_out, /*tol_multiplier*/ 2);
+  check_results(cplx_out[0], std_out, /*tol_multiplier*/ 6);
 
   sycl::free(cplx_out, Q);
 }

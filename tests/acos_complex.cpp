@@ -42,9 +42,9 @@ TEMPLATE_TEST_CASE("Test complex acos", "[acos]", double, float, sycl::half) {
       });
     }
     Q.wait();
-  }
 
-  check_results(cplx_out[0], std_out, /*tol_multiplier*/ 2);
+    check_results(cplx_out[0], std_out, /*tol_multiplier*/ 2);
+  }
 
   // Check cplx::complex output from host
   if (is_error_checking)
