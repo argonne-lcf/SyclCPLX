@@ -252,7 +252,7 @@ template<class T> complex<T> tanh (const complex<T>&);
 #endif
 #endif
 
-#if defined(__FAST_MATH__) || defined(_GLIBCXX_FAST_MATH) || defined(_M_FP_FAST)
+#if defined(__FAST_MATH__) || defined(_M_FP_FAST)
 #define _SYCL_EXT_CPLX_FAST_MATH
 #endif
 
