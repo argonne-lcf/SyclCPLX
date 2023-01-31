@@ -1193,7 +1193,7 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY complex<_Tp> acos(const complex<_Tp> &__x) {
   }
   if (cplex::detail::isinf(__x.imag()))
     return complex<_Tp>(__pi / _Tp(2), -__x.imag());
-  if (__x.real() == 0 && (__x.imag() == 0 || isnan(__x.imag())))
+  if (__x.real() == 0 && (__x.imag() == 0 || cplex::detail::isnan(__x.imag())))
     return complex<_Tp>(__pi / _Tp(2), -__x.imag());
   complex<_Tp> __z = log(__x + sqrt(cplex::detail::__sqr(__x) - _Tp(1)));
   if (sycl::signbit(__x.imag()))
