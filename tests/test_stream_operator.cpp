@@ -18,11 +18,9 @@ TEMPLATE_TEST_CASE("Test complex sycl stream", "[sycl::stream]", double, float,
 
   if (is_type_supported<T>(Q)) {
     Q.submit([&](sycl::handler &CGH) {
-      sycl::stream Out(512, 20, CGH);
-      CGH.single_task([=]() {
-        Out << cplx_out[0] << sycl::endl;
-     });
-    }).wait();
+       sycl::stream Out(512, 20, CGH);
+       CGH.single_task([=]() { Out << cplx_out[0] << sycl::endl; });
+     }).wait();
   }
 
   sycl::free(cplx_out, Q);
