@@ -5,10 +5,6 @@
 #include <iomanip>
 #include <sycl/sycl.hpp>
 
-#undef __FAST_MATH__
-#undef _GLIBCXX_FAST_MATH
-#undef _M_FP_FAST
-
 #include "sycl_ext_complex.hpp"
 
 #define SYCL_CPLX_TOL_ULP 5
