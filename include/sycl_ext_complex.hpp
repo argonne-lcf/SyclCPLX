@@ -293,9 +293,7 @@ template <class _Tp> struct __numeric_type {
   static const bool value = !std::is_same<type, void>::value;
 };
 
-template <> struct __numeric_type<void> {
-  static const bool value = true;
-};
+template <> struct __numeric_type<void> { static const bool value = true; };
 
 template <class _A1, class _A2 = void, class _A3 = void,
           bool = __numeric_type<_A1>::value &&__numeric_type<_A2>::value
