@@ -27,9 +27,12 @@
     /* Check complex-complex op */                                             \
     std_out = std_in1 op std_in2;                                              \
                                                                                \
-    Q.single_task([=]() { cplx_out[0] = cplx_input1 op cplx_input2; }).wait(); \
-                                                                               \
-    check_results(cplx_out[0], std_out);                                       \
+    if (is_type_supported<T>(Q)) {                                             \
+      Q.single_task([=]() {                                                    \
+         cplx_out[0] = cplx_input1 op cplx_input2;                             \
+       }).wait();                                                              \
+      check_results(cplx_out[0], std_out);                                     \
+    }                                                                          \
                                                                                \
     cplx_out[0] = cplx_input1 op cplx_input2;                                  \
                                                                                \
@@ -39,9 +42,9 @@
   }
 
 test_op("Test complex addition cplx-cplx overload", "[add]", +);
-test_op("Test complex subtraction cplx-cplx overload", "[sub]", +);
-test_op("Test complex multiplication cplx-cplx overload", "[mul]", +);
-test_op("Test complex division cplx-cplx overload", "[div]", +);
+test_op("Test complex subtraction cplx-cplx overload", "[sub]", -);
+test_op("Test complex multiplication cplx-cplx overload", "[mul]", *);
+test_op("Test complex division cplx-cplx overload", "[div]", /);
 
 #undef test_op
 
@@ -72,9 +75,10 @@ test_op("Test complex division cplx-cplx overload", "[div]", +);
     /* Check complex-decimal op */                                             \
     std_out = std_in op std_deci_in;                                           \
                                                                                \
-    Q.single_task([=]() { cplx_out[0] = cplx_input op deci_input; }).wait();   \
-                                                                               \
-    check_results(cplx_out[0], std_out);                                       \
+    if (is_type_supported<T>(Q)) {                                             \
+      Q.single_task([=]() { cplx_out[0] = cplx_input op deci_input; }).wait(); \
+      check_results(cplx_out[0], std_out);                                     \
+    }                                                                          \
                                                                                \
     cplx_out[0] = cplx_input op deci_input;                                    \
                                                                                \
@@ -181,21 +185,20 @@ test_op("Test complex division deci-cplx overload", "[div]", /);
                                                                                \
     std_inout op_assign std_in;                                                \
                                                                                \
-    SECTION("DEVICE") {                                                        \
-      if (is_type_supported<T1>(Q) && is_type_supported<T2>(Q)) {              \
-        Q.single_task([=]() { cplx_inout[0] op_assign cplx_input; }).wait();   \
-                                                                               \
-        check_results(cplx_inout[0],                                           \
-                      std::complex<T2>(std_inout.real(), std_inout.imag()));   \
-      }                                                                        \
-    }                                                                          \
-                                                                               \
-    SECTION("HOST") {                                                          \
-      cplx_inout[0] op_assign cplx_input;                                      \
+    if (is_type_supported<T1>(Q) && is_type_supported<T2>(Q)) {                \
+      Q.single_task([=]() { cplx_inout[0] op_assign cplx_input; }).wait();     \
                                                                                \
       check_results(cplx_inout[0],                                             \
                     std::complex<T2>(std_inout.real(), std_inout.imag()));     \
     }                                                                          \
+                                                                               \
+    cplx_inout[0].real(input2.re);                                             \
+    cplx_inout[0].imag(input2.im);                                             \
+                                                                               \
+    cplx_inout[0] op_assign cplx_input;                                        \
+                                                                               \
+    check_results(cplx_inout[0],                                               \
+                  std::complex<T2>(std_inout.real(), std_inout.imag()));       \
                                                                                \
     sycl::free(cplx_inout, Q);                                                 \
   }
@@ -244,21 +247,20 @@ test_op_assign("Test complex assign division cplx-cplx overload", "[div]", /=);
                                                                                \
     std_inout op_assign std_deci_in;                                           \
                                                                                \
-    SECTION("DEVICE") {                                                        \
-      if (is_type_supported<T1>(Q) && is_type_supported<T2>(Q)) {              \
-        Q.single_task([=]() { cplx_inout[0] op_assign deci_input; }).wait();   \
-                                                                               \
-        check_results(cplx_inout[0],                                           \
-                      std::complex<T2>(std_inout.real(), std_inout.imag()));   \
-      }                                                                        \
-    }                                                                          \
-                                                                               \
-    SECTION("HOST") {                                                          \
-      cplx_inout[0] op_assign deci_input;                                      \
+    if (is_type_supported<T1>(Q) && is_type_supported<T2>(Q)) {                \
+      Q.single_task([=]() { cplx_inout[0] op_assign deci_input; }).wait();     \
                                                                                \
       check_results(cplx_inout[0],                                             \
                     std::complex<T2>(std_inout.real(), std_inout.imag()));     \
     }                                                                          \
+                                                                               \
+    cplx_inout[0].real(input2.re);                                             \
+    cplx_inout[0].imag(input2.im);                                             \
+                                                                               \
+    cplx_inout[0] op_assign deci_input;                                        \
+                                                                               \
+    check_results(cplx_inout[0],                                               \
+                  std::complex<T2>(std_inout.real(), std_inout.imag()));       \
                                                                                \
     sycl::free(cplx_inout, Q);                                                 \
   }

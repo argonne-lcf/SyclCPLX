@@ -16,12 +16,12 @@ TEMPLATE_TEST_CASE("Test complex sycl stream", "[sycl::stream]", double, float,
   auto *cplx_out = sycl::malloc_shared<sycl::ext::cplx::complex<T>>(1, Q);
   cplx_out[0] = sycl::ext::cplx::complex<T>(input.re, input.im);
 
-  Q.submit([&](sycl::handler &CGH) {
-    sycl::stream Out(512, 20, CGH);
-    CGH.parallel_for<>(sycl::range<1>(1), [=](sycl::id<1> idx) {
-      Out << cplx_out[idx] << sycl::endl;
-    });
-  });
+  if (is_type_supported<T>(Q)) {
+    Q.submit([&](sycl::handler &CGH) {
+       sycl::stream Out(512, 20, CGH);
+       CGH.single_task([=]() { Out << cplx_out[0] << sycl::endl; });
+     }).wait();
+  }
 
   sycl::free(cplx_out, Q);
 }
