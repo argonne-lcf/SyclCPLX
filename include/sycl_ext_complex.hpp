@@ -1271,7 +1271,7 @@ public:
   }
 
   template <typename... ArgTN>
-  constexpr marray(const ArgTN &... args) : MData{args...} {};
+  constexpr marray(const ArgTN &...args) : MData{args...} {};
 
   constexpr marray(const marray<DataT, NumElements> &rhs) = default;
   constexpr marray(marray<DataT, NumElements> &&rhs) = default;
