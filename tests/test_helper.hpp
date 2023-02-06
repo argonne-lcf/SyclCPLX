@@ -119,10 +119,47 @@ template <> auto constexpr init_std_complex(cmplx<sycl::half> c) {
   return detail::trunc_float(std::complex<float>(c.re, c.im));
 }
 
+template <typename T_in, std::size_t NumElements>
+auto constexpr init_std_complex(
+    sycl::marray<std::complex<T_in>, NumElements> input) {
+  return input;
+}
+
+template <std::size_t NumElements>
+auto constexpr init_std_complex(
+    sycl::marray<std::complex<sycl::half>, NumElements> input) {
+  sycl::marray<std::complex<float>, NumElements> rtn;
+  for (std::size_t i = 0; i < rtn.size(); ++i) {
+    rtn[i] = detail::trunc_float(
+        std::complex<float>(input[i].real(), input[i].imag()));
+  }
+  return rtn;
+}
+
 template <typename T_in> auto constexpr init_deci(T_in re) { return re; }
 
 template <> auto constexpr init_deci(sycl::half re) {
   return static_cast<float>(re);
+}
+
+template <std::size_t NumElements>
+auto constexpr init_deci(sycl::marray<sycl::half, NumElements> re) {
+  sycl::marray<float, NumElements> rtn;
+  for (std::size_t i = 0; i < NumElements; ++i)
+    rtn[i] = static_cast<float>(re[i]);
+  return rtn;
+}
+
+// Helper to change marray of std::complex value type
+
+template <typename Tout, typename Tin, std::size_t NumElements>
+auto constexpr convert_marray(sycl::marray<std::complex<Tin>, NumElements> c) {
+  sycl::marray<std::complex<Tout>, NumElements> rtn;
+
+  for (std::size_t i = 0; i < NumElements; ++i)
+    rtn[i] = c[i];
+
+  return rtn;
 }
 
 // Helpers for comparing SyclCPLX and standard c++ results
@@ -138,4 +175,23 @@ template <typename T>
 void check_results(T output, T reference, int tol_multiplier = 1) {
   CHECK(detail::almost_equal(output, reference,
                              tol_multiplier * SYCL_CPLX_TOL_ULP));
+}
+
+template <typename T, std::size_t NumElements>
+void check_results(
+    sycl::marray<sycl::ext::cplx::complex<T>, NumElements> output,
+    sycl::marray<std::complex<T>, NumElements> reference,
+    int tol_multiplier = 1) {
+  for (std::size_t i = 0; i < NumElements; ++i) {
+    check_results(output[i], reference[i], tol_multiplier);
+  }
+}
+
+template <typename T, std::size_t NumElements>
+void check_results(sycl::marray<T, NumElements> output,
+                   sycl::marray<T, NumElements> reference,
+                   int tol_multiplier = 1) {
+  for (std::size_t i = 0; i < NumElements; ++i) {
+    check_results<T>(output[i], reference[i], tol_multiplier);
+  }
 }
