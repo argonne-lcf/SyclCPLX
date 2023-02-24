@@ -1305,8 +1305,8 @@ public:
   }
 
   // subscript operator
-  reference operator[](std::size_t index) { return MData[index]; }
-  const_reference operator[](std::size_t index) const { return MData[index]; }
+  reference operator[](std::size_t i) { return MData[i]; }
+  const_reference operator[](std::size_t i) const { return MData[i]; }
 
   marray &operator=(const marray<DataT, NumElements> &rhs) = default;
   marray &operator=(const DataT &rhs) {
