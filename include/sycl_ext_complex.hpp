@@ -297,7 +297,9 @@ template <class _Tp> struct __numeric_type {
   static const bool value = !std::is_same<type, void>::value;
 };
 
-template <> struct __numeric_type<void> { static const bool value = true; };
+template <> struct __numeric_type<void> {
+  static const bool value = true;
+};
 
 template <class _A1, class _A2 = void, class _A3 = void,
           bool = __numeric_type<_A1>::value &&__numeric_type<_A2>::value
@@ -1250,14 +1252,14 @@ _SYCL_BEGIN_NAMESPACE
 template <typename T, std::size_t NumElements>
 class marray<sycl::ext::cplx::complex<T>, NumElements> {
 private:
-  using DataT = sycl::ext::cplx::complex<T>;
+  using ComplexDataT = sycl::ext::cplx::complex<T>;
 
 public:
-  using value_type = DataT;
-  using reference = DataT &;
-  using const_reference = const DataT &;
-  using iterator = DataT *;
-  using const_iterator = const DataT *;
+  using value_type = ComplexDataT;
+  using reference = ComplexDataT &;
+  using const_reference = const ComplexDataT &;
+  using iterator = ComplexDataT *;
+  using const_iterator = const ComplexDataT *;
 
 private:
   value_type MData[NumElements];
@@ -1265,7 +1267,7 @@ private:
 public:
   constexpr marray() : MData{} {};
 
-  explicit constexpr marray(const DataT &arg) {
+  explicit constexpr marray(const ComplexDataT &arg) {
     for (size_t i = 0; i < NumElements; ++i)
       MData[i] = arg;
   }
@@ -1273,12 +1275,12 @@ public:
   template <typename... ArgTN>
   constexpr marray(const ArgTN &...args) : MData{args...} {};
 
-  constexpr marray(const marray<DataT, NumElements> &rhs) = default;
-  constexpr marray(marray<DataT, NumElements> &&rhs) = default;
+  constexpr marray(const marray<ComplexDataT, NumElements> &rhs) = default;
+  constexpr marray(marray<ComplexDataT, NumElements> &&rhs) = default;
 
   // Available only when: NumElements == 1
   template <typename = typename std::enable_if<NumElements == 1>>
-  operator DataT() const {
+  operator ComplexDataT() const {
     return MData[0];
   }
 
@@ -1308,8 +1310,8 @@ public:
   reference operator[](std::size_t i) { return MData[i]; }
   const_reference operator[](std::size_t i) const { return MData[i]; }
 
-  marray &operator=(const marray<DataT, NumElements> &rhs) = default;
-  marray &operator=(const DataT &rhs) {
+  marray &operator=(const marray<ComplexDataT, NumElements> &rhs) = default;
+  marray &operator=(const ComplexDataT &rhs) {
     for (std::size_t i = 0; i < NumElements; ++i)
       MData[i] = rhs;
 
@@ -1333,7 +1335,7 @@ public:
     return rtn;                                                                \
   }                                                                            \
                                                                                \
-  friend marray operator op(const marray &lhs, const DataT &rhs) {             \
+  friend marray operator op(const marray &lhs, const ComplexDataT &rhs) {      \
     marray rtn;                                                                \
     for (std::size_t i = 0; i < NumElements; ++i)                              \
       rtn[i] = lhs[i] op rhs;                                                  \
@@ -1341,7 +1343,7 @@ public:
     return rtn;                                                                \
   }                                                                            \
                                                                                \
-  friend marray operator op(const DataT &lhs, const marray &rhs) {             \
+  friend marray operator op(const ComplexDataT &lhs, const marray &rhs) {      \
     marray rtn;                                                                \
     for (std::size_t i = 0; i < NumElements; ++i)                              \
       rtn[i] = lhs op rhs[i];                                                  \
@@ -1358,8 +1360,8 @@ public:
 
   // OP is: %
   friend marray operator%(const marray &lhs, const marray &rhs) = delete;
-  friend marray operator%(const marray &lhs, const DataT &rhs) = delete;
-  friend marray operator%(const DataT &lhs, const marray &rhs) = delete;
+  friend marray operator%(const marray &lhs, const ComplexDataT &rhs) = delete;
+  friend marray operator%(const ComplexDataT &lhs, const marray &rhs) = delete;
 
   // OP is: +=, -=, *=, /=
 #define OP(op)                                                                 \
@@ -1370,13 +1372,13 @@ public:
     return lhs;                                                                \
   }                                                                            \
                                                                                \
-  friend marray &operator op(marray &lhs, const DataT &rhs) {                  \
+  friend marray &operator op(marray &lhs, const ComplexDataT &rhs) {           \
     for (std::size_t i = 0; i < NumElements; ++i)                              \
       lhs[i] op rhs;                                                           \
                                                                                \
     return lhs;                                                                \
   }                                                                            \
-  friend marray &operator op(DataT &lhs, const marray &rhs) {                  \
+  friend marray &operator op(ComplexDataT &lhs, const marray &rhs) {           \
     for (std::size_t i = 0; i < NumElements; ++i)                              \
       lhs[i] op rhs;                                                           \
                                                                                \
@@ -1392,8 +1394,8 @@ public:
 
   // OP is: %=
   friend marray &operator%=(marray &lhs, const marray &rhs) = delete;
-  friend marray &operator%=(marray &lhs, const DataT &rhs) = delete;
-  friend marray &operator%=(DataT &lhs, const marray &rhs) = delete;
+  friend marray &operator%=(marray &lhs, const ComplexDataT &rhs) = delete;
+  friend marray &operator%=(ComplexDataT &lhs, const marray &rhs) = delete;
 
 // OP is: ++, --
 #define OP(op)                                                                 \
@@ -1407,9 +1409,9 @@ public:
 
 // OP is: unary +, unary -
 #define OP(op)                                                                 \
-  friend marray<DataT, NumElements> operator op(                               \
-      const marray<DataT, NumElements> &rhs) {                                 \
-    marray<DataT, NumElements> rtn;                                            \
+  friend marray<ComplexDataT, NumElements> operator op(                        \
+      const marray<ComplexDataT, NumElements> &rhs) {                          \
+    marray<ComplexDataT, NumElements> rtn;                                     \
                                                                                \
     for (std::size_t i = 0; i < NumElements; ++i) {                            \
       rtn[i] = op rhs[i];                                                      \
@@ -1426,7 +1428,8 @@ public:
 // OP is: &, |, ^
 #define OP(op)                                                                 \
   friend marray operator op(const marray &lhs, const marray &rhs) = delete;    \
-  friend marray operator op(const marray &lhs, const DataT &rhs) = delete;
+  friend marray operator op(const marray &lhs, const ComplexDataT &rhs) =      \
+      delete;
 
   OP(&)
   OP(|)
@@ -1437,8 +1440,8 @@ public:
 // OP is: &=, |=, ^=
 #define OP(op)                                                                 \
   friend marray &operator op(marray &lhs, const marray &rhs) = delete;         \
-  friend marray &operator op(marray &lhs, const DataT &rhs) = delete;          \
-  friend marray &operator op(DataT &lhs, const marray &rhs) = delete;
+  friend marray &operator op(marray &lhs, const ComplexDataT &rhs) = delete;   \
+  friend marray &operator op(ComplexDataT &lhs, const marray &rhs) = delete;
 
   OP(&=)
   OP(|=)
@@ -1450,9 +1453,9 @@ public:
 #define OP(op)                                                                 \
   friend marray<bool, NumElements> operator op(const marray &lhs,              \
                                                const marray &rhs) = delete;    \
-  friend marray<bool, NumElements> operator op(const marray &lhs,              \
-                                               const DataT &rhs) = delete;     \
-  friend marray<bool, NumElements> operator op(const DataT &lhs,               \
+  friend marray<bool, NumElements> operator op(                                \
+      const marray &lhs, const ComplexDataT &rhs) = delete;                    \
+  friend marray<bool, NumElements> operator op(const ComplexDataT &lhs,        \
                                                const marray &rhs) = delete;
 
   OP(&&)
@@ -1463,8 +1466,10 @@ public:
 // OP is: <<, >>
 #define OP(op)                                                                 \
   friend marray operator op(const marray &lhs, const marray &rhs) = delete;    \
-  friend marray operator op(const marray &lhs, const DataT &rhs) = delete;     \
-  friend marray operator op(const DataT &lhs, const marray &rhs) = delete;
+  friend marray operator op(const marray &lhs, const ComplexDataT &rhs) =      \
+      delete;                                                                  \
+  friend marray operator op(const ComplexDataT &lhs, const marray &rhs) =      \
+      delete;
 
   OP(<<)
   OP(>>)
@@ -1474,7 +1479,7 @@ public:
 // OP is: <<=, >>=
 #define OP(op)                                                                 \
   friend marray &operator op(marray &lhs, const marray &rhs) = delete;         \
-  friend marray &operator op(marray &lhs, const DataT &rhs) = delete;
+  friend marray &operator op(marray &lhs, const ComplexDataT &rhs) = delete;
 
   OP(<<=)
   OP(>>=)
@@ -1493,7 +1498,7 @@ public:
   }                                                                            \
                                                                                \
   friend marray<bool, NumElements> operator op(const marray &lhs,              \
-                                               const DataT &rhs) {             \
+                                               const ComplexDataT &rhs) {      \
     marray<bool, NumElements> rtn;                                             \
     for (std::size_t i = 0; i < NumElements; ++i)                              \
       rtn[i] = lhs[i] op rhs;                                                  \
@@ -1501,7 +1506,7 @@ public:
     return rtn;                                                                \
   }                                                                            \
                                                                                \
-  friend marray<bool, NumElements> operator op(const DataT &lhs,               \
+  friend marray<bool, NumElements> operator op(const ComplexDataT &lhs,        \
                                                const marray &rhs) {            \
     marray<bool, NumElements> rtn;                                             \
     for (std::size_t i = 0; i < NumElements; ++i)                              \
@@ -1519,9 +1524,9 @@ public:
 #define OP(op)                                                                 \
   friend marray<bool, NumElements> operator op(const marray &lhs,              \
                                                const marray &rhs) = delete;    \
-  friend marray<bool, NumElements> operator op(const marray &lhs,              \
-                                               const DataT &rhs) = delete;     \
-  friend marray<bool, NumElements> operator op(const DataT &lhs,               \
+  friend marray<bool, NumElements> operator op(                                \
+      const marray &lhs, const ComplexDataT &rhs) = delete;                    \
+  friend marray<bool, NumElements> operator op(const ComplexDataT &lhs,        \
                                                const marray &rhs) = delete;
 
   OP(<);
