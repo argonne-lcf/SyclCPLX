@@ -252,15 +252,23 @@ template<class T> complex<T> tanh (const complex<T>&);
 #endif
 #endif
 
+#define _SYCL_EXT_CPLX_BEGIN_NAMESPACE_STD namespace _SYCL_CPLX_NAMESPACE {
+#define _SYCL_EXT_CPLX_END_NAMESPACE_STD }
+
+#ifndef _SYCL_MARRAY_NAMESPACE
+#ifdef __HIPSYCL__
+#define _SYCL_MARRAY_NAMESPACE hipsycl::sycl
+#else
+#define _SYCL_MARRAY_NAMESPACE sycl
+#endif
+#endif
+
+#define _SYCL_MARRAY_BEGIN_NAMESPACE namespace _SYCL_MARRAY_NAMESPACE {
+#define _SYCL_MARRAY_END_NAMESPACE }
+
 #if defined(__FAST_MATH__) || defined(_M_FP_FAST)
 #define _SYCL_EXT_CPLX_FAST_MATH
 #endif
-
-#define _SYCL_BEGIN_NAMESPACE namespace sycl {
-#define _SYCL_END_NAMESPACE }
-
-#define _SYCL_EXT_CPLX_BEGIN_NAMESPACE_STD namespace _SYCL_CPLX_NAMESPACE {
-#define _SYCL_EXT_CPLX_END_NAMESPACE_STD }
 
 #define _SYCL_EXT_CPLX_INLINE_VISIBILITY                                       \
   [[gnu::always_inline]] [[clang::always_inline]] inline
@@ -1246,7 +1254,7 @@ _SYCL_EXT_CPLX_END_NAMESPACE_STD
 // MARRAY IMPLEMENTATION
 ////////////////////////////////////////////////////////////////////////////////
 
-_SYCL_BEGIN_NAMESPACE
+_SYCL_MARRAY_BEGIN_NAMESPACE
 
 // marray of complex class specialisation
 template <typename T, std::size_t NumElements>
@@ -1541,7 +1549,7 @@ public:
   friend marray<bool, NumElements> operator!(const marray &v) = delete;
 };
 
-_SYCL_END_NAMESPACE
+_SYCL_MARRAY_END_NAMESPACE
 
 _SYCL_EXT_CPLX_BEGIN_NAMESPACE_STD
 
@@ -1672,8 +1680,8 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY
 
 _SYCL_EXT_CPLX_END_NAMESPACE_STD
 
-#undef _SYCL_BEGIN_NAMESPACE
-#undef _SYCL_END_NAMESPACE
+#undef _SYCL_MARRAY_BEGIN_NAMESPACE
+#undef _SYCL_MARRAY_END_NAMESPACE
 
 #undef _SYCL_EXT_CPLX_BEGIN_NAMESPACE_STD
 #undef _SYCL_EXT_CPLX_END_NAMESPACE_STD
