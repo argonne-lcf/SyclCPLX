@@ -115,3 +115,47 @@ TEST_FUNC_TYPE("Test complex imag deci - deci types", "[imag]", imag)
 TEST_FUNC_TYPE("Test complex conj cplx - deci types", "[conj]", conj)
 TEST_FUNC_TYPE("Test complex proj cplx - deci types", "[proj]", proj)
 #undef TEST_FUNC_TYPE
+
+TEST_CASE("Test std::complex to sycl::complex conversion", "[conversion]") {
+  auto complex_f = sycl::ext::cplx::complex<float>{42.f, 42.f};
+  auto complex_d = sycl::ext::cplx::complex<double>{42.f, 42.f};
+  auto complex_h = sycl::ext::cplx::complex<sycl::half>{42.f, 42.f};
+
+  {
+    auto f = static_cast<std::complex<float>>(complex_f);
+    auto d = static_cast<std::complex<double>>(complex_f);
+    auto h = static_cast<std::complex<sycl::half>>(complex_f);
+  }
+  {
+    auto f = static_cast<std::complex<float>>(complex_d);
+    auto d = static_cast<std::complex<double>>(complex_d);
+    auto h = static_cast<std::complex<sycl::half>>(complex_d);
+  }
+  {
+    auto f = static_cast<std::complex<float>>(complex_h);
+    auto d = static_cast<std::complex<double>>(complex_h);
+    auto h = static_cast<std::complex<sycl::half>>(complex_h);
+  }
+}
+
+TEST_CASE("Test sycl::complex constructor from std::complex", "[constructor]") {
+  auto complex_f = std::complex<float>{42.f, 42.f};
+  auto complex_d = std::complex<double>{42.f, 42.f};
+  auto complex_h = std::complex<sycl::half>{42.f, 42.f};
+
+  {
+    sycl::ext::cplx::complex<float> f{complex_f};
+    sycl::ext::cplx::complex<double> d{complex_f};
+    sycl::ext::cplx::complex<sycl::half> h{complex_f};
+  }
+  {
+    sycl::ext::cplx::complex<float> f{complex_d};
+    sycl::ext::cplx::complex<double> d{complex_d};
+    sycl::ext::cplx::complex<sycl::half> h{complex_d};
+  }
+  {
+    sycl::ext::cplx::complex<float> f{complex_h};
+    sycl::ext::cplx::complex<double> d{complex_h};
+    sycl::ext::cplx::complex<sycl::half> h{complex_h};
+  }
+}
