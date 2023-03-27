@@ -1,5 +1,9 @@
 #include "test_helper.hpp"
 
+////////////////////////////////////////////////////////////////////////////////
+// COMPLEX TESTS
+////////////////////////////////////////////////////////////////////////////////
+
 TEMPLATE_TEST_CASE("Test complex polar", "[polar]", double, float, sycl::half) {
   using T = TestType;
   using std::make_tuple;
@@ -31,6 +35,54 @@ TEMPLATE_TEST_CASE("Test complex polar", "[polar]", double, float, sycl::half) {
   cplx_out[0] = sycl::ext::cplx::polar<T>(rho, theta);
 
   check_results(cplx_out[0], std_out);
+
+  sycl::free(cplx_out, Q);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// MARRAY<COMPLEX> TESTS
+////////////////////////////////////////////////////////////////////////////////
+
+TEMPLATE_TEST_CASE_SIG("Test marray complex polar", "[polar]",
+                       ((typename T, std::size_t NumElements), T, NumElements),
+                       (double, 4), (float, 4), (sycl::half, 4)) {
+  sycl::queue Q;
+
+  // Test cases
+  const auto rho = GENERATE(sycl::marray<T, NumElements>{
+      1.0,
+      4.42,
+      3,
+      3.14,
+  });
+  const auto theta = GENERATE(sycl::marray<T, NumElements>{
+      1.0,
+      2.02,
+      3.5,
+      -3.14,
+  });
+
+  sycl::marray<std::complex<T>, NumElements> std_out{};
+  auto *cplx_out = sycl::malloc_shared<
+      sycl::marray<sycl::ext::cplx::complex<T>, NumElements>>(1, Q);
+
+  // Get std::complex output
+  for (std::size_t i = 0; i < NumElements; ++i)
+    std_out[i] = std::polar(rho[i], theta[i]);
+
+  // Check cplx::complex output from device
+  if (is_type_supported<T>(Q)) {
+    Q.single_task([=]() {
+       *cplx_out = sycl::ext::cplx::polar<T>(rho, theta);
+     }).wait();
+
+    check_results(*cplx_out, std_out);
+  }
+
+  // Check cplx::complex output from host
+  *cplx_out = sycl::ext::cplx::polar<T>(rho, theta);
+
+  check_results(*cplx_out, std_out);
 
   sycl::free(cplx_out, Q);
 }
