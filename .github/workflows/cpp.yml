@@ -16,11 +16,6 @@ jobs:
       with:
         source: '.'
         extensions: 'h,hpp,cpp'
-        clangFormatVersion: 9
-    - uses: DoozyX/clang-format-lint-action@v0.14
-      with:
-        source: '.'
-        extensions: 'h,hpp,cpp'
         clangFormatVersion: 14
 
   test-cpu:
