@@ -838,7 +838,7 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY
   typedef
       typename cplex::detail::__libcpp_complex_overload_traits<_Tp>::_ValueType
           _ValueType;
-  return sycl::atan2<_ValueType>(0, __re);
+  return sycl::atan2(static_cast<_ValueType>(0), static_cast<_ValueType>(__re));
 }
 
 // norm
