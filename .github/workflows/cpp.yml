@@ -18,7 +18,7 @@ jobs:
         extensions: 'h,hpp,cpp'
         clangFormatVersion: 14
 
-  test-cpu:
+  oneapi-build-tests-benchmarks:
     runs-on: ubuntu-latest
     container: ghcr.io/wdmapp/oneapi-dpcpp-ubuntu-22.04:20230104
     env:
@@ -47,6 +47,6 @@ jobs:
       run: |
         env | grep oneapi
     - name: cmake
-      run: cmake -S . -B build-sycl -DCMAKE_CXX_FLAGS="-fsycl -O2 -g -fp-model=precise"
+      run: cmake -S . -B build-sycl -DCMAKE_CXX_FLAGS="-fsycl -O2 -g -fp-model=precise" -DSYCL_CPLX_BUILD_BENCHMARKS=ON -DBUILD_TESTING=ON
     - name: build
       run: cmake --build build-sycl -v
