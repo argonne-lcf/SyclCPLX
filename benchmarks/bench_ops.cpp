@@ -109,7 +109,7 @@ private:
 };
 
 template <typename R> auto get_benchmark_data(std::size_t max_n) {
-  static BenchmarkData<R>* data = nullptr;
+  static BenchmarkData<R> *data = nullptr;
   if (data == nullptr) {
     data = new BenchmarkData<R>(max_n);
   }
