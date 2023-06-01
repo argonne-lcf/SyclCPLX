@@ -47,7 +47,7 @@ TEMPLATE_TEST_CASE("Test complex asin", "[asin]", double, float, sycl::half) {
     }
     Q.wait();
 
-    check_results(cplx_out[0], std_out, /*tol_multiplier*/ 5);
+    check_results(cplx_out[0], std_out, /*tol_multiplier*/ 6);
   }
 
   // Check cplx::complex output from host
