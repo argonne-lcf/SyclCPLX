@@ -21,7 +21,8 @@ TEMPLATE_TEST_CASE("Test complex norm cmplx", "[norm]", double, float,
   sycl::ext::cplx::complex<T> cplx_input{input.re, input.im};
 
   T std_out{};
-  auto *cplx_out = sycl::malloc_shared<T>(1, Q);
+  T h_cplx_out;
+  auto d_cplx_out = sycl::malloc_device<T>(1, Q);
 
   // Get std::complex output
   std_out = std::norm(std_in);
@@ -29,18 +30,19 @@ TEMPLATE_TEST_CASE("Test complex norm cmplx", "[norm]", double, float,
   // Check cplx::complex output from device
   if (is_type_supported<T>(Q)) {
     Q.single_task([=]() {
-       cplx_out[0] = sycl::ext::cplx::norm<T>(cplx_input);
+       d_cplx_out[0] = sycl::ext::cplx::norm<T>(cplx_input);
      }).wait();
+    Q.copy(d_cplx_out, &h_cplx_out, 1).wait();
 
-    check_results(cplx_out[0], std_out);
+    check_results(h_cplx_out, std_out);
   }
 
   // Check cplx::complex output from host
-  cplx_out[0] = sycl::ext::cplx::norm<T>(cplx_input);
+  h_cplx_out = sycl::ext::cplx::norm<T>(cplx_input);
 
-  check_results(cplx_out[0], std_out);
+  check_results(h_cplx_out, std_out);
 
-  sycl::free(cplx_out, Q);
+  sycl::free(d_cplx_out, Q);
 }
 
 TEMPLATE_TEST_CASE("Test complex norm deci", "[norm]",
@@ -60,7 +62,8 @@ TEMPLATE_TEST_CASE("Test complex norm deci", "[norm]",
   auto std_in = init_deci(input);
 
   T std_out{};
-  auto *cplx_out = sycl::malloc_shared<T>(1, Q);
+  T h_cplx_out;
+  auto d_cplx_out = sycl::malloc_device<T>(1, Q);
 
   // Get std::complex output
   std_out = std::norm(std_in);
@@ -68,18 +71,19 @@ TEMPLATE_TEST_CASE("Test complex norm deci", "[norm]",
   // Check cplx::complex output from device
   if (is_type_supported<T>(Q) && is_type_supported<X>(Q)) {
     Q.single_task([=]() {
-       cplx_out[0] = sycl::ext::cplx::norm<X>(input);
+       d_cplx_out[0] = sycl::ext::cplx::norm<X>(input);
      }).wait();
+    Q.copy(d_cplx_out, &h_cplx_out, 1).wait();
 
-    check_results(cplx_out[0], std_out);
+    check_results(h_cplx_out, std_out);
   }
 
   // Check cplx::complex output from host
-  cplx_out[0] = sycl::ext::cplx::norm<X>(input);
+  h_cplx_out = sycl::ext::cplx::norm<X>(input);
 
-  check_results(cplx_out[0], std_out);
+  check_results(h_cplx_out, std_out);
 
-  sycl::free(cplx_out, Q);
+  sycl::free(d_cplx_out, Q);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -114,7 +118,8 @@ TEMPLATE_TEST_CASE_SIG("Test marray complex norm", "[norm]",
   }
 
   sycl::marray<T, NumElements> std_out{};
-  auto *cplx_out = sycl::malloc_shared<sycl::marray<T, NumElements>>(1, Q);
+  sycl::marray<T, NumElements> h_cplx_out;
+  auto d_cplx_out = sycl::malloc_device<sycl::marray<T, NumElements>>(1, Q);
 
   // Get std::complex output
   for (std::size_t i = 0; i < NumElements; ++i)
@@ -123,16 +128,17 @@ TEMPLATE_TEST_CASE_SIG("Test marray complex norm", "[norm]",
   // Check cplx::complex output from device
   if (is_type_supported<T>(Q)) {
     Q.single_task([=]() {
-       *cplx_out = sycl::ext::cplx::norm<T>(cplx_input);
+       d_cplx_out[0] = sycl::ext::cplx::norm<T>(cplx_input);
      }).wait();
+    Q.copy(d_cplx_out, &h_cplx_out, 1).wait();
 
-    check_results(*cplx_out, std_out);
+    check_results(h_cplx_out, std_out);
   }
 
   // Check cplx::complex output from host
-  *cplx_out = sycl::ext::cplx::norm<T>(cplx_input);
+  h_cplx_out = sycl::ext::cplx::norm<T>(cplx_input);
 
-  check_results(*cplx_out, std_out);
+  check_results(h_cplx_out, std_out);
 
-  sycl::free(cplx_out, Q);
+  sycl::free(d_cplx_out, Q);
 }

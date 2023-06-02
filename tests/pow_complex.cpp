@@ -32,7 +32,8 @@ TEMPLATE_TEST_CASE("Test complex pow cplx-cplx overload", "[pow]", double,
   sycl::ext::cplx::complex<T> cplx_input2{input2.re, input2.im};
 
   std::complex<T> std_out{};
-  auto *cplx_out = sycl::malloc_shared<sycl::ext::cplx::complex<T>>(1, Q);
+  sycl::ext::cplx::complex<T> h_cplx_out;
+  auto d_cplx_out = sycl::malloc_device<sycl::ext::cplx::complex<T>>(1, Q);
 
   // Get std::complex output
   std_out = std::pow(std_in1, std_in2);
@@ -40,18 +41,19 @@ TEMPLATE_TEST_CASE("Test complex pow cplx-cplx overload", "[pow]", double,
   // Check cplx::complex output from device
   if (is_type_supported<T>(Q)) {
     Q.single_task([=]() {
-       cplx_out[0] = sycl::ext::cplx::pow<T>(cplx_input1, cplx_input2);
+       d_cplx_out[0] = sycl::ext::cplx::pow<T>(cplx_input1, cplx_input2);
      }).wait();
+    Q.copy(d_cplx_out, &h_cplx_out, 1).wait();
 
-    check_results(cplx_out[0], std_out);
+    check_results(h_cplx_out, std_out);
   }
 
   // Check cplx::complex output from host
-  cplx_out[0] = sycl::ext::cplx::pow<T>(cplx_input1, cplx_input2);
+  h_cplx_out = sycl::ext::cplx::pow<T>(cplx_input1, cplx_input2);
 
-  check_results(cplx_out[0], std_out);
+  check_results(h_cplx_out, std_out);
 
-  sycl::free(cplx_out, Q);
+  sycl::free(d_cplx_out, Q);
 }
 
 TEMPLATE_TEST_CASE("Test complex pow cplx<T>-cplx<U> overload", "[pow]",
@@ -85,7 +87,8 @@ TEMPLATE_TEST_CASE("Test complex pow cplx<T>-cplx<U> overload", "[pow]",
   sycl::ext::cplx::complex<X> cplx_input2{input2.re, input2.im};
 
   std::complex<T> std_out{};
-  auto *cplx_out = sycl::malloc_shared<sycl::ext::cplx::complex<T>>(1, Q);
+  sycl::ext::cplx::complex<T> h_cplx_out;
+  auto d_cplx_out = sycl::malloc_device<sycl::ext::cplx::complex<T>>(1, Q);
 
   // Get std::complex output
   std_out = std::pow(std_in1, std_in2);
@@ -93,18 +96,19 @@ TEMPLATE_TEST_CASE("Test complex pow cplx<T>-cplx<U> overload", "[pow]",
   // Check cplx::complex output from device
   if (is_type_supported<T>(Q) && is_type_supported<X>(Q)) {
     Q.single_task([=]() {
-       cplx_out[0] = sycl::ext::cplx::pow<T>(cplx_input1, cplx_input2);
+       d_cplx_out[0] = sycl::ext::cplx::pow<T>(cplx_input1, cplx_input2);
      }).wait();
+    Q.copy(d_cplx_out, &h_cplx_out, 1).wait();
 
-    check_results(cplx_out[0], std_out);
+    check_results(h_cplx_out, std_out);
   }
 
   // Check cplx::complex output from host
-  cplx_out[0] = sycl::ext::cplx::pow<T>(cplx_input1, cplx_input2);
+  h_cplx_out = sycl::ext::cplx::pow<T>(cplx_input1, cplx_input2);
 
-  check_results(cplx_out[0], std_out);
+  check_results(h_cplx_out, std_out);
 
-  sycl::free(cplx_out, Q);
+  sycl::free(d_cplx_out, Q);
 }
 
 TEMPLATE_TEST_CASE("Test complex pow cplx-deci overload", "[pow]", double,
@@ -129,7 +133,8 @@ TEMPLATE_TEST_CASE("Test complex pow cplx-deci overload", "[pow]", double,
   T deci_input = input2;
 
   std::complex<T> std_out{};
-  auto *cplx_out = sycl::malloc_shared<sycl::ext::cplx::complex<T>>(1, Q);
+  sycl::ext::cplx::complex<T> h_cplx_out;
+  auto d_cplx_out = sycl::malloc_device<sycl::ext::cplx::complex<T>>(1, Q);
 
   // Get std::complex output
   std_out = std::pow(std_in, std_deci_in);
@@ -137,18 +142,19 @@ TEMPLATE_TEST_CASE("Test complex pow cplx-deci overload", "[pow]", double,
   // Check cplx::complex output from device
   if (is_type_supported<T>(Q)) {
     Q.single_task([=]() {
-       cplx_out[0] = sycl::ext::cplx::pow<T>(cplx_input, deci_input);
+       d_cplx_out[0] = sycl::ext::cplx::pow<T>(cplx_input, deci_input);
      }).wait();
+    Q.copy(d_cplx_out, &h_cplx_out, 1).wait();
 
-    check_results(cplx_out[0], std_out);
+    check_results(h_cplx_out, std_out);
   }
 
   // Check cplx::complex output from host
-  cplx_out[0] = sycl::ext::cplx::pow<T>(cplx_input, deci_input);
+  h_cplx_out = sycl::ext::cplx::pow<T>(cplx_input, deci_input);
 
-  check_results(cplx_out[0], std_out);
+  check_results(h_cplx_out, std_out);
 
-  sycl::free(cplx_out, Q);
+  sycl::free(d_cplx_out, Q);
 }
 
 TEMPLATE_TEST_CASE("Test complex pow deci-cplx overload", "[pow]", double,
@@ -173,7 +179,8 @@ TEMPLATE_TEST_CASE("Test complex pow deci-cplx overload", "[pow]", double,
   T deci_input = input2;
 
   std::complex<T> std_out{};
-  auto *cplx_out = sycl::malloc_shared<sycl::ext::cplx::complex<T>>(1, Q);
+  sycl::ext::cplx::complex<T> h_cplx_out;
+  auto d_cplx_out = sycl::malloc_device<sycl::ext::cplx::complex<T>>(1, Q);
 
   // Get std::complex output
   std_out = std::pow(std_deci_in, std_in);
@@ -181,18 +188,19 @@ TEMPLATE_TEST_CASE("Test complex pow deci-cplx overload", "[pow]", double,
   // Check cplx::complex output from device
   if (is_type_supported<T>(Q)) {
     Q.single_task([=]() {
-       cplx_out[0] = sycl::ext::cplx::pow<T>(deci_input, cplx_input);
+       d_cplx_out[0] = sycl::ext::cplx::pow<T>(deci_input, cplx_input);
      }).wait();
+    Q.copy(d_cplx_out, &h_cplx_out, 1).wait();
 
-    check_results(cplx_out[0], std_out);
+    check_results(h_cplx_out, std_out);
   }
 
   // Check cplx::complex output from host
-  cplx_out[0] = sycl::ext::cplx::pow<T>(deci_input, cplx_input);
+  h_cplx_out = sycl::ext::cplx::pow<T>(deci_input, cplx_input);
 
-  check_results(cplx_out[0], std_out);
+  check_results(h_cplx_out, std_out);
 
-  sycl::free(cplx_out, Q);
+  sycl::free(d_cplx_out, Q);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -256,7 +264,8 @@ TEMPLATE_TEST_CASE_SIG("Test marray complex pow cplx-cplx overload", "[pow]",
   }
 
   sycl::marray<std::complex<T>, NumElements> std_out{};
-  auto *cplx_out = sycl::malloc_shared<
+  sycl::marray<sycl::ext::cplx::complex<T>, NumElements> h_cplx_out;
+  auto d_cplx_out = sycl::malloc_device<
       sycl::marray<sycl::ext::cplx::complex<T>, NumElements>>(1, Q);
 
   // Get std::complex output
@@ -266,18 +275,19 @@ TEMPLATE_TEST_CASE_SIG("Test marray complex pow cplx-cplx overload", "[pow]",
   // Check cplx::complex output from device
   if (is_type_supported<T>(Q)) {
     Q.single_task([=]() {
-       *cplx_out = sycl::ext::cplx::pow<T>(cplx_input1, cplx_input2);
+       d_cplx_out[0] = sycl::ext::cplx::pow<T>(cplx_input1, cplx_input2);
      }).wait();
+    Q.copy(d_cplx_out, &h_cplx_out, 1).wait();
 
-    check_results(*cplx_out, std_out, /*tol_multiplier*/ 3);
+    check_results(h_cplx_out, std_out, /*tol_multiplier*/ 3);
   }
 
   // Check cplx::complex output from host
-  *cplx_out = sycl::ext::cplx::pow<T>(cplx_input1, cplx_input2);
+  h_cplx_out = sycl::ext::cplx::pow<T>(cplx_input1, cplx_input2);
 
-  check_results(*cplx_out, std_out);
+  check_results(h_cplx_out, std_out);
 
-  sycl::free(cplx_out, Q);
+  sycl::free(d_cplx_out, Q);
 }
 
 TEMPLATE_TEST_CASE_SIG("Test marray complex pow cplx-deci overload", "[pow]",
@@ -332,7 +342,8 @@ TEMPLATE_TEST_CASE_SIG("Test marray complex pow cplx-deci overload", "[pow]",
   }
 
   sycl::marray<std::complex<T>, NumElements> std_out{};
-  auto *cplx_out = sycl::malloc_shared<
+  sycl::marray<sycl::ext::cplx::complex<T>, NumElements> h_cplx_out;
+  auto d_cplx_out = sycl::malloc_device<
       sycl::marray<sycl::ext::cplx::complex<T>, NumElements>>(1, Q);
 
   // Get std::complex output
@@ -342,18 +353,19 @@ TEMPLATE_TEST_CASE_SIG("Test marray complex pow cplx-deci overload", "[pow]",
   // Check cplx::complex output from device
   if (is_type_supported<T>(Q)) {
     Q.single_task([=]() {
-       *cplx_out = sycl::ext::cplx::pow<T>(cplx_input1, cplx_input2);
+       d_cplx_out[0] = sycl::ext::cplx::pow<T>(cplx_input1, cplx_input2);
      }).wait();
+    Q.copy(d_cplx_out, &h_cplx_out, 1).wait();
 
-    check_results(*cplx_out, std_out, /*tol_multiplier*/ 3);
+    check_results(h_cplx_out, std_out, /*tol_multiplier*/ 3);
   }
 
   // Check cplx::complex output from host
-  *cplx_out = sycl::ext::cplx::pow<T>(cplx_input1, cplx_input2);
+  h_cplx_out = sycl::ext::cplx::pow<T>(cplx_input1, cplx_input2);
 
-  check_results(*cplx_out, std_out);
+  check_results(h_cplx_out, std_out);
 
-  sycl::free(cplx_out, Q);
+  sycl::free(d_cplx_out, Q);
 }
 
 TEMPLATE_TEST_CASE_SIG("Test marray complex pow deci-cplx overload", "[pow]",
@@ -408,7 +420,8 @@ TEMPLATE_TEST_CASE_SIG("Test marray complex pow deci-cplx overload", "[pow]",
   }
 
   sycl::marray<std::complex<T>, NumElements> std_out{};
-  auto *cplx_out = sycl::malloc_shared<
+  sycl::marray<sycl::ext::cplx::complex<T>, NumElements> h_cplx_out;
+  auto d_cplx_out = sycl::malloc_device<
       sycl::marray<sycl::ext::cplx::complex<T>, NumElements>>(1, Q);
 
   // Get std::complex output
@@ -418,16 +431,17 @@ TEMPLATE_TEST_CASE_SIG("Test marray complex pow deci-cplx overload", "[pow]",
   // Check cplx::complex output from device
   if (is_type_supported<T>(Q)) {
     Q.single_task([=]() {
-       *cplx_out = sycl::ext::cplx::pow<T>(cplx_input1, cplx_input2);
+       d_cplx_out[0] = sycl::ext::cplx::pow<T>(cplx_input1, cplx_input2);
      }).wait();
+    Q.copy(d_cplx_out, &h_cplx_out, 1).wait();
 
-    check_results(*cplx_out, std_out, /*tol_multiplier*/ 3);
+    check_results(h_cplx_out, std_out, /*tol_multiplier*/ 3);
   }
 
   // Check cplx::complex output from host
-  *cplx_out = sycl::ext::cplx::pow<T>(cplx_input1, cplx_input2);
+  h_cplx_out = sycl::ext::cplx::pow<T>(cplx_input1, cplx_input2);
 
-  check_results(*cplx_out, std_out);
+  check_results(h_cplx_out, std_out);
 
-  sycl::free(cplx_out, Q);
+  sycl::free(d_cplx_out, Q);
 }

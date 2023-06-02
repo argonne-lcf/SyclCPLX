@@ -17,7 +17,8 @@ TEMPLATE_TEST_CASE("Test complex polar", "[polar]", double, float, sycl::half) {
       {make_tuple(4.42, 2.02), make_tuple(1, 3.14), make_tuple(1, -3.14)}));
 
   std::complex<T> std_out{};
-  auto *cplx_out = sycl::malloc_shared<sycl::ext::cplx::complex<T>>(1, Q);
+  sycl::ext::cplx::complex<T> h_cplx_out;
+  auto d_cplx_out = sycl::malloc_device<sycl::ext::cplx::complex<T>>(1, Q);
 
   // Get std::complex output
   std_out = std::polar(rho, theta);
@@ -25,18 +26,19 @@ TEMPLATE_TEST_CASE("Test complex polar", "[polar]", double, float, sycl::half) {
   // Check cplx::complex output from device
   if (is_type_supported<T>(Q)) {
     Q.single_task([=]() {
-       cplx_out[0] = sycl::ext::cplx::polar<T>(rho, theta);
+       d_cplx_out[0] = sycl::ext::cplx::polar<T>(rho, theta);
      }).wait();
+    Q.copy(d_cplx_out, &h_cplx_out, 1).wait();
 
-    check_results(cplx_out[0], std_out);
+    check_results(h_cplx_out, std_out);
   }
 
   // Check cplx::complex output from host
-  cplx_out[0] = sycl::ext::cplx::polar<T>(rho, theta);
+  h_cplx_out = sycl::ext::cplx::polar<T>(rho, theta);
 
-  check_results(cplx_out[0], std_out);
+  check_results(h_cplx_out, std_out);
 
-  sycl::free(cplx_out, Q);
+  sycl::free(d_cplx_out, Q);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -63,7 +65,8 @@ TEMPLATE_TEST_CASE_SIG("Test marray complex polar", "[polar]",
   });
 
   sycl::marray<std::complex<T>, NumElements> std_out{};
-  auto *cplx_out = sycl::malloc_shared<
+  sycl::marray<sycl::ext::cplx::complex<T>, NumElements> h_cplx_out;
+  auto d_cplx_out = sycl::malloc_device<
       sycl::marray<sycl::ext::cplx::complex<T>, NumElements>>(1, Q);
 
   // Get std::complex output
@@ -73,16 +76,17 @@ TEMPLATE_TEST_CASE_SIG("Test marray complex polar", "[polar]",
   // Check cplx::complex output from device
   if (is_type_supported<T>(Q)) {
     Q.single_task([=]() {
-       *cplx_out = sycl::ext::cplx::polar<T>(rho, theta);
+       d_cplx_out[0] = sycl::ext::cplx::polar<T>(rho, theta);
      }).wait();
+    Q.copy(d_cplx_out, &h_cplx_out, 1).wait();
 
-    check_results(*cplx_out, std_out);
+    check_results(h_cplx_out, std_out);
   }
 
   // Check cplx::complex output from host
-  *cplx_out = sycl::ext::cplx::polar<T>(rho, theta);
+  h_cplx_out = sycl::ext::cplx::polar<T>(rho, theta);
 
-  check_results(*cplx_out, std_out);
+  check_results(h_cplx_out, std_out);
 
-  sycl::free(cplx_out, Q);
+  sycl::free(d_cplx_out, Q);
 }
