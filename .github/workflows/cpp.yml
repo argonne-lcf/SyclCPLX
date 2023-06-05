@@ -26,6 +26,7 @@ jobs:
       LD_LIBRARY_PATH: /opt/intel/oneapi/tbb/2021.8.0/env/../lib/intel64/gcc4.8:/opt/intel/oneapi/mpi/2021.8.0//libfabric/lib:/opt/intel/oneapi/mpi/2021.8.0//lib/release:/opt/intel/oneapi/mpi/2021.8.0//lib:/opt/intel/oneapi/mkl/2023.0.0/lib/intel64:/opt/intel/oneapi/debugger/2023.0.0/gdb/intel64/lib:/opt/intel/oneapi/debugger/2023.0.0/libipt/intel64/lib:/opt/intel/oneapi/debugger/2023.0.0/dep/lib:/opt/intel/oneapi/compiler/2023.0.0/linux/lib:/opt/intel/oneapi/compiler/2023.0.0/linux/lib/x64:/opt/intel/oneapi/compiler/2023.0.0/linux/lib/oclfpga/host/linux64/lib:/opt/intel/oneapi/compiler/2023.0.0/linux/compiler/lib/intel64_lin
       PATH: /opt/intel/oneapi/mpi/2021.8.0//libfabric/bin:/opt/intel/oneapi/mpi/2021.8.0//bin:/opt/intel/oneapi/mkl/2023.0.0/bin/intel64:/opt/intel/oneapi/dev-utilities/2021.8.0/bin:/opt/intel/oneapi/debugger/2023.0.0/gdb/intel64/bin:/opt/intel/oneapi/compiler/2023.0.0/linux/lib/oclfpga/bin:/opt/intel/oneapi/compiler/2023.0.0/linux/bin/intel64:/opt/intel/oneapi/compiler/2023.0.0/linux/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       CMAKE_BUILD_PARALLEL_LEVEL: 8
+      ONEAPI_DEVICE_SELECTOR: opencl:cpu
     steps:
     - uses: actions/checkout@v3
       with:
@@ -47,6 +48,8 @@ jobs:
       run: |
         env | grep oneapi
     - name: cmake
-      run: cmake -S . -B build-sycl -DCMAKE_CXX_FLAGS="-fsycl -O2 -g -fp-model=precise" -DSYCL_CPLX_BUILD_BENCHMARKS=ON -DBUILD_TESTING=ON
+      run: cmake -S . -B build-sycl -DSYCL_CPLX_BUILD_BENCHMARKS=ON -DBUILD_TESTING=ON
     - name: build
       run: cmake --build build-sycl -v
+    - name: tests
+      run: cmake --build build-sycl -v -t test
