@@ -20,27 +20,29 @@ TEMPLATE_TEST_CASE("Test complex abs", "[abs]", double, float, sycl::half) {
   auto std_in = init_std_complex(input);
   sycl::ext::cplx::complex<T> cplx_input{input.re, input.im};
 
-  T std_out{};
-  auto *cplx_out = sycl::malloc_shared<T>(1, Q);
+  T h_std_out{};
+  T h_out{};
+  auto *d_out = sycl::malloc_device<T>(1, Q);
 
   // Get std::complex output
-  std_out = std::abs(std_in);
+  h_std_out = std::abs(std_in);
 
   // Check cplx::complex output from device
   if (is_type_supported<T>(Q)) {
     Q.single_task([=]() {
-       cplx_out[0] = sycl::ext::cplx::abs<T>(cplx_input);
+       d_out[0] = sycl::ext::cplx::abs<T>(cplx_input);
      }).wait();
 
-    check_results(cplx_out[0], std_out);
+    Q.copy(d_out, &h_out, 1).wait();
+    check_results(h_out, h_std_out);
   }
 
   // Check cplx::complex output from host
-  cplx_out[0] = sycl::ext::cplx::abs<T>(cplx_input);
+  h_out = sycl::ext::cplx::abs<T>(cplx_input);
 
-  check_results(cplx_out[0], std_out);
+  check_results(h_out, h_std_out);
 
-  sycl::free(cplx_out, Q);
+  sycl::free(d_out, Q);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -78,26 +80,28 @@ TEMPLATE_TEST_CASE_SIG("Test marray complex abs", "[abs]",
         sycl::ext::cplx::complex<T>{std_in[i].real(), std_in[i].imag()};
   }
 
-  sycl::marray<T, NumElements> std_out{};
-  auto *cplx_out = sycl::malloc_shared<sycl::marray<T, NumElements>>(1, Q);
+  sycl::marray<T, NumElements> h_std_out{};
+  sycl::marray<T, NumElements> h_out{};
+  auto *d_out = sycl::malloc_device<sycl::marray<T, NumElements>>(1, Q);
 
   // Get std::complex output
   for (std::size_t i = 0; i < NumElements; ++i)
-    std_out[i] = std::abs(std_in[i]);
+    h_std_out[i] = std::abs(std_in[i]);
 
   // Check cplx::complex output from device
   if (is_type_supported<T>(Q)) {
     Q.single_task([=]() {
-       *cplx_out = sycl::ext::cplx::abs<T>(cplx_input);
+       *d_out = sycl::ext::cplx::abs<T>(cplx_input);
      }).wait();
+    Q.copy(d_out, &h_out, 1).wait();
 
-    check_results(*cplx_out, std_out);
+    check_results(h_out, h_std_out);
   }
 
   // Check cplx::complex output from host
-  *cplx_out = sycl::ext::cplx::abs<T>(cplx_input);
+  h_out = sycl::ext::cplx::abs<T>(cplx_input);
 
-  check_results(*cplx_out, std_out);
+  check_results(h_out, h_std_out);
 
-  sycl::free(cplx_out, Q);
+  sycl::free(d_out, Q);
 }

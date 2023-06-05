@@ -28,7 +28,8 @@ TEMPLATE_TEST_CASE("Test complex atanh", "[atanh]", double, float, sycl::half) {
   sycl::ext::cplx::complex<T> cplx_input{input.re, input.im};
 
   std::complex<T> std_out{input.re, input.im};
-  auto *cplx_out = sycl::malloc_shared<sycl::ext::cplx::complex<T>>(1, Q);
+  sycl::ext::cplx::complex<T> h_cplx_out;
+  auto d_cplx_out = sycl::malloc_device<sycl::ext::cplx::complex<T>>(1, Q);
 
   // Get std::complex output
   if (is_error_checking)
@@ -37,29 +38,30 @@ TEMPLATE_TEST_CASE("Test complex atanh", "[atanh]", double, float, sycl::half) {
   // Check cplx::complex output from device
   if (is_type_supported<T>(Q)) {
     if (is_error_checking) {
-      Q.single_task(
-          [=]() { cplx_out[0] = sycl::ext::cplx::atanh<T>(cplx_input); });
+      Q.single_task([=]() {
+         d_cplx_out[0] = sycl::ext::cplx::atanh<T>(cplx_input);
+       }).wait();
     } else {
       Q.single_task([=]() {
-        cplx_out[0] =
-            sycl::ext::cplx::tanh<T>(sycl::ext::cplx::atanh<T>(cplx_input));
-      });
+         d_cplx_out[0] =
+             sycl::ext::cplx::tanh<T>(sycl::ext::cplx::atanh<T>(cplx_input));
+       }).wait();
     }
-    Q.wait();
+    Q.copy(d_cplx_out, &h_cplx_out, 1).wait();
 
-    check_results(cplx_out[0], std_out, /*tol_multiplier*/ 2);
+    check_results(h_cplx_out, std_out, /*tol_multiplier*/ 2);
   }
 
   // Check cplx::complex output from host
   if (is_error_checking)
-    cplx_out[0] = sycl::ext::cplx::atanh<T>(cplx_input);
+    h_cplx_out = sycl::ext::cplx::atanh<T>(cplx_input);
   else
-    cplx_out[0] =
+    h_cplx_out =
         sycl::ext::cplx::tanh<T>(sycl::ext::cplx::atanh<T>(cplx_input));
 
-  check_results(cplx_out[0], std_out, /*tol_multiplier*/ 2);
+  check_results(h_cplx_out, std_out, /*tol_multiplier*/ 2);
 
-  sycl::free(cplx_out, Q);
+  sycl::free(d_cplx_out, Q);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -72,7 +74,8 @@ auto test(
     const sycl::marray<sycl::ext::cplx::complex<T>, NumElements> &cplx_input,
     bool is_error_checking) {
   sycl::marray<std::complex<T>, NumElements> std_out{};
-  auto *cplx_out = sycl::malloc_shared<
+  sycl::marray<sycl::ext::cplx::complex<T>, NumElements> h_cplx_out;
+  auto d_cplx_out = sycl::malloc_device<
       sycl::marray<sycl::ext::cplx::complex<T>, NumElements>>(1, Q);
 
   // Get std::complex output
@@ -90,28 +93,30 @@ auto test(
   if (is_type_supported<T>(Q)) {
     if (is_error_checking) {
       Q.single_task([=]() {
-         *cplx_out = sycl::ext::cplx::atanh<T>(cplx_input);
+         d_cplx_out[0] = sycl::ext::cplx::atanh<T>(cplx_input);
        }).wait();
     } else {
       Q.single_task([=]() {
-         *cplx_out =
+         d_cplx_out[0] =
              sycl::ext::cplx::tanh<T>(sycl::ext::cplx::atanh<T>(cplx_input));
        }).wait();
     }
+    Q.copy(d_cplx_out, &h_cplx_out, 1).wait();
 
-    check_results(*cplx_out, std_out, /*tol_multiplier*/ 2);
+    check_results(h_cplx_out, std_out, /*tol_multiplier*/ 2);
   }
 
   // Check cplx::complex output from host
   if (is_error_checking) {
-    *cplx_out = sycl::ext::cplx::atanh<T>(cplx_input);
+    h_cplx_out = sycl::ext::cplx::atanh<T>(cplx_input);
   } else {
-    *cplx_out = sycl::ext::cplx::tanh<T>(sycl::ext::cplx::atanh<T>(cplx_input));
+    h_cplx_out =
+        sycl::ext::cplx::tanh<T>(sycl::ext::cplx::atanh<T>(cplx_input));
   }
 
-  check_results(*cplx_out, std_out, /*tol_multiplier*/ 2);
+  check_results(h_cplx_out, std_out, /*tol_multiplier*/ 2);
 
-  sycl::free(cplx_out, Q);
+  sycl::free(d_cplx_out, Q);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
