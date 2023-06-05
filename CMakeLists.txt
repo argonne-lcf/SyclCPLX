@@ -16,3 +16,20 @@ include(Catch)
 
 add_subdirectory(tests)
 
+include(cmake/CPM.cmake)
+
+if (SYCL_CPLX_BUILD_BENCHMARKS)
+  CPMAddPackage(
+    NAME benchmark
+    GITHUB_REPOSITORY google/benchmark
+    GIT_TAG v1.7.1
+    VERSION v1.7.1
+    GIT_SHALLOW TRUE
+    OPTIONS
+      "BENCHMARK_ENABLE_TESTING OFF"
+      "BENCHMARK_ENABLE_INSTALL OFF"
+      "BENCHMARK_ENABLE_WERROR OFF"
+      "CMAKE_BUILD_TYPE Release"
+  )
+  add_subdirectory(benchmarks)
+endif()
