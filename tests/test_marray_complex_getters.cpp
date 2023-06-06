@@ -25,19 +25,21 @@ TEMPLATE_TEST_CASE_SIG("Test marray complex real component marray", "[getter]",
     input[i] = sycl::ext::cplx::complex<T>{init[i], (T)0};
   }
 
-  auto *out = sycl::malloc_shared<sycl::marray<T, NumElements>>(1, Q);
+  sycl::marray<T, NumElements> h_out;
+  auto d_out = sycl::malloc_device<sycl::marray<T, NumElements>>(1, Q);
 
   if (is_type_supported<T>(Q)) {
-    Q.single_task([=]() { *out = input.real(); }).wait();
+    Q.single_task([=]() { d_out[0] = input.real(); }).wait();
+    Q.copy(d_out, &h_out, 1).wait();
 
-    check_results(*out, init);
+    check_results(h_out, init);
   }
 
-  *out = input.real();
+  h_out = input.real();
 
-  check_results(*out, init);
+  check_results(h_out, init);
 
-  sycl::free(out, Q);
+  sycl::free(d_out, Q);
 }
 
 TEMPLATE_TEST_CASE_SIG("Test marray complex imag component marray", "[getter]",
@@ -61,17 +63,19 @@ TEMPLATE_TEST_CASE_SIG("Test marray complex imag component marray", "[getter]",
     input[i] = sycl::ext::cplx::complex<T>{(T)0, init[i]};
   }
 
-  auto *out = sycl::malloc_shared<sycl::marray<T, NumElements>>(1, Q);
+  sycl::marray<T, NumElements> h_out;
+  auto d_out = sycl::malloc_device<sycl::marray<T, NumElements>>(1, Q);
 
   if (is_type_supported<T>(Q)) {
-    Q.single_task([=]() { *out = input.imag(); }).wait();
+    Q.single_task([=]() { d_out[0] = input.imag(); }).wait();
+    Q.copy(d_out, &h_out, 1).wait();
 
-    check_results(*out, init);
+    check_results(h_out, init);
   }
 
-  *out = input.imag();
+  h_out = input.imag();
 
-  check_results(*out, init);
+  check_results(h_out, init);
 
-  sycl::free(out, Q);
+  sycl::free(d_out, Q);
 }

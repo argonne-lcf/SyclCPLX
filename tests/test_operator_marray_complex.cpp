@@ -16,7 +16,8 @@
           &cplx_input2) {                                                      \
                                                                                \
     sycl::marray<std::complex<T>, NumElements> std_out{};                      \
-    auto *cplx_out = sycl::malloc_shared<                                      \
+    sycl::marray<sycl::ext::cplx::complex<T>, NumElements> h_cplx_out;         \
+    auto d_cplx_out = sycl::malloc_device<                                     \
         sycl::marray<sycl::ext::cplx::complex<T>, NumElements>>(1, Q);         \
                                                                                \
     /* Get std::complex output */                                              \
@@ -25,16 +26,19 @@
                                                                                \
     /* Check cplx::complex output from device */                               \
     if (is_type_supported<T>(Q)) {                                             \
-      Q.single_task([=]() { *cplx_out = cplx_input1 op cplx_input2; }).wait(); \
-      check_results(*cplx_out, std_out);                                       \
+      Q.single_task([=]() {                                                    \
+         d_cplx_out[0] = cplx_input1 op cplx_input2;                           \
+       }).wait();                                                              \
+      Q.copy(d_cplx_out, &h_cplx_out, 1).wait();                               \
+      check_results(h_cplx_out, std_out);                                      \
     }                                                                          \
                                                                                \
     /* Check cplx::complex output from host */                                 \
-    *cplx_out = cplx_input1 op cplx_input2;                                    \
+    h_cplx_out = cplx_input1 op cplx_input2;                                   \
                                                                                \
-    check_results(*cplx_out, std_out);                                         \
+    check_results(h_cplx_out, std_out);                                        \
                                                                                \
-    sycl::free(cplx_out, Q);                                                   \
+    sycl::free(d_cplx_out, Q);                                                 \
   }
 
 test_op(add, +);
@@ -54,9 +58,11 @@ test_op(div, *);
           &cplx_input1,                                                        \
       sycl::marray<sycl::ext::cplx::complex<T>, NumElements> &cplx_input2) {   \
                                                                                \
-    auto *cplx_inout = sycl::malloc_shared<                                    \
+    auto d_cplx_inout = sycl::malloc_device<                                   \
         sycl::marray<sycl::ext::cplx::complex<T>, NumElements>>(1, Q);         \
-    *cplx_inout = cplx_input2;                                                 \
+    sycl::marray<sycl::ext::cplx::complex<T>, NumElements> h_cplx_inout =      \
+        cplx_input2;                                                           \
+    Q.copy(&h_cplx_inout, d_cplx_inout, 1).wait();                             \
                                                                                \
     /* Get std::complex output */                                              \
     for (std::size_t i = 0; i < NumElements; ++i)                              \
@@ -64,18 +70,19 @@ test_op(div, *);
                                                                                \
     /* Check cplx::complex output from device */                               \
     if (is_type_supported<T>(Q)) {                                             \
-      Q.single_task([=]() { *cplx_inout op_assign cplx_input1; }).wait();      \
-      check_results(*cplx_inout, convert_marray<T>(std_inout));                \
+      Q.single_task([=]() { d_cplx_inout[0] op_assign cplx_input1; }).wait();  \
+      Q.copy(d_cplx_inout, &h_cplx_inout, 1).wait();                           \
+      check_results(h_cplx_inout, convert_marray<T>(std_inout));               \
     }                                                                          \
                                                                                \
-    *cplx_inout = cplx_input2;                                                 \
+    h_cplx_inout = cplx_input2;                                                \
                                                                                \
     /* Check cplx::complex output from host */                                 \
-    *cplx_inout op_assign cplx_input1;                                         \
+    h_cplx_inout op_assign cplx_input1;                                        \
                                                                                \
-    check_results(*cplx_inout, convert_marray<T>(std_inout));                  \
+    check_results(h_cplx_inout, convert_marray<T>(std_inout));                 \
                                                                                \
-    sycl::free(cplx_inout, Q);                                                 \
+    sycl::free(d_cplx_inout, Q);                                               \
   }
 
 test_op_assign(add_assign, +=);
@@ -198,7 +205,8 @@ TEST(div_assign)
     }                                                                          \
                                                                                \
     sycl::marray<std::complex<T>, NumElements> std_out{};                      \
-    auto *cplx_out = sycl::malloc_shared<                                      \
+    sycl::marray<sycl::ext::cplx::complex<T>, NumElements> h_cplx_out;         \
+    auto d_cplx_out = sycl::malloc_device<                                     \
         sycl::marray<sycl::ext::cplx::complex<T>, NumElements>>(1, Q);         \
                                                                                \
     /* Get std::complex output */                                              \
@@ -207,17 +215,18 @@ TEST(div_assign)
                                                                                \
     /* Check cplx::complex output from device */                               \
     if (is_type_supported<T>(Q)) {                                             \
-      Q.single_task([=]() { *cplx_out = op cplx_input; }).wait();              \
+      Q.single_task([=]() { d_cplx_out[0] = op cplx_input; }).wait();          \
+      Q.copy(d_cplx_out, &h_cplx_out, 1).wait();                               \
                                                                                \
-      check_results(*cplx_out, std_out);                                       \
+      check_results(h_cplx_out, std_out);                                      \
     }                                                                          \
                                                                                \
     /* Check cplx::complex output from host */                                 \
-    *cplx_out = op cplx_input;                                                 \
+    h_cplx_out = op cplx_input;                                                \
                                                                                \
-    check_results(*cplx_out, std_out);                                         \
+    check_results(h_cplx_out, std_out);                                        \
                                                                                \
-    sycl::free(cplx_out, Q);                                                   \
+    sycl::free(d_cplx_out, Q);                                                 \
   }
 
 test_unary_op("Test marray complex addition unary operator", "[add]", +);

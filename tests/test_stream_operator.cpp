@@ -13,17 +13,18 @@ TEMPLATE_TEST_CASE("Test complex sycl stream", "[sycl::stream]", double, float,
       cmplx<T>{nan_val<T>, nan_val<T>}, cmplx<T>{nan_val<T>, inf_val<T>},
       cmplx<T>{inf_val<T>, nan_val<T>});
 
-  auto *cplx_out = sycl::malloc_shared<sycl::ext::cplx::complex<T>>(1, Q);
-  cplx_out[0] = sycl::ext::cplx::complex<T>(input.re, input.im);
+  sycl::ext::cplx::complex<T> cplx_input = {input.re, input.im};
+  auto d_cplx_out = sycl::malloc_device<sycl::ext::cplx::complex<T>>(1, Q);
+  Q.copy(&cplx_input, d_cplx_out, 1).wait();
 
   if (is_type_supported<T>(Q)) {
     Q.submit([&](sycl::handler &CGH) {
        sycl::stream Out(512, 20, CGH);
-       CGH.single_task([=]() { Out << cplx_out[0] << sycl::endl; });
+       CGH.single_task([=]() { Out << d_cplx_out[0] << sycl::endl; });
      }).wait();
   }
 
-  sycl::free(cplx_out, Q);
+  sycl::free(d_cplx_out, Q);
 }
 
 // Host only tests for std::basic_ostream and std::basic_istream

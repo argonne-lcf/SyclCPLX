@@ -17,23 +17,25 @@
     sycl::ext::cplx::complex<T> cplx_input{input.re, input.im};                \
                                                                                \
     T std_out{};                                                               \
-    auto *cplx_out = sycl::malloc_shared<T>(1, Q);                             \
+    T h_cplx_out;                                                              \
+    auto d_cplx_out = sycl::malloc_device<T>(1, Q);                            \
                                                                                \
     std_out = std::func(std_in);                                               \
                                                                                \
     if (is_type_supported<T>(Q) && is_type_supported<T>(Q)) {                  \
       Q.single_task([=]() {                                                    \
-         cplx_out[0] = sycl::ext::cplx::func<T>(cplx_input);                   \
+         d_cplx_out[0] = sycl::ext::cplx::func<T>(cplx_input);                 \
        }).wait();                                                              \
+      Q.copy(d_cplx_out, &h_cplx_out, 1).wait();                               \
                                                                                \
-      check_results(cplx_out[0], std_out);                                     \
+      check_results(h_cplx_out, std_out);                                      \
     }                                                                          \
                                                                                \
-    cplx_out[0] = sycl::ext::cplx::func<T>(cplx_input);                        \
+    h_cplx_out = sycl::ext::cplx::func<T>(cplx_input);                         \
                                                                                \
-    check_results(cplx_out[0], std_out);                                       \
+    check_results(h_cplx_out, std_out);                                        \
                                                                                \
-    sycl::free(cplx_out, Q);                                                   \
+    sycl::free(d_cplx_out, Q);                                                 \
   }
 
 test_free_functions("Test free function real cplx", "[real]", real);
@@ -57,23 +59,25 @@ test_free_functions("Test free function imag cplx", "[imag]", imag);
     auto std_in = init_deci(input);                                            \
                                                                                \
     T std_out{};                                                               \
-    auto *cplx_out = sycl::malloc_shared<T>(1, Q);                             \
+    T h_cplx_out;                                                              \
+    auto d_cplx_out = sycl::malloc_device<T>(1, Q);                            \
                                                                                \
     std_out = std::func(std_in);                                               \
                                                                                \
     if (is_type_supported<T>(Q) && is_type_supported<X>(Q)) {                  \
       Q.single_task([=]() {                                                    \
-         cplx_out[0] = sycl::ext::cplx::func<X>(input);                        \
+         d_cplx_out[0] = sycl::ext::cplx::func<X>(input);                      \
        }).wait();                                                              \
+      Q.copy(d_cplx_out, &h_cplx_out, 1).wait();                               \
                                                                                \
-      check_results(cplx_out[0], std_out);                                     \
+      check_results(h_cplx_out, std_out);                                      \
     }                                                                          \
                                                                                \
-    cplx_out[0] = sycl::ext::cplx::func<X>(input);                             \
+    h_cplx_out = sycl::ext::cplx::func<X>(input);                              \
                                                                                \
-    check_results(cplx_out[0], std_out);                                       \
+    check_results(h_cplx_out, std_out);                                        \
                                                                                \
-    sycl::free(cplx_out, Q);                                                   \
+    sycl::free(d_cplx_out, Q);                                                 \
   }
 
 test_free_functions("Test free function real deci", "[real]", real);
