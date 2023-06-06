@@ -1813,7 +1813,7 @@ sycl::marray<T, N> reduce_over_group(Group g, sycl::marray<V, N> x,
 
 // Use sycl::detail::loop if the compiler is intel/llvm's clang
 #if defined(SYCL_IMPLEMENTATION_ONEAPI) && !defined(__INTEL_LLVM_COMPILER)
-  sycl::detail::detail_loop<N>([&](size_t s) {
+  sycl::detail::loop<N>([&](size_t s) {
     result[s] = reduce_over_group(g, x[s], init[s], binary_op);
   });
 #else
@@ -1938,7 +1938,7 @@ sycl::marray<T, N> inclusive_scan_over_group(Group g, sycl::marray<V, N> x,
 
 // Use sycl::detail::loop if the compiler is intel/llvm's clang
 #if defined(SYCL_IMPLEMENTATION_ONEAPI) && !defined(__INTEL_LLVM_COMPILER)
-  sycl::detail::detail_loop<N>([&](size_t s) {
+  sycl::detail::loop<N>([&](size_t s) {
     result[s] = inclusive_scan_over_group(g, x[s], binary_op, init[s]);
   });
 #else
@@ -2093,7 +2093,7 @@ sycl::marray<T, N> exclusive_scan_over_group(Group g, sycl::marray<V, N> x,
 
 // Use sycl::detail::loop if the compiler is intel/llvm's clang
 #if defined(SYCL_IMPLEMENTATION_ONEAPI) && !defined(__INTEL_LLVM_COMPILER)
-  sycl::detail::detail_loop<N>([&](size_t s) {
+  sycl::detail::loop<N>([&](size_t s) {
     result[s] = exclusive_scan_over_group(g, x[s], init[s], binary_op);
   });
 #else
