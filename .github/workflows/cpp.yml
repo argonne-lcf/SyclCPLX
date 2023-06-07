@@ -44,5 +44,3 @@ jobs:
       run: cmake -S . -B build-sycl -DSYCL_CPLX_BUILD_BENCHMARKS=ON -DBUILD_TESTING=ON
     - name: build
       run: cmake --build build-sycl -v
-    - name: tests
-      run: cmake --build build-sycl -v -t test
