@@ -375,6 +375,17 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr bool isinf(const T a) {
   return sycl::isinf(a);
 #endif
 }
+
+// To ensure loop unrolling is done when processing dimensions.
+template <size_t... Inds, class F>
+void loop_impl(std::integer_sequence<size_t, Inds...>, F &&f) {
+  (f(std::integral_constant<size_t, Inds>{}), ...);
+}
+
+template <size_t count, class F> void loop(F &&f) {
+  loop_impl(std::make_index_sequence<count>{}, std::forward<F>(f));
+}
+
 } // namespace cplex::detail
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1811,16 +1822,9 @@ sycl::marray<T, N> reduce_over_group(Group g, sycl::marray<V, N> x,
 #ifdef __SYCL_DEVICE_ONLY__
   sycl::marray<T, N> result;
 
-// Use sycl::detail::loop if the compiler is intel/llvm's clang
-#if defined(SYCL_IMPLEMENTATION_ONEAPI) && !defined(__INTEL_LLVM_COMPILER)
-  sycl::detail::loop<N>([&](size_t s) {
+  cplex::detail::loop<N>([&](size_t s) {
     result[s] = reduce_over_group(g, x[s], init[s], binary_op);
   });
-#else
-  for (std::size_t s = 0; s < N; ++s) {
-    result[s] = reduce_over_group(g, x[s], init[s], binary_op);
-  }
-#endif
 
   return result;
 #else
@@ -1936,16 +1940,9 @@ sycl::marray<T, N> inclusive_scan_over_group(Group g, sycl::marray<V, N> x,
 #ifdef __SYCL_DEVICE_ONLY__
   sycl::marray<T, N> result;
 
-// Use sycl::detail::loop if the compiler is intel/llvm's clang
-#if defined(SYCL_IMPLEMENTATION_ONEAPI) && !defined(__INTEL_LLVM_COMPILER)
-  sycl::detail::loop<N>([&](size_t s) {
+  cplex::detail::loop<N>([&](size_t s) {
     result[s] = inclusive_scan_over_group(g, x[s], binary_op, init[s]);
   });
-#else
-  for (std::size_t s = 0; s < N; ++s) {
-    result[s] = inclusive_scan_over_group(g, x[s], binary_op, init[s]);
-  }
-#endif
 
   return result;
 #else
@@ -2091,16 +2088,9 @@ sycl::marray<T, N> exclusive_scan_over_group(Group g, sycl::marray<V, N> x,
 #ifdef __SYCL_DEVICE_ONLY__
   sycl::marray<T, N> result;
 
-// Use sycl::detail::loop if the compiler is intel/llvm's clang
-#if defined(SYCL_IMPLEMENTATION_ONEAPI) && !defined(__INTEL_LLVM_COMPILER)
-  sycl::detail::loop<N>([&](size_t s) {
+  cplex::detail::loop<N>([&](size_t s) {
     result[s] = exclusive_scan_over_group(g, x[s], init[s], binary_op);
   });
-#else
-  for (std::size_t s = 0; s < N; ++s) {
-    result[s] = exclusive_scan_over_group(g, x[s], init[s], binary_op);
-  }
-#endif
 
   return result;
 #else
