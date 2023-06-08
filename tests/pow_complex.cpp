@@ -14,24 +14,13 @@ template <typename T1, typename T2> auto std_pow(T1 &x, T2 &y) {
   return std::pow(x, y);
 }
 
-// speciliazation for complex base which applies workaround to specific cases
-// in particular, {finite, finite}^{nan, inf} and {finite, finite}^{finite, inf}
-// retult in {nan, nan} when it should be {0, 0} (as verified by checking
-// several C++ library implementations). Note that calling exp(y * log(x))
-// also produces the correct result in this particular case, but hard coding
-// the problematic result for the problematic cases is a clearer workaround.
+// speciliazation for complex exponent and base to apply workaround, when
+// enabled with SYCL_CLX_TEST_POW_WORKAROUND macro
 template <typename T1, typename T2>
 auto std_pow(std::complex<T1> &x, std::complex<T2> &y) {
 #ifdef SYCL_CPLX_TEST_POW_WORKAROUND
-  if ((std::isfinite(x.real()) && std::isfinite(x.imag())) &&
-      ((std::isfinite(y.real()) && std::isinf(y.imag())) ||
-       (std::isnan(y.real()) && std::isinf(y.imag())))) {
-    // std::cout << "workaround " << x << " " << y << std::endl;
-    using RT = decltype(std::pow(x, y));
-    return RT{0, 0};
-  } else {
-    return std::pow(x, y);
-  }
+  using ReturnType = decltype(std::pow(x, y));
+  return std::exp(ReturnType(y) * ReturnType(std::log(x)));
 #else
   return std::pow(x, y);
 #endif
