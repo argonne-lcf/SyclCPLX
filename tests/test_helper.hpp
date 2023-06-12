@@ -101,6 +101,16 @@ bool almost_equal(std::complex<T> output, std::complex<T> reference, int ulp) {
          is_nan_or_inf(output, reference);
 }
 
+template <typename T>
+bool almost_equal(sycl::ext::cplx::complex<T> output, std::complex<T> reference,
+                  int ulp) {
+  auto diff = std::abs((std::complex<T>)output - reference);
+  return diff <= std::numeric_limits<T>::epsilon() *
+                     std::abs((std::complex<T>)output + reference) * ulp ||
+         diff < std::numeric_limits<T>::min() ||
+         is_nan_or_inf(output, reference);
+}
+
 // Helpers for testing half
 
 inline std::complex<float>
