@@ -69,13 +69,13 @@ TEMPLATE_TEST_CASE("Test complex pow cplx-cplx overload", "[pow]", double,
      }).wait();
     Q.copy(d_cplx_out, &h_cplx_out, 1).wait();
 
-    CHECK_THAT(h_cplx_out, SyclWithinULP(std_out, 1));
+    CHECK_THAT(h_cplx_out, ComplexWithinULP(std_out, 1));
   }
 
   // Check cplx::complex output from host
   h_cplx_out = sycl::ext::cplx::pow<T>(cplx_input1, cplx_input2);
 
-  CHECK_THAT(h_cplx_out, SyclWithinULP(std_out, 1));
+  CHECK_THAT(h_cplx_out, ComplexWithinULP(std_out, 1));
 
   sycl::free(d_cplx_out, Q);
 }
@@ -127,13 +127,13 @@ TEMPLATE_TEST_CASE("Test complex pow cplx<T>-cplx<U> overload", "[pow]",
      }).wait();
     Q.copy(d_cplx_out, &h_cplx_out, 1).wait();
 
-    CHECK_THAT(h_cplx_out, SyclWithinULP(std_out, 1));
+    CHECK_THAT(h_cplx_out, ComplexWithinULP(std_out, 1));
   }
 
   // Check cplx::complex output from host
   h_cplx_out = sycl::ext::cplx::pow<T>(cplx_input1, cplx_input2);
 
-  CHECK_THAT(h_cplx_out, SyclWithinULP(std_out, 1));
+  CHECK_THAT(h_cplx_out, ComplexWithinULP(std_out, 1));
 
   sycl::free(d_cplx_out, Q);
 }
@@ -174,13 +174,13 @@ TEMPLATE_TEST_CASE("Test complex pow cplx-deci overload", "[pow]", double,
      }).wait();
     Q.copy(d_cplx_out, &h_cplx_out, 1).wait();
 
-    CHECK_THAT(h_cplx_out, SyclWithinULP(std_out, 1));
+    CHECK_THAT(h_cplx_out, ComplexWithinULP(std_out, 1));
   }
 
   // Check cplx::complex output from host
   h_cplx_out = sycl::ext::cplx::pow<T>(cplx_input, deci_input);
 
-  CHECK_THAT(h_cplx_out, SyclWithinULP(std_out, 1));
+  CHECK_THAT(h_cplx_out, ComplexWithinULP(std_out, 1));
 
   sycl::free(d_cplx_out, Q);
 }
@@ -221,13 +221,13 @@ TEMPLATE_TEST_CASE("Test complex pow deci-cplx overload", "[pow]", double,
      }).wait();
     Q.copy(d_cplx_out, &h_cplx_out, 1).wait();
 
-    CHECK_THAT(h_cplx_out, SyclWithinULP(std_out, 1));
+    CHECK_THAT(h_cplx_out, ComplexWithinULP(std_out, 1));
   }
 
   // Check cplx::complex output from host
   h_cplx_out = sycl::ext::cplx::pow<T>(deci_input, cplx_input);
 
-  CHECK_THAT(h_cplx_out, SyclWithinULP(std_out, 1));
+  CHECK_THAT(h_cplx_out, ComplexWithinULP(std_out, 1));
 
   sycl::free(d_cplx_out, Q);
 }
@@ -310,14 +310,14 @@ TEMPLATE_TEST_CASE_SIG("Test marray complex pow cplx-cplx overload", "[pow]",
     Q.copy(d_cplx_out, &h_cplx_out, 1).wait();
 
     check_results(h_cplx_out, std_out, /*tol_multiplier*/ 3);
-    // CHECK_THAT(h_cplx_out, SyclWithinULP(std_out, /*tol_multiplier*/ 3));
+    // CHECK_THAT(h_cplx_out, ComplexWithinULP(std_out, /*tol_multiplier*/ 3));
   }
 
   // Check cplx::complex output from host
   h_cplx_out = sycl::ext::cplx::pow<T>(cplx_input1, cplx_input2);
 
   check_results(h_cplx_out, std_out, /*tol_multiplier*/ 3);
-  // CHECK_THAT(h_cplx_out, SyclWithinULP(std_out, 1));
+  // CHECK_THAT(h_cplx_out, ComplexWithinULP(std_out, 1));
 
   sycl::free(d_cplx_out, Q);
 }
@@ -390,14 +390,14 @@ TEMPLATE_TEST_CASE_SIG("Test marray complex pow cplx-deci overload", "[pow]",
     Q.copy(d_cplx_out, &h_cplx_out, 1).wait();
 
     check_results(h_cplx_out, std_out, /*tol_multiplier*/ 3);
-    // CHECK_THAT(h_cplx_out, SyclWithinULP(std_out, /*tol_multiplier*/ 3));
+    // CHECK_THAT(h_cplx_out, ComplexWithinULP(std_out, /*tol_multiplier*/ 3));
   }
 
   // Check cplx::complex output from host
   h_cplx_out = sycl::ext::cplx::pow<T>(cplx_input1, cplx_input2);
 
   check_results(h_cplx_out, std_out, /*tol_multiplier*/ 3);
-  // CHECK_THAT(h_cplx_out, SyclWithinULP(std_out, 1));
+  // CHECK_THAT(h_cplx_out, ComplexWithinULP(std_out, 1));
 
   sycl::free(d_cplx_out, Q);
 }
@@ -470,14 +470,14 @@ TEMPLATE_TEST_CASE_SIG("Test marray complex pow deci-cplx overload", "[pow]",
     Q.copy(d_cplx_out, &h_cplx_out, 1).wait();
 
     check_results(h_cplx_out, std_out, /*tol_multiplier*/ 3);
-    // CHECK_THAT(h_cplx_out, SyclWithinULP(std_out, /*tol_multiplier*/ 3));
+    // CHECK_THAT(h_cplx_out, ComplexWithinULP(std_out, /*tol_multiplier*/ 3));
   }
 
   // Check cplx::complex output from host
   h_cplx_out = sycl::ext::cplx::pow<T>(cplx_input1, cplx_input2);
 
   check_results(h_cplx_out, std_out, /*tol_multiplier*/ 3);
-  // CHECK_THAT(h_cplx_out, SyclWithinULP(std_out, 1));
+  // CHECK_THAT(h_cplx_out, ComplexWithinULP(std_out, 1));
 
   sycl::free(d_cplx_out, Q);
 }

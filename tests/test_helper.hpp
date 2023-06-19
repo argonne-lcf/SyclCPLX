@@ -101,16 +101,6 @@ bool almost_equal(std::complex<T> output, std::complex<T> reference, int ulp) {
          is_nan_or_inf(output, reference);
 }
 
-template <typename T>
-bool almost_equal(sycl::ext::cplx::complex<T> output, std::complex<T> reference,
-                  int ulp) {
-  auto diff = std::abs((std::complex<T>)output - reference);
-  return diff <= std::numeric_limits<T>::epsilon() *
-                     std::abs((std::complex<T>)output + reference) * ulp ||
-         diff < std::numeric_limits<T>::min() ||
-         is_nan_or_inf(output, reference);
-}
-
 // Helpers for testing half
 
 inline std::complex<float>
@@ -249,13 +239,14 @@ void check_results(std::array<T, NumElements> output,
 }
 
 template <typename T>
-struct SyclFpMatcher : Catch::Matchers::MatcherGenericBase {
+struct ComplexMatcher : Catch::Matchers::MatcherGenericBase {
   using FpType = decltype((T{}).real());
-  SyclFpMatcher(T target, int tol_multiplier = 1)
+  ComplexMatcher(T target, int tol_multiplier = 1)
       : target_(target), tol_multiplier_(tol_multiplier) {}
 
   template <typename OtherT> bool match(OtherT const &other) const {
-    return detail::almost_equal(other, target_,
+    return detail::almost_equal(std::complex<FpType>(other),
+                                std::complex<FpType>(target_),
                                 tol_multiplier_ * SYCL_CPLX_TOL_ULP);
   }
 
@@ -273,7 +264,7 @@ private:
 };
 
 template <typename T>
-auto SyclWithinULP(const T &target, int tol_multiplier = 1)
-    -> SyclFpMatcher<T> {
-  return SyclFpMatcher<T>{target, tol_multiplier};
+auto ComplexWithinULP(const T &target, int tol_multiplier = 1)
+    -> ComplexMatcher<T> {
+  return ComplexMatcher<T>{target, tol_multiplier};
 }
