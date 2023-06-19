@@ -252,6 +252,8 @@ template<class T> complex<T> tanh (const complex<T>&);
 #endif
 #endif
 
+#define _SYCL_CPLX_QUALIFY(x) _SYCL_CPLX_NAMESPACE::x
+
 #define _SYCL_EXT_CPLX_BEGIN_NAMESPACE_STD namespace _SYCL_CPLX_NAMESPACE {
 #define _SYCL_EXT_CPLX_END_NAMESPACE_STD }
 
@@ -1276,7 +1278,7 @@ template <typename T> struct is_mgencomplex : std::false_type {};
 
 template <typename T, std::size_t N>
 struct is_mgencomplex<sycl::marray<T, N>>
-    : std::integral_constant<bool, sycl::ext::cplx::is_gencomplex_v<T>> {};
+    : std::integral_constant<bool, is_gencomplex_v<T>> {};
 
 template <typename T>
 inline constexpr bool is_mgencomplex_v = is_mgencomplex<T>::value;
@@ -1287,9 +1289,9 @@ _SYCL_MARRAY_BEGIN_NAMESPACE
 
 // marray of complex class specialisation
 template <typename T, std::size_t NumElements>
-class marray<sycl::ext::cplx::complex<T>, NumElements> {
+class marray<_SYCL_CPLX_QUALIFY(complex<T>), NumElements> {
 private:
-  using ComplexDataT = sycl::ext::cplx::complex<T>;
+  using ComplexDataT = _SYCL_CPLX_QUALIFY(complex<T>);
 
 public:
   using value_type = ComplexDataT;
@@ -1592,7 +1594,7 @@ _SYCL_EXT_CPLX_BEGIN_NAMESPACE_STD
   math_func(const sycl::marray<arg_type, NumElements> &x) {                    \
     sycl::marray<rtn_type, NumElements> rtn;                                   \
     for (std::size_t i = 0; i < NumElements; ++i)                              \
-      rtn[i] = sycl::ext::cplx::math_func(x[i]);                               \
+      rtn[i] = math_func(x[i]);                                                \
                                                                                \
     return rtn;                                                                \
   }
@@ -1631,7 +1633,7 @@ MATH_OP_ONE_PARAM(tanh, complex<T>, complex<T>);
             const sycl::marray<arg_type2, NumElements> &y) {                   \
     sycl::marray<rtn_type, NumElements> rtn;                                   \
     for (std::size_t i = 0; i < NumElements; ++i)                              \
-      rtn[i] = sycl::ext::cplx::math_func(x[i], y[i]);                         \
+      rtn[i] = math_func(x[i], y[i]);                                          \
                                                                                \
     return rtn;                                                                \
   }                                                                            \
@@ -1644,7 +1646,7 @@ MATH_OP_ONE_PARAM(tanh, complex<T>, complex<T>);
             const arg_type2 &y) {                                              \
     sycl::marray<rtn_type, NumElements> rtn;                                   \
     for (std::size_t i = 0; i < NumElements; ++i)                              \
-      rtn[i] = sycl::ext::cplx::math_func(x[i], y);                            \
+      rtn[i] = math_func(x[i], y);                                             \
                                                                                \
     return rtn;                                                                \
   }                                                                            \
@@ -1673,12 +1675,12 @@ MATH_OP_TWO_PARAM(pow, complex<T>, T, complex<T>);
 template <typename T, std::size_t NumElements,
           typename = std::enable_if<is_genfloat<T>::value>>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY
-    sycl::marray<sycl::ext::cplx::complex<T>, NumElements>
+    sycl::marray<_SYCL_CPLX_QUALIFY(complex<T>), NumElements>
     polar(const sycl::marray<T, NumElements> &rho,
           const sycl::marray<T, NumElements> &theta) {
-  sycl::marray<sycl::ext::cplx::complex<T>, NumElements> rtn;
+  sycl::marray<_SYCL_CPLX_QUALIFY(complex<T>), NumElements> rtn;
   for (std::size_t i = 0; i < NumElements; ++i)
-    rtn[i] = sycl::ext::cplx::polar(rho[i], theta[i]);
+    rtn[i] = polar(rho[i], theta[i]);
 
   return rtn;
 }
@@ -1686,11 +1688,11 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY
 template <typename T, std::size_t NumElements,
           typename = std::enable_if<is_genfloat<T>::value>>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY
-    sycl::marray<sycl::ext::cplx::complex<T>, NumElements>
+    sycl::marray<_SYCL_CPLX_QUALIFY(complex<T>), NumElements>
     polar(const sycl::marray<T, NumElements> &rho, const T &theta = 0) {
-  sycl::marray<sycl::ext::cplx::complex<T>, NumElements> rtn;
+  sycl::marray<_SYCL_CPLX_QUALIFY(complex<T>), NumElements> rtn;
   for (std::size_t i = 0; i < NumElements; ++i)
-    rtn[i] = sycl::ext::cplx::polar(rho[i], theta);
+    rtn[i] = polar(rho[i], theta);
 
   return rtn;
 }
@@ -1698,11 +1700,11 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY
 template <typename T, std::size_t NumElements,
           typename = std::enable_if<is_genfloat<T>::value>>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY
-    sycl::marray<sycl::ext::cplx::complex<T>, NumElements>
+    sycl::marray<_SYCL_CPLX_QUALIFY(complex<T>), NumElements>
     polar(const T &rho, const sycl::marray<T, NumElements> &theta) {
-  sycl::marray<sycl::ext::cplx::complex<T>, NumElements> rtn;
+  sycl::marray<_SYCL_CPLX_QUALIFY(complex<T>), NumElements> rtn;
   for (std::size_t i = 0; i < NumElements; ++i)
-    rtn[i] = sycl::ext::cplx::polar(rho, theta[i]);
+    rtn[i] = polar(rho, theta[i]);
 
   return rtn;
 }
@@ -1744,18 +1746,15 @@ inline constexpr bool is_binary_op_supported_v =
 /// Helper functions to get the init for sycl::plus binary operation when the
 /// type is a gencomplex
 template <typename T, class BinaryOperation>
-std::enable_if_t<(sycl::ext::cplx::is_gencomplex_v<T> &&
-                  detail::is_plus_v<BinaryOperation>),
-                 T>
+std::enable_if_t<(is_gencomplex_v<T> && detail::is_plus_v<BinaryOperation>), T>
 get_init() {
   return T{0, 0};
 }
 /// Helper functions to get the init for sycl::multiply binary operation when
 /// the type is a gencomplex
 template <typename T, class BinaryOperation>
-std::enable_if_t<(sycl::ext::cplx::is_gencomplex_v<T> &&
-                  detail::is_multiplies<BinaryOperation>::value),
-                 T>
+std::enable_if_t<
+    (is_gencomplex_v<T> && detail::is_multiplies<BinaryOperation>::value), T>
 get_init() {
   return T{1, 0};
 }
