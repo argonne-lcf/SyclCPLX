@@ -1,7 +1,12 @@
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_tostring.hpp>
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <catch2/matchers/catch_matchers_templated.hpp>
+
+#include <cmath>
+#include <iomanip>
 
 #include <sycl/sycl.hpp>
 
@@ -232,3 +237,38 @@ void check_results(std::array<T, NumElements> output,
     check_results(output[i], reference[i], tol_multiplier);
   }
 }
+
+template <typename T>
+struct ComplexMatcher : Catch::Matchers::MatcherGenericBase {
+  using FpType = decltype((T{}).real());
+  ComplexMatcher(T target, int tol_multiplier = 1)
+      : target_(target), tol_multiplier_(tol_multiplier) {}
+
+  template <typename OtherT> bool match(OtherT const &other) const {
+    return detail::almost_equal(std::complex<FpType>(other),
+                                std::complex<FpType>(target_),
+                                tol_multiplier_ * SYCL_CPLX_TOL_ULP);
+  }
+
+  std::string describe() const override {
+    auto rel_ulp = std::numeric_limits<FpType>::epsilon() * tol_multiplier_ *
+                   SYCL_CPLX_TOL_ULP;
+    Catch::ReusableStringStream sstr;
+    sstr << "and " << target_ << " are within " << rel_ulp << " relative ULP";
+    return sstr.str();
+  }
+
+private:
+  T target_;
+  int tol_multiplier_;
+};
+
+template <typename T>
+auto ComplexWithinULP(const T &target, int tol_multiplier = 1)
+    -> ComplexMatcher<T> {
+  return ComplexMatcher<T>{target, tol_multiplier};
+}
+
+// TODO: make this work with marray
+#define CHECK_COMPLEX_WITHIN_ULP(output, reference, tol_multiplier)            \
+  CHECK_THAT(output, ComplexWithinULP(reference, tol_multiplier))

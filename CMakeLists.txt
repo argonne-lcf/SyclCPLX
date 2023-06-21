@@ -9,6 +9,7 @@ option(SYCL_CPLX_FAST_MATH "Enable fast math (not all tests will pass)" OFF)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
   add_compile_options(-fsycl -O2)
+  add_compile_definitions(SYCL_CPLX_TEST_POW_WORKAROUND)
   add_link_options(-fsycl)
   if(NOT SYCL_CPLX_FAST_MATH)
     message(STATUS "${PROJECT_NAME}: using precise fp model for intel llvm compiler")
