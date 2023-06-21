@@ -268,3 +268,7 @@ auto ComplexWithinULP(const T &target, int tol_multiplier = 1)
     -> ComplexMatcher<T> {
   return ComplexMatcher<T>{target, tol_multiplier};
 }
+
+// TODO: make this work with marray
+#define CHECK_COMPLEX_WITHIN_ULP(output, reference, tol_multiplier)            \
+  CHECK_THAT(output, ComplexWithinULP(reference, tol_multiplier))
