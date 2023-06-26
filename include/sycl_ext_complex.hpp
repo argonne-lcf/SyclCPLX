@@ -252,6 +252,11 @@ template<class T> complex<T> tanh (const complex<T>&);
 #endif
 #endif
 
+// Note: Needed to support hipsycl and custom namespace. In particular
+// the marray specialization for the sycl ext complex type is defined in
+// a different namespace so the complex type needs to be qualified. The
+// qualify macro is needed because direct macro substitution does not work
+// with the "::" delimiter.
 #define _SYCL_CPLX_QUALIFY(x) _SYCL_CPLX_NAMESPACE::x
 
 #define _SYCL_EXT_CPLX_BEGIN_NAMESPACE_STD namespace _SYCL_CPLX_NAMESPACE {
