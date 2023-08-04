@@ -16,13 +16,18 @@ void test_exclusive_scan_over_group(sycl::queue q, T input,
 
   auto init = sycl::ext::cplx::cplex::detail::get_init<V, BinaryOperation>();
 
-  auto *in = sycl::malloc_shared<V>(N, q);
-  auto *output_with_init = sycl::malloc_shared<V>(N, q);
-  auto *output_without_init = sycl::malloc_shared<V>(N, q);
+  auto *d_in = sycl::malloc_device<V>(N, q);
+  auto *d_output_with_init = sycl::malloc_device<V>(N, q);
+  auto *d_output_without_init = sycl::malloc_device<V>(N, q);
+
+  auto *h_in = sycl::malloc_device<V>(N, q);
+  auto *h_output_with_init = sycl::malloc_device<V>(N, q);
+  auto *h_output_without_init = sycl::malloc_device<V>(N, q);
 
   for (std::size_t i = 0; i < N; i++) {
-    in[i] = input[i];
+    h_in[i] = input[i];
   }
+  q.copy(h_in, d_in, N).wait();
 
   q.submit([&](sycl::handler &cgh) {
     cgh.parallel_for(sycl::nd_range<1>(N, N), [=](sycl::nd_item<1> it) {
@@ -30,12 +35,14 @@ void test_exclusive_scan_over_group(sycl::queue q, T input,
       auto lid = it.get_local_id(0);
       auto g = it.get_group();
 
-      output_with_init[lid] = sycl::ext::cplx::exclusive_scan_over_group(
-          g, in[gid], init, binary_op);
-      output_without_init[lid] =
-          sycl::ext::cplx::exclusive_scan_over_group(g, in[gid], binary_op);
+      d_output_with_init[lid] = sycl::ext::cplx::exclusive_scan_over_group(
+          g, d_in[gid], init, binary_op);
+      d_output_without_init[lid] =
+          sycl::ext::cplx::exclusive_scan_over_group(g, d_in[gid], binary_op);
     });
   });
+  q.copy(d_output_with_init, h_output_with_init, N);
+  q.copy(d_output_without_init, h_output_without_init, N);
 
   q.wait();
 
@@ -45,20 +52,24 @@ void test_exclusive_scan_over_group(sycl::queue q, T input,
 
   std::array<V, N> result;
   for (std::size_t i = 0; i < N; i++) {
-    result[i] = output_with_init[i];
+    result[i] = h_output_with_init[i];
   }
 
   check_results(result, expected);
 
   for (std::size_t i = 0; i < N; i++) {
-    result[i] = output_without_init[i];
+    result[i] = h_output_without_init[i];
   }
 
   check_results(result, expected);
 
-  sycl::free(in, q);
-  sycl::free(output_with_init, q);
-  sycl::free(output_without_init, q);
+  sycl::free(d_in, q);
+  sycl::free(d_output_with_init, q);
+  sycl::free(d_output_without_init, q);
+
+  sycl::free(h_in, q);
+  sycl::free(h_output_with_init, q);
+  sycl::free(h_output_without_init, q);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

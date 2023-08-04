@@ -399,14 +399,14 @@ template <size_t count, class F> void loop(F &&f) {
 // COMPLEX IMPLEMENTATION
 ////////////////////////////////////////////////////////////////////////////////
 
-template <class _Tp, class _Enable = void> class complex;
+template <class _Tp, class _Enable = void> class _complex;
 
 template <class _Tp>
 struct is_gencomplex
     : std::integral_constant<bool,
-                             std::is_same_v<_Tp, complex<double>> ||
-                                 std::is_same_v<_Tp, complex<float>> ||
-                                 std::is_same_v<_Tp, complex<sycl::half>>> {};
+                             std::is_same_v<_Tp, _complex<double>> ||
+                                 std::is_same_v<_Tp, _complex<float>> ||
+                                 std::is_same_v<_Tp, _complex<sycl::half>>> {};
 template <typename _Tp>
 inline constexpr bool is_gencomplex_v = is_gencomplex<_Tp>::value;
 
@@ -419,7 +419,7 @@ template <typename _Tp>
 inline constexpr bool is_genfloat_v = is_genfloat<_Tp>::value;
 
 template <class _Tp>
-class complex<_Tp, typename std::enable_if<is_genfloat<_Tp>::value>::type> {
+class _complex<_Tp, typename std::enable_if<is_genfloat<_Tp>::value>::type> {
 public:
   typedef _Tp value_type;
 
@@ -428,16 +428,16 @@ private:
   value_type __im_;
 
 public:
-  _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr complex(
+  _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr _complex(
       value_type __re = value_type(), value_type __im = value_type())
       : __re_(__re), __im_(__im) {}
 
   template <typename _Xp>
-  _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr complex(const complex<_Xp> &__c)
+  _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr _complex(const _complex<_Xp> &__c)
       : __re_(__c.real()), __im_(__c.imag()) {}
 
   template <class _Xp, class = std::enable_if<is_genfloat<_Xp>::value>>
-  _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr complex(
+  _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr _complex(
       const std::complex<_Xp> &__c)
       : __re_(static_cast<value_type>(__c.real())),
         __im_(static_cast<value_type>(__c.imag())) {}
@@ -458,115 +458,116 @@ public:
   _SYCL_EXT_CPLX_INLINE_VISIBILITY void real(value_type __re) { __re_ = __re; }
   _SYCL_EXT_CPLX_INLINE_VISIBILITY void imag(value_type __im) { __im_ = __im; }
 
-  _SYCL_EXT_CPLX_INLINE_VISIBILITY complex &operator=(value_type __re) {
+  _SYCL_EXT_CPLX_INLINE_VISIBILITY _complex &operator=(value_type __re) {
     __re_ = __re;
     __im_ = value_type();
     return *this;
   }
-  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex &
-  operator+=(complex<value_type> &__c, value_type __re) {
+  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend _complex &
+  operator+=(_complex<value_type> &__c, value_type __re) {
     __c.__re_ += __re;
     return __c;
   }
-  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex &
-  operator-=(complex<value_type> &__c, value_type __re) {
+  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend _complex &
+  operator-=(_complex<value_type> &__c, value_type __re) {
     __c.__re_ -= __re;
     return __c;
   }
-  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex &
-  operator*=(complex<value_type> &__c, value_type __re) {
+  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend _complex &
+  operator*=(_complex<value_type> &__c, value_type __re) {
     __c.__re_ *= __re;
     __c.__im_ *= __re;
     return __c;
   }
-  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex &
-  operator/=(complex<value_type> &__c, value_type __re) {
+  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend _complex &
+  operator/=(_complex<value_type> &__c, value_type __re) {
     __c.__re_ /= __re;
     __c.__im_ /= __re;
     return __c;
   }
 
   template <class _Xp>
-  _SYCL_EXT_CPLX_INLINE_VISIBILITY complex &operator=(const complex<_Xp> &__c) {
+  _SYCL_EXT_CPLX_INLINE_VISIBILITY _complex &
+  operator=(const _complex<_Xp> &__c) {
     __re_ = __c.real();
     __im_ = __c.imag();
     return *this;
   }
   template <class _Xp>
-  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex &
-  operator+=(complex<value_type> &__x, const complex<_Xp> &__y) {
+  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend _complex &
+  operator+=(_complex<value_type> &__x, const _complex<_Xp> &__y) {
     __x.__re_ += __y.real();
     __x.__im_ += __y.imag();
     return __x;
   }
   template <class _Xp>
-  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex &
-  operator-=(complex<value_type> &__x, const complex<_Xp> &__y) {
+  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend _complex &
+  operator-=(_complex<value_type> &__x, const _complex<_Xp> &__y) {
     __x.__re_ -= __y.real();
     __x.__im_ -= __y.imag();
     return __x;
   }
   template <class _Xp>
-  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex &
-  operator*=(complex<value_type> &__x, const complex<_Xp> &__y) {
-    __x = __x * complex(__y.real(), __y.imag());
+  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend _complex &
+  operator*=(_complex<value_type> &__x, const _complex<_Xp> &__y) {
+    __x = __x * _complex(__y.real(), __y.imag());
     return __x;
   }
   template <class _Xp>
-  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex &
-  operator/=(complex<value_type> &__x, const complex<_Xp> &__y) {
-    __x = __x / complex(__y.real(), __y.imag());
+  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend _complex &
+  operator/=(_complex<value_type> &__x, const _complex<_Xp> &__y) {
+    __x = __x / _complex(__y.real(), __y.imag());
     return __x;
   }
 
-  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex<value_type>
-  operator+(const complex<value_type> &__x, const complex<value_type> &__y) {
-    complex<value_type> __t(__x);
+  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend _complex<value_type>
+  operator+(const _complex<value_type> &__x, const _complex<value_type> &__y) {
+    _complex<value_type> __t(__x);
     __t += __y;
     return __t;
   }
-  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex<value_type>
-  operator+(const complex<value_type> &__x, value_type __y) {
-    complex<value_type> __t(__x);
+  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend _complex<value_type>
+  operator+(const _complex<value_type> &__x, value_type __y) {
+    _complex<value_type> __t(__x);
     __t += __y;
     return __t;
   }
-  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex<value_type>
-  operator+(value_type __x, const complex<value_type> &__y) {
-    complex<value_type> __t(__y);
+  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend _complex<value_type>
+  operator+(value_type __x, const _complex<value_type> &__y) {
+    _complex<value_type> __t(__y);
     __t += __x;
     return __t;
   }
-  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex<value_type>
-  operator+(const complex<value_type> &__x) {
+  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend _complex<value_type>
+  operator+(const _complex<value_type> &__x) {
     return __x;
   }
 
-  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex<value_type>
-  operator-(const complex<value_type> &__x, const complex<value_type> &__y) {
-    complex<value_type> __t(__x);
+  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend _complex<value_type>
+  operator-(const _complex<value_type> &__x, const _complex<value_type> &__y) {
+    _complex<value_type> __t(__x);
     __t -= __y;
     return __t;
   }
-  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex<value_type>
-  operator-(const complex<value_type> &__x, value_type __y) {
-    complex<value_type> __t(__x);
+  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend _complex<value_type>
+  operator-(const _complex<value_type> &__x, value_type __y) {
+    _complex<value_type> __t(__x);
     __t -= __y;
     return __t;
   }
-  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex<value_type>
-  operator-(value_type __x, const complex<value_type> &__y) {
-    complex<value_type> __t(-__y);
+  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend _complex<value_type>
+  operator-(value_type __x, const _complex<value_type> &__y) {
+    _complex<value_type> __t(-__y);
     __t += __x;
     return __t;
   }
-  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex<value_type>
-  operator-(const complex<value_type> &__x) {
-    return complex<value_type>(-__x.__re_, -__x.__im_);
+  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend _complex<value_type>
+  operator-(const _complex<value_type> &__x) {
+    return _complex<value_type>(-__x.__re_, -__x.__im_);
   }
 
-  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex<value_type>
-  operator*(const complex<value_type> &__z, const complex<value_type> &__w) {
+  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend _complex<value_type>
+  operator*(const _complex<value_type> &__z, const _complex<value_type> &__w) {
     value_type __a = __z.__re_;
     value_type __b = __z.__im_;
     value_type __c = __w.__re_;
@@ -619,23 +620,23 @@ public:
         __y = value_type(INFINITY) * (__a * __d + __b * __c);
       }
     }
-    return complex<value_type>(__x, __y);
+    return _complex<value_type>(__x, __y);
   }
-  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex<value_type>
-  operator*(const complex<value_type> &__x, value_type __y) {
-    complex<value_type> __t(__x);
+  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend _complex<value_type>
+  operator*(const _complex<value_type> &__x, value_type __y) {
+    _complex<value_type> __t(__x);
     __t *= __y;
     return __t;
   }
-  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex<value_type>
-  operator*(value_type __x, const complex<value_type> &__y) {
-    complex<value_type> __t(__y);
+  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend _complex<value_type>
+  operator*(value_type __x, const _complex<value_type> &__y) {
+    _complex<value_type> __t(__y);
     __t *= __x;
     return __t;
   }
 
-  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex<value_type>
-  operator/(const complex<value_type> &__z, const complex<value_type> &__w) {
+  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend _complex<value_type>
+  operator/(const _complex<value_type> &__z, const _complex<value_type> &__w) {
 #if defined(_SYCL_EXT_CPLX_FAST_MATH)
     // This implementation is around 20% faster for single precision, 5% for
     // double, at the expense of larger error in some cases, because no scaling
@@ -648,7 +649,7 @@ public:
     value_type __n = __b * __b + __d * __d;
     value_type __x = __r / __n;
     value_type __y = (__b * __c - __a * __d) / __n;
-    return complex<value_type>(__x, __y);
+    return _complex<value_type>(__x, __y);
 #else
     int __ilogbw = 0;
     value_type __a = __z.__re_;
@@ -688,50 +689,50 @@ public:
         __y = value_type(0) * (__b * __c - __a * __d);
       }
     }
-    return complex<value_type>(__x, __y);
+    return _complex<value_type>(__x, __y);
 #endif
   }
-  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex<value_type>
-  operator/(const complex<value_type> &__x, value_type __y) {
-    return complex<value_type>(__x.__re_ / __y, __x.__im_ / __y);
+  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend _complex<value_type>
+  operator/(const _complex<value_type> &__x, value_type __y) {
+    return _complex<value_type>(__x.__re_ / __y, __x.__im_ / __y);
   }
-  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend complex<value_type>
-  operator/(value_type __x, const complex<value_type> &__y) {
-    complex<value_type> __t(__x);
+  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend _complex<value_type>
+  operator/(value_type __x, const _complex<value_type> &__y) {
+    _complex<value_type> __t(__x);
     __t /= __y;
     return __t;
   }
 
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend constexpr bool
-  operator==(const complex<value_type> &__x, const complex<value_type> &__y) {
+  operator==(const _complex<value_type> &__x, const _complex<value_type> &__y) {
     return __x.__re_ == __y.__re_ && __x.__im_ == __y.__im_;
   }
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend constexpr bool
-  operator==(const complex<value_type> &__x, value_type __y) {
+  operator==(const _complex<value_type> &__x, value_type __y) {
     return __x.__re_ == __y && __x.__im_ == 0;
   }
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend constexpr bool
-  operator==(value_type __x, const complex<value_type> &__y) {
+  operator==(value_type __x, const _complex<value_type> &__y) {
     return __x == __y.__re_ && 0 == __y.__im_;
   }
 
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend constexpr bool
-  operator!=(const complex<value_type> &__x, const complex<value_type> &__y) {
+  operator!=(const _complex<value_type> &__x, const _complex<value_type> &__y) {
     return !(__x == __y);
   }
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend constexpr bool
-  operator!=(const complex<value_type> &__x, value_type __y) {
+  operator!=(const _complex<value_type> &__x, value_type __y) {
     return !(__x == __y);
   }
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend constexpr bool
-  operator!=(value_type __x, const complex<value_type> &__y) {
+  operator!=(value_type __x, const _complex<value_type> &__y) {
     return !(__x == __y);
   }
 
   template <class _CharT, class _Traits>
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend std::basic_istream<_CharT, _Traits> &
   operator>>(std::basic_istream<_CharT, _Traits> &__is,
-             complex<value_type> &__x) {
+             _complex<value_type> &__x) {
     if (__is.good()) {
       ws(__is);
       if (__is.peek() == _CharT('(')) {
@@ -750,14 +751,14 @@ public:
               __c = __is.peek();
               if (__c == _CharT(')')) {
                 __is.get();
-                __x = complex<value_type>(__r, __i);
+                __x = _complex<value_type>(__r, __i);
               } else
                 __is.setstate(__is.failbit);
             } else
               __is.setstate(__is.failbit);
           } else if (__c == _CharT(')')) {
             __is.get();
-            __x = complex<value_type>(__r, value_type(0));
+            __x = _complex<value_type>(__r, value_type(0));
           } else
             __is.setstate(__is.failbit);
         } else
@@ -766,7 +767,7 @@ public:
         value_type __r;
         __is >> __r;
         if (!__is.fail())
-          __x = complex<value_type>(__r, value_type(0));
+          __x = _complex<value_type>(__r, value_type(0));
         else
           __is.setstate(__is.failbit);
       }
@@ -778,7 +779,7 @@ public:
   template <class _CharT, class _Traits>
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend std::basic_ostream<_CharT, _Traits> &
   operator<<(std::basic_ostream<_CharT, _Traits> &__os,
-             const complex<value_type> &__x) {
+             const _complex<value_type> &__x) {
     std::basic_ostringstream<_CharT, _Traits> __s;
     __s.flags(__os.flags());
     __s.imbue(__os.getloc());
@@ -788,10 +789,12 @@ public:
   }
 
   _SYCL_EXT_CPLX_INLINE_VISIBILITY friend const sycl::stream &
-  operator<<(const sycl::stream &__ss, const complex<value_type> &_x) {
+  operator<<(const sycl::stream &__ss, const _complex<value_type> &_x) {
     return __ss << "(" << _x.__re_ << "," << _x.__im_ << ")";
   }
 };
+
+template <typename T> using complex = _complex<T>;
 
 namespace cplex::detail {
 template <class _Tp, bool = std::is_integral<_Tp>::value,
