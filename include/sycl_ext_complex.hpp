@@ -122,7 +122,7 @@ public:
 
     constexpr complex(double re = 0.0, double im = 0.0);
     constexpr complex(const complex<sycl::half>&);
-    constexpr complex(const cfomplex<float>&);
+    constexpr complex(const fomplex<float>&);
 
     constexpr complex(const std::complex<double>&);
     constexpr operator std::complex<double>();
