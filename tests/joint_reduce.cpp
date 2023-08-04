@@ -15,13 +15,18 @@ void test_joint_reduce(sycl::queue q, T input, BinaryOperation binary_op) {
 
   auto init = sycl::ext::cplx::cplex::detail::get_init<V, BinaryOperation>();
 
-  auto *in = sycl::malloc_shared<V>(N, q);
-  auto *output_with_init = sycl::malloc_shared<V>(1, q);
-  auto *output_without_init = sycl::malloc_shared<V>(1, q);
+  auto *d_in = sycl::malloc_device<V>(N, q);
+  auto *d_output_with_init = sycl::malloc_device<V>(1, q);
+  auto *d_output_without_init = sycl::malloc_device<V>(1, q);
+
+  auto *h_in = sycl::malloc_host<V>(N, q);
+  auto *h_output_with_init = sycl::malloc_host<V>(1, q);
+  auto *h_output_without_init = sycl::malloc_host<V>(1, q);
 
   for (std::size_t i = 0; i < N; i++) {
-    in[i] = input[i];
+    h_in[i] = input[i];
   }
+  q.copy(h_in, d_in, N).wait();
 
   q.submit([&](sycl::handler &cgh) {
     cgh.parallel_for(sycl::nd_range<1>(N, N), [=](sycl::nd_item<1> it) {
@@ -29,24 +34,30 @@ void test_joint_reduce(sycl::queue q, T input, BinaryOperation binary_op) {
       auto lid = it.get_local_id(0);
       auto g = it.get_group();
 
-      *output_with_init =
-          sycl::ext::cplx::joint_reduce(g, in, in + N, init, binary_op);
-      *output_without_init =
-          sycl::ext::cplx::joint_reduce(g, in, in + N, binary_op);
+      *d_output_with_init =
+          sycl::ext::cplx::joint_reduce(g, d_in, d_in + N, init, binary_op);
+      *d_output_without_init =
+          sycl::ext::cplx::joint_reduce(g, d_in, d_in + N, binary_op);
     });
   });
 
+  q.copy(d_output_with_init, h_output_with_init, N);
+  q.copy(d_output_without_init, h_output_without_init, N);
   q.wait();
 
   const auto expected =
       std::reduce(input.begin(), input.end(), init, binary_op);
 
-  check_results(*output_with_init, expected);
-  check_results(*output_without_init, expected);
+  check_results(*h_output_with_init, expected);
+  check_results(*h_output_without_init, expected);
 
-  sycl::free(in, q);
-  sycl::free(output_with_init, q);
-  sycl::free(output_without_init, q);
+  sycl::free(d_in, q);
+  sycl::free(d_output_with_init, q);
+  sycl::free(d_output_without_init, q);
+
+  sycl::free(h_in, q);
+  sycl::free(h_output_with_init, q);
+  sycl::free(h_output_without_init, q);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
