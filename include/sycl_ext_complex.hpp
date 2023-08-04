@@ -273,7 +273,8 @@ template<class T> complex<T> tanh (const complex<T>&);
 #define _SYCL_MARRAY_BEGIN_NAMESPACE namespace _SYCL_MARRAY_NAMESPACE {
 #define _SYCL_MARRAY_END_NAMESPACE }
 
-#if defined(__FAST_MATH__) || defined(_M_FP_FAST)
+#if (defined(__FAST_MATH__) || defined(_M_FP_FAST)) &&                         \
+    !defined(_NO_SYCL_EXT_CPLX_FAST_MATH)
 #define _SYCL_EXT_CPLX_FAST_MATH
 #endif
 
@@ -358,7 +359,8 @@ class __promote : public __promote_imp<_A1, _A2, _A3> {};
 // without this extra help.
 template <typename T>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr bool isnan(const T a) {
-#ifdef _SYCL_EXT_CPLX_FAST_MATH
+#if defined(_SYCL_EXT_CPLX_FAST_MATH) &&                                       \
+    !defined(_NO_SYCL_EXT_CPLX_FAST_MATH_ISNAN)
   return false;
 #else
   return sycl::isnan(a);
@@ -367,7 +369,8 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr bool isnan(const T a) {
 
 template <typename T>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr bool isfinite(const T a) {
-#ifdef _SYCL_EXT_CPLX_FAST_MATH
+#if defined(_SYCL_EXT_CPLX_FAST_MATH) &&                                       \
+    !defined(_NO_SYCL_EXT_CPLX_FAST_MATH_ISFINITE)
   return true;
 #else
   return sycl::isfinite(a);
@@ -376,7 +379,8 @@ _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr bool isfinite(const T a) {
 
 template <typename T>
 _SYCL_EXT_CPLX_INLINE_VISIBILITY constexpr bool isinf(const T a) {
-#ifdef _SYCL_EXT_CPLX_FAST_MATH
+#if defined(_SYCL_EXT_CPLX_FAST_MATH) &&                                       \
+    !defined(_NO_SYCL_EXT_CPLX_FAST_MATH_ISINF)
   return false;
 #else
   return sycl::isinf(a);
@@ -635,9 +639,9 @@ public:
     return __t;
   }
 
-  _SYCL_EXT_CPLX_INLINE_VISIBILITY friend _complex<value_type>
   operator/(const _complex<value_type> &__z, const _complex<value_type> &__w) {
-#if defined(_SYCL_EXT_CPLX_FAST_MATH)
+#if defined(_SYCL_EXT_CPLX_FAST_MATH) &&                                       \
+    !defined(_NO_SYCL_EXT_CPLX_FAST_MATH_DIV)
     // This implementation is around 20% faster for single precision, 5% for
     // double, at the expense of larger error in some cases, because no scaling
     // is done.
