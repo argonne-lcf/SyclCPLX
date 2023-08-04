@@ -122,7 +122,7 @@ public:
 
     constexpr complex(double re = 0.0, double im = 0.0);
     constexpr complex(const complex<sycl::half>&);
-    constexpr complex(const complex<float>&);
+    constexpr complex(const cfomplex<float>&);
 
     constexpr complex(const std::complex<double>&);
     constexpr operator std::complex<double>();
@@ -273,7 +273,8 @@ template<class T> complex<T> tanh (const complex<T>&);
 #define _SYCL_MARRAY_BEGIN_NAMESPACE namespace _SYCL_MARRAY_NAMESPACE {
 #define _SYCL_MARRAY_END_NAMESPACE }
 
-#if ( defined(__FAST_MATH__) || defined(_M_FP_FAST) ) && !define(_NO_SYCL_EXT_CPLX_FAST_MATH)
+#if ( defined(__FAST_MATH__) || defined(_M_FP_FAST) ) && \
+    !define(_NO_SYCL_EXT_CPLX_FAST_MATH)
 #define _SYCL_EXT_CPLX_FAST_MATH
 #endif
 
