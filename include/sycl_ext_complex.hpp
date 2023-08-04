@@ -273,7 +273,7 @@ template<class T> complex<T> tanh (const complex<T>&);
 #define _SYCL_MARRAY_BEGIN_NAMESPACE namespace _SYCL_MARRAY_NAMESPACE {
 #define _SYCL_MARRAY_END_NAMESPACE }
 
-#if defined(__FAST_MATH__) || defined(_M_FP_FAST)
+#if ( defined(__FAST_MATH__) || defined(_M_FP_FAST) ) && !define(_NO_SYCL_EXT_CPLX_FAST_MATH)
 #define _SYCL_EXT_CPLX_FAST_MATH
 #endif
 
